@@ -2,10 +2,17 @@ import React, { useEffect, useState } from 'react'
 import './List.css'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEdit } from '@fortawesome/free-solid-svg-icons'
+import Edit from '../Edit/Edit'
 
-const List = ({url}) => {
+const List = ({ url }) => {
 
   const [list, setList] = useState([])
+
+  const [edit, setEdit] = useState(false)
+
+  const [currentItem, setCurrentItem] = useState(null)
 
   const fetchList = async () => {
     // const response = await axios.get('http://localhost:4000/api/food/list')
@@ -31,11 +38,23 @@ const List = ({url}) => {
     // const response = await axios.post(`${url}/api/food/re/${id}`)
   }
 
+  const editItem = async (foodId) => {
+    console.log(foodId)
+    const item = list.find(item => item._id === foodId)
+    setCurrentItem(foodId)
+    setEdit(true)
+    // const response = await axios.post(`${url}/api/food/edit/`, { id: foodId })
+    console.log(response.data)
+    // await fetchList()
+  }
+
   useEffect(() => {
     fetchList()
   }, [])
 
   return (
+    <>
+    {edit ? <Edit setEdit={setEdit}/> : null}
     <div className='list add flex-col'>
       <p>All Foods List</p>
       <div className='list-table'>
@@ -54,11 +73,15 @@ const List = ({url}) => {
             {/* <p>{item.description}</p> */}
             <p>{item.category}</p>
             <p>${item.price}</p>
-            <p onClick={() => deleteItem(item._id)} className='cusor'>X</p>
+            <div className='Action'>
+              <p onClick={() => deleteItem(item._id)} className='cusor'>X</p>
+              <p onClick={() => {editItem(item._id), setEdit(true)}} className='cusor'> <FontAwesomeIcon icon={faEdit} /> </p>
+            </div>
           </div>
         ))}
       </div>
     </div>
+    </>
   )
 }
 
