@@ -3,16 +3,39 @@ import "./Add.css";
 import { assets } from "../../assets/assets";
 import axios from "axios";
 import { toast } from "react-toastify";
-import PropTypes from "prop-types";
+// import PropTypes from "prop-types";
 
-const Add = ({ url }) => {
+const Add = () => {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const [image, setImage] = useState(false);
+  const [categories, setCategories] = useState([]);
   const [data, setData] = useState({
     name: "",
     description: "",
-    category: "Salad",
+    category: "",
     price: "",
   });
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get(`${apiUrl}/api/category/list`);
+        if (response.data.success && Array.isArray(response.data.data)) {
+          setCategories(response.data.data);
+          if (response.data.data.length > 0) {
+            setData((prev) => ({
+              ...prev,
+              category: response.data.data[0].name,
+            }));
+          }
+        }
+      } catch (error) {
+        toast.error("Failed to fetch categories");
+        console.error(error);
+      }
+    };
+    fetchCategories();
+  }, [apiUrl]);
 
   const onChangeHandler = (e) => {
     const name = e.target.name;
@@ -32,22 +55,24 @@ const Add = ({ url }) => {
     formData.append("category", data.category);
     formData.append("price", Number(data.price));
     formData.append("image", image);
-    const response = await axios.post(`${url}/api/food/add`, formData);
 
-    // const response = await axois.post('http://localhost:4000/api/food/add', formData)
-
-    if (response.data.success) {
-      setData({
-        name: "",
-        description: "",
-        category: "Salad",
-        price: "",
-      });
-      setImage(false);
-      // toast.success("Product Added")
-      toast.success(response.data.success);
-    } else {
-      toast.error("Error Occured");
+    try {
+      const response = await axios.post(`${apiUrl}/api/product`, formData);
+      if (response.data.success) {
+        setData({
+          name: "",
+          description: "",
+          category: categories.length > 0 ? categories[0].name : "",
+          price: "",
+        });
+        setImage(false);
+        toast.success(response.data.message || "Product Added Successfully");
+      } else {
+        toast.error(response.data.message || "Error Occurred");
+      }
+    } catch (error) {
+      toast.error("An error occurred while adding the product.");
+      console.error(error);
     }
   };
 
@@ -99,14 +124,15 @@ const Add = ({ url }) => {
               value={data.category}
               name="category"
             >
-              <option value="Salad">Salad</option>
-              <option value="Rolls">Rolls</option>
-              <option value="Deserst">Deserst</option>
-              <option value="Sandwich">Sandwich</option>
-              <option value="Cake">Cake</option>
-              <option value="Pure Veg">Pure Veg</option>
-              <option value="Pasta">Pasta</option>
-              <option value="Noodles">Noodles</option>
+              {categories.length > 0 ? (
+                categories.map((cat) => (
+                  <option key={cat._id} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))
+              ) : (
+                <option value="">Loading categories...</option>
+              )}
             </select>
           </div>
           <div className="add-price flex-col">
@@ -128,8 +154,6 @@ const Add = ({ url }) => {
   );
 };
 
-Add.propTypes = {
-  url: PropTypes.string.isRequired,
-};
+Add.propTypes = {};
 
 export default Add;

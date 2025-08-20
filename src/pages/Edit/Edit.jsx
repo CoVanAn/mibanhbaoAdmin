@@ -5,14 +5,42 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import PropTypes from "prop-types";
 
-const Edit = ({ item, setEdit }) => {
+const Edit = ({ item, setEdit, onSave }) => {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const [image, setImage] = useState(false);
+  const [categories, setCategories] = useState([]);
   const [data, setData] = useState({
     name: "",
     description: "",
-    category: "Salad",
+    category: "",
     price: "",
   });
+
+  useEffect(() => {
+    if (item) {
+      setData({
+        name: item.name || "",
+        description: item.description || "",
+        category: item.category || "",
+        price: item.price || "",
+      });
+    }
+  }, [item]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get(`${apiUrl}/api/category/list`);
+        if (response.data.success && Array.isArray(response.data.data)) {
+          setCategories(response.data.data);
+        }
+      } catch (error) {
+        toast.error("Failed to fetch categories");
+        console.error(error);
+      }
+    };
+    fetchCategories();
+  }, [apiUrl]);
 
   const onChangeHandler = (e) => {
     const name = e.target.name;
@@ -26,26 +54,35 @@ const Edit = ({ item, setEdit }) => {
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
+    if (!item || !item._id) {
+      toast.error("Item not found");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("description", data.description);
     formData.append("category", data.category);
     formData.append("price", Number(data.price));
-    formData.append("image", image);
-    const response = await axios.post(`${url}/api/food/edit`, formData);
+    if (image) {
+      formData.append("image", image);
+    }
 
-    if (response.data.success) {
-      setData({
-        name: "",
-        description: "",
-        category: "Salad",
-        price: "",
-      });
-      setImage(false);
-      // toast.success("Product Added")
-      toast.success(response.data.success);
-    } else {
-      toast.error("Error Occured");
+    try {
+      const response = await axios.put(
+        `${apiUrl}/api/product/${item._id}`,
+        formData
+      );
+      if (response.data.success) {
+        toast.success(response.data.message || "Product updated successfully!");
+        setEdit(false);
+        if (onSave) onSave(); // Refresh the list
+      } else {
+        toast.error(response.data.message || "Update failed");
+      }
+    } catch (error) {
+      toast.error("An error occurred during the update.");
+      console.error(error);
     }
   };
 
@@ -98,14 +135,15 @@ const Edit = ({ item, setEdit }) => {
                 value={data.category}
                 name="category"
               >
-                <option value="Salad">Salad</option>
-                <option value="Rolls">Rolls</option>
-                <option value="Deserst">Deserst</option>
-                <option value="Sandwich">Sandwich</option>
-                <option value="Cake">Cake</option>
-                <option value="Pure Veg">Pure Veg</option>
-                <option value="Pasta">Pasta</option>
-                <option value="Noodles">Noodles</option>
+                {categories.length > 0 ? (
+                  categories.map((cat) => (
+                    <option key={cat._id} value={cat.name}>
+                      {cat.name}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Loading categories...</option>
+                )}
               </select>
             </div>
             <div className="add-price flex-col">
@@ -140,6 +178,7 @@ const Edit = ({ item, setEdit }) => {
 Edit.propTypes = {
   item: PropTypes.object.isRequired,
   setEdit: PropTypes.func.isRequired,
+  onSave: PropTypes.func,
 };
 
 export default Edit;

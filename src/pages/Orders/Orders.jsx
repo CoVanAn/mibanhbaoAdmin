@@ -71,7 +71,8 @@ const Orders = ({ url }) => {
                     order.address.zipcode}
                 </p>
               </div>
-              <p className="order-item-phone">Phone: {order.address.phone}</p>
+              <p>date: {order.date}</p>
+              <p className='order-item-phone'>Phone: {order.address.phone}</p>
             </div>
             <p>Items: {order.items.length}</p>
             <p className="order-item-amount">Amount: ${order.amount}</p>
