@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import {
   Table,
   Button,
@@ -8,84 +8,57 @@ import {
   Input,
   Select,
   Switch,
-  message,
   Popconfirm,
   Tag,
 } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import axios from "axios";
+import { useCategories } from "../../hooks";
+import { validationRules } from "../../utils";
 import "./Categories.css";
 
 const { Option } = Select;
 
 const Categories = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [form] = Form.useForm();
 
-  // Fetch categories list
-  const fetchCategories = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        `${apiUrl}/api/category/list?includeInactive=1`
-      );
-      setCategories(response.data || []);
-    } catch (error) {
-      message.error("Lỗi khi tải danh sách categories");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }, [apiUrl]);
-
-  useEffect(() => {
-    if (apiUrl) {
-      fetchCategories();
-    }
-  }, [fetchCategories, apiUrl]);
+  const {
+    categories,
+    loadingCategories,
+    creating,
+    updating,
+    deleting,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+    getCategoryDisplayName,
+    getParentOptions,
+  } = useCategories();
 
   // Handle create/update category
   const handleSubmit = async (values) => {
     try {
       if (editingCategory) {
-        // Update existing category
-        await axios.patch(
-          `${apiUrl}/api/category/${editingCategory.id}`,
-          values
-        );
-        message.success("Cập nhật category thành công!");
+        await updateCategory(editingCategory.id, values);
       } else {
-        // Create new category
-        await axios.post(`${apiUrl}/api/category/add`, values);
-        message.success("Thêm category thành công!");
+        await createCategory(values);
       }
 
       setModalVisible(false);
       setEditingCategory(null);
       form.resetFields();
-      fetchCategories();
     } catch (error) {
-      const errorMsg = error.response?.data?.message || "Có lỗi xảy ra";
-      message.error(errorMsg);
-      console.error(error);
+      // Error handling is done in the hook
     }
   };
 
   // Handle delete category
   const handleDelete = async (categoryId) => {
     try {
-      await axios.delete(`${apiUrl}/api/category/${categoryId}`);
-      message.success("Xóa category thành công!");
-      fetchCategories();
+      await deleteCategory(categoryId);
     } catch (error) {
-      const errorMsg =
-        error.response?.data?.message || "Không thể xóa category";
-      message.error(errorMsg);
-      console.error(error);
+      // Error handling is done in the hook
     }
   };
 
@@ -104,37 +77,6 @@ const Categories = () => {
     } else {
       form.resetFields();
     }
-  };
-
-  // Get parent categories for dropdown (exclude current category and its children)
-  const getParentOptions = () => {
-    if (!editingCategory) return categories;
-
-    // For editing, exclude the category itself and its descendants
-    const excludeIds = [editingCategory.id];
-    const addDescendants = (parentId) => {
-      categories.forEach((cat) => {
-        if (cat.parentId === parentId && !excludeIds.includes(cat.id)) {
-          excludeIds.push(cat.id);
-          addDescendants(cat.id);
-        }
-      });
-    };
-    addDescendants(editingCategory.id);
-
-    return categories.filter((cat) => !excludeIds.includes(cat.id));
-  };
-
-  // Build hierarchical display name
-  const getCategoryDisplayName = (category, allCategories = categories) => {
-    if (!category.parentId) return category.name;
-
-    const parent = allCategories.find((cat) => cat.id === category.parentId);
-    if (!parent) return category.name;
-
-    return `${getCategoryDisplayName(parent, allCategories)} > ${
-      category.name
-    }`;
   };
 
   const columns = [
@@ -213,6 +155,7 @@ const Categories = () => {
             size="small"
             icon={<EditOutlined />}
             onClick={() => openModal(record)}
+            loading={updating}
           >
             Sửa
           </Button>
@@ -228,6 +171,7 @@ const Categories = () => {
               danger
               size="small"
               icon={<DeleteOutlined />}
+              loading={deleting}
             >
               Xóa
             </Button>
@@ -245,6 +189,7 @@ const Categories = () => {
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => openModal()}
+          loading={creating}
         >
           Thêm Category
         </Button>
@@ -254,7 +199,7 @@ const Categories = () => {
         columns={columns}
         dataSource={categories}
         rowKey="id"
-        loading={loading}
+        loading={loadingCategories}
         pagination={{
           pageSize: 10,
           showSizeChanger: true,
@@ -288,10 +233,7 @@ const Categories = () => {
           <Form.Item
             label="Tên Category"
             name="name"
-            rules={[
-              { required: true, message: "Vui lòng nhập tên category!" },
-              { min: 2, message: "Tên category phải có ít nhất 2 ký tự!" },
-            ]}
+            rules={validationRules.name}
           >
             <Input placeholder="Nhập tên category" />
           </Form.Item>
@@ -310,9 +252,9 @@ const Categories = () => {
               }
             >
               <Option key="none" value={null}>
-                <em>Không có</em>
+                <em>Không có category cha (Category gốc)</em>
               </Option>
-              {getParentOptions().map((cat) => (
+              {getParentOptions(editingCategory?.id).map((cat) => (
                 <Option key={cat.id} value={cat.id}>
                   {getCategoryDisplayName(cat)}
                 </Option>
@@ -343,7 +285,11 @@ const Categories = () => {
               >
                 Hủy
               </Button>
-              <Button type="primary" htmlType="submit">
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={creating || updating}
+              >
                 {editingCategory ? "Cập nhật" : "Thêm mới"}
               </Button>
             </Space>

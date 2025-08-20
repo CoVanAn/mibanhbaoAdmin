@@ -181,6 +181,7 @@ const AuthContextProvider = (props) => {
   };
 
   const contextValue = {
+    useAuth,
     user,
     token,
     loading,
