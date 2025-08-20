@@ -1,12 +1,12 @@
-.sidebar{
-    width: 18%;
+.sidebar {
+    width: 60px;
     min-height: 100vh;
     border: 1.5px solid #f1f1f1;
     border-top: 0;
     font-size: max(1vw, 10ox);
 }
 
-.sidebar-options{
+.sidebar-options {
     padding-top: 50px;
     padding-left: 20%;
     display: flex;
@@ -14,7 +14,7 @@
     gap: 20px;
 }
 
-.sidebar-option{
+.sidebar-option {
     text-decoration: none;
     color: black;
     font-size: 1.2rem;
@@ -26,14 +26,13 @@
     border-radius: 3px 0 0 3px;
 }
 
-.sidebar-option.active{
+.sidebar-option.active {
     background-color: #fde4e4;
     border-color: tomato;
 }
 
-@media (max-width: 900px){
-    .sidebar-option p{
+@media (max-width: 900px) {
+    .sidebar-option p {
         display: none;
     }
 }
-
