@@ -319,6 +319,12 @@ const ProductsEdit = () => {
       console.log("Form values:", values);
       console.log("Existing images:", existingImages);
       console.log("New images:", newImages);
+      console.log("New images originFileObj:", newImages.map(img => ({
+        name: img.name,
+        size: img.size,
+        type: img.type,
+        hasOriginFileObj: !!img.originFileObj
+      })));
       console.log("Variants data:", variants);
 
       // Use the price from variants (simplified approach)

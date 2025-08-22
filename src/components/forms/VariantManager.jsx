@@ -145,9 +145,25 @@ const VariantManager = ({ variants = [], onVariantsChange, product, mode = 'simp
           label="Giá bán"
           name="price"
           rules={[
-            { required: true, message: "Vui lòng nhập giá!" },
-            { type: "number", min: 0, message: "Giá phải lớn hơn 0!" },
+            // Only require price if no existing price history
+            ...(priceHistory.length === 0 ? [
+              { required: true, message: "Vui lòng nhập giá!" }
+            ] : []),
+            { 
+              validator: (_, value) => {
+                // If no value entered and we have price history, it's valid
+                if ((value === undefined || value === null || value === '') && priceHistory.length > 0) {
+                  return Promise.resolve();
+                }
+                // If value is entered, must be > 0
+                if (value !== undefined && value !== null && value !== '' && Number(value) <= 0) {
+                  return Promise.reject(new Error("Giá phải lớn hơn 0!"));
+                }
+                return Promise.resolve();
+              }
+            }
           ]}
+          help={priceHistory.length > 0 ? "Để trống nếu không muốn thay đổi giá hiện tại" : undefined}
         >
           <InputNumber
             style={{ width: "100%" }}
@@ -156,7 +172,7 @@ const VariantManager = ({ variants = [], onVariantsChange, product, mode = 'simp
               `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             }
             parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-            placeholder="Nhập giá sản phẩm"
+            placeholder={priceHistory.length > 0 ? "Nhập giá mới (hoặc để trống)" : "Nhập giá sản phẩm"}
             addonAfter="VNĐ"
             min={0}
             step={1000}

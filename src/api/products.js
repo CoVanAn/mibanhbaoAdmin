@@ -44,10 +44,16 @@ export const productsApi = {
   },
 
   update: async (id, productData) => {
+    console.log("=== PRODUCTS API UPDATE DEBUG ===");
+    console.log("Product ID:", id);
+    console.log("Product data:", productData);
+    console.log("Has newImages:", productData.newImages?.length || 0);
+    
     // Check if we have files to upload
     const hasFiles = productData.newImages && productData.newImages.length > 0;
 
     if (hasFiles) {
+      console.log("Using FormData for file upload");
       // Use FormData for file uploads
       const formData = new FormData();
 
@@ -60,14 +66,21 @@ export const productsApi = {
         ) {
           if (productData[key] !== null && productData[key] !== undefined) {
             formData.append(key, productData[key]);
+            console.log(`Added field ${key}:`, productData[key]);
           }
         }
       });
 
       // Add new images
       if (productData.newImages) {
-        productData.newImages.forEach((image) => {
-          formData.append("images", image);
+        console.log("Adding newImages files:", productData.newImages.length);
+        productData.newImages.forEach((image, index) => {
+          formData.append("newImages", image);
+          console.log(`Added newImages[${index}]:`, {
+            name: image.name,
+            size: image.size,
+            type: image.type
+          });
         });
       }
 
@@ -87,15 +100,19 @@ export const productsApi = {
         );
       }
 
+      console.log("Sending FormData request to:", `/api/product/${id}`);
       const response = await apiClient.patch(`/api/product/${id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+      console.log("FormData response:", response.data);
       return response.data;
     } else {
+      console.log("Using JSON for text-only update");
       // Regular JSON update for text-only changes
       const response = await apiClient.patch(`/api/product/${id}`, productData);
+      console.log("JSON response:", response.data);
       return response.data;
     }
   },

@@ -155,16 +155,16 @@ const ProductsList = () => {
       key: "price",
       render: (price, record) => {
         const variants = record.variants || [];
-        
+
         if (variants.length === 0) {
           return (
             <Space direction="vertical" size="small">
-              <Text strong style={{ color: '#1890ff', fontSize: '16px' }}>
+              <Text strong style={{ color: "#1890ff", fontSize: "16px" }}>
                 {formatCurrency(price || 0)}
               </Text>
-              <Tag color="gray" style={{ fontSize: '11px' }}>
+              {/* <Tag color="gray" style={{ fontSize: '11px' }}>
                 Không có variant
-              </Tag>
+              </Tag> */}
             </Space>
           );
         }
@@ -175,16 +175,19 @@ const ProductsList = () => {
               {variants.map((variant, index) => {
                 const currentPrice = variant.currentPrice || variant.price || 0;
                 return (
-                  <div key={variant.id} style={{ marginBottom: '4px' }}>
+                  <div key={variant.id} style={{ marginBottom: "4px" }}>
                     <Space>
-                      <Text strong style={{ color: '#1890ff', fontSize: '14px' }}>
+                      <Text
+                        strong
+                        style={{ color: "#1890ff", fontSize: "14px" }}
+                      >
                         {formatCurrency(currentPrice)}
                       </Text>
-                      <Tag color="blue" style={{ fontSize: '10px' }}>
+                      <Tag color="blue" style={{ fontSize: "10px" }}>
                         {variant.name || `Variant ${index + 1}`}
                       </Tag>
                       {!variant.isActive && (
-                        <Tag color="red" style={{ fontSize: '10px' }}>
+                        <Tag color="red" style={{ fontSize: "10px" }}>
                           Tạm dừng
                         </Tag>
                       )}
@@ -194,12 +197,16 @@ const ProductsList = () => {
               })}
             </div>
             <div>
-              <Tag color="green" style={{ fontSize: '11px' }}>
-                {variants.length} variant{variants.length > 1 ? 's' : ''}
+              <Tag color="green" style={{ fontSize: "11px" }}>
+                {variants.length} variant{variants.length > 1 ? "s" : ""}
               </Tag>
-              {variants.filter(v => v.isActive).length !== variants.length && (
-                <Tag color="orange" style={{ fontSize: '11px', marginLeft: '4px' }}>
-                  {variants.filter(v => v.isActive).length} hoạt động
+              {variants.filter((v) => v.isActive).length !==
+                variants.length && (
+                <Tag
+                  color="orange"
+                  style={{ fontSize: "11px", marginLeft: "4px" }}
+                >
+                  {variants.filter((v) => v.isActive).length} hoạt động
                 </Tag>
               )}
             </div>
@@ -227,50 +234,50 @@ const ProductsList = () => {
         </Tag>
       ),
     },
-    {
-      title: "Variants",
-      key: "variants",
-      width: 120,
-      render: (_, record) => {
-        const variants = record.variants || [];
-        
-        if (variants.length === 0) {
-          return <Text type="secondary">Không có</Text>;
-        }
+    // {
+    //   title: "Variants",
+    //   key: "variants",
+    //   width: 120,
+    //   render: (_, record) => {
+    //     const variants = record.variants || [];
 
-        if (variants.length === 1) {
-          const variant = variants[0];
-          return (
-            <Tooltip title={`SKU: ${variant.sku || 'N/A'}`}>
-              <Tag color="blue" style={{ fontSize: '11px' }}>
-                {variant.name}
-              </Tag>
-            </Tooltip>
-          );
-        }
+    //     if (variants.length === 0) {
+    //       return <Text type="secondary">Không có</Text>;
+    //     }
 
-        return (
-          <Tooltip 
-            title={
-              <div>
-                {variants.map((v, index) => (
-                  <div key={v.id || index}>
-                    <strong>{v.name}</strong> - SKU: {v.sku || 'N/A'}
-                    {index < variants.length - 1 && <br />}
-                  </div>
-                ))}
-              </div>
-            }
-          >
-            <Space>
-              <Tag color="blue" style={{ fontSize: '11px' }}>
-                {variants.length} variants
-              </Tag>
-            </Space>
-          </Tooltip>
-        );
-      },
-    },
+    //     if (variants.length === 1) {
+    //       const variant = variants[0];
+    //       return (
+    //         <Tooltip title={`SKU: ${variant.sku || "N/A"}`}>
+    //           <Tag color="blue" style={{ fontSize: "11px" }}>
+    //             {variant.name}
+    //           </Tag>
+    //         </Tooltip>
+    //       );
+    //     }
+
+    //     return (
+    //       <Tooltip
+    //         title={
+    //           <div>
+    //             {variants.map((v, index) => (
+    //               <div key={v.id || index}>
+    //                 <strong>{v.name}</strong> - SKU: {v.sku || "N/A"}
+    //                 {index < variants.length - 1 && <br />}
+    //               </div>
+    //             ))}
+    //           </div>
+    //         }
+    //       >
+    //         <Space>
+    //           <Tag color="blue" style={{ fontSize: "11px" }}>
+    //             {variants.length} variants
+    //           </Tag>
+    //         </Space>
+    //       </Tooltip>
+    //     );
+    //   },
+    // },
     {
       title: "Hành động",
       key: "actions",
