@@ -1,0 +1,114 @@
+.variant-display .ant-card-head {
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.variant-display .ant-table {
+  margin-top: 16px;
+}
+
+.variant-display .ant-table-thead > tr > th {
+  background-color: #fafafa;
+  font-weight: 600;
+}
+
+.variant-display .variant-name {
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.variant-display .current-price {
+  font-size: 16px;
+  font-weight: 600;
+  color: #52c41a;
+}
+
+.variant-display .price-history {
+  margin-top: 8px;
+}
+
+.variant-display .price-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  margin-bottom: 4px;
+}
+
+.variant-display .price-item.active {
+  background-color: #e6f7ff;
+  border: 1px solid #91d5ff;
+}
+
+.variant-display .price-item.expired {
+  background-color: #fff2e8;
+  border: 1px solid #ffbb96;
+  opacity: 0.7;
+}
+
+.variant-display .variant-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.variant-display .variant-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.variant-display .primary-variant {
+  border-left: 4px solid #1890ff;
+  padding-left: 12px;
+}
+
+.variant-display .variant-row:hover {
+  background-color: #fafafa;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .variant-display .variant-actions {
+    flex-direction: column;
+  }
+  
+  .variant-display .ant-table {
+    font-size: 12px;
+  }
+  
+  .variant-display .current-price {
+    font-size: 14px;
+  }
+}
+
+/* Loading states */
+.variant-display .loading-overlay {
+  position: relative;
+}
+
+.variant-display .loading-overlay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+/* Variant form styling */
+.variant-form .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.variant-form .form-actions {
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 16px;
+}

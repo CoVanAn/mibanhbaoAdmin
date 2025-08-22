@@ -30,8 +30,7 @@ export const useProducts = () => {
   const { loading: updating, execute: updateProduct } = useApi(
     productsApi.update,
     {
-      showSuccessMessage: true,
-      successMessage: "Cập nhật sản phẩm thành công!",
+      showSuccessMessage: false, // Don't show message here, let component handle it
       onSuccess: () => {
         fetchProducts(); // Refresh list
       },
@@ -67,9 +66,9 @@ export const useProducts = () => {
   // Update local state when API data changes
   useEffect(() => {
     if (productsData) {
-      setProducts(
-        Array.isArray(productsData) ? productsData : productsData.data || []
-      );
+      // Handle both old format (direct array) and new format (with success/data structure)
+      const products = productsData.data || productsData;
+      setProducts(Array.isArray(products) ? products : []);
     }
   }, [productsData]);
 

@@ -1,261 +1,263 @@
 /* AdminProfile Component Styles */
 .admin-profile {
-  padding: 24px;
-  background: var(--bg-color);
-  min-height: 100vh;
+    padding: 24px;
+    background: var(--bg-color);
+    min-height: 100vh;
 }
 
 .profile-header {
-  margin-bottom: 24px;
-  text-align: center;
+    margin-bottom: 24px;
+    text-align: center;
 }
 
 .profile-header .ant-typography {
-  margin-bottom: 8px;
+    margin-bottom: 8px;
 }
 
 .profile-card {
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
 }
 
 .profile-tabs .ant-tabs-tab {
-  font-weight: 500;
-  padding: 12px 24px;
+    font-weight: 500;
+    padding: 12px 24px;
 }
 
 .profile-content {
-  padding: 24px 0;
+    padding: 24px 0;
 }
 
 /* Avatar Section Styles */
 .avatar-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 24px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  border-radius: 12px;
-  margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 12px;
+    margin-bottom: 24px;
 }
 
 .avatar-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
 }
 
 .profile-avatar {
-  border: 4px solid #fff;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
+    border: 4px solid #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
 }
 
 .profile-avatar:hover {
-  transform: scale(1.05);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+    transform: scale(1.05);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
 }
 
 .avatar-edit-btn {
-  background: var(--primary-color, #1890ff);
-  border: 2px solid #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    background: var(--primary-color, #1890ff);
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .avatar-info {
-  text-align: center;
-  margin-top: 8px;
+    text-align: center;
+    margin-top: 8px;
 }
 
 .user-name {
-  margin-bottom: 8px !important;
-  color: var(--text-color);
+    margin-bottom: 8px !important;
+    color: var(--text-color);
 }
 
 .user-role {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 500;
-  color: var(--primary-color, #1890ff);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+    color: var(--primary-color, #1890ff);
 }
 
 /* Form Section Styles */
 .form-section {
-  padding: 24px;
+    padding: 24px;
 }
 
-.profile-form .ant-form-item-label > label {
-  font-weight: 500;
-  color: var(--text-color);
+.profile-form .ant-form-item-label>label {
+    font-weight: 500;
+    color: var(--text-color);
 }
 
 .profile-form .ant-input,
 .profile-form .ant-input-password {
-  border-radius: 8px;
-  border: 1.5px solid #d9d9d9;
-  transition: all 0.3s ease;
+    border-radius: 8px;
+    border: 1.5px solid #d9d9d9;
+    transition: all 0.3s ease;
 }
 
 .profile-form .ant-input:focus,
 .profile-form .ant-input-password:focus,
 .profile-form .ant-input-focused,
 .profile-form .ant-input-password-focused {
-  border-color: var(--primary-color, #1890ff);
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+    border-color: var(--primary-color, #1890ff);
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
 }
 
 .form-actions {
-  margin-top: 32px;
-  text-align: right;
+    margin-top: 32px;
+    text-align: right;
 }
 
 .form-actions .ant-btn {
-  border-radius: 8px;
-  font-weight: 500;
-  padding: 8px 24px;
-  height: auto;
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 8px 24px;
+    height: auto;
 }
 
 /* Password Section Styles */
 .password-section {
-  padding: 32px;
-  background: #fafafa;
-  border-radius: 12px;
-  border: 1px solid #f0f0f0;
+    padding: 32px;
+    background: #fafafa;
+    border-radius: 12px;
+    border: 1px solid #f0f0f0;
 }
 
 .password-section .ant-typography {
-  text-align: center;
-  margin-bottom: 8px;
+    text-align: center;
+    margin-bottom: 8px;
 }
 
 .password-section .ant-divider {
-  margin: 24px 0;
+    margin: 24px 0;
 }
 
 .password-form .ant-form-item {
-  margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 .password-form .ant-input-password {
-  border-radius: 8px;
+    border-radius: 8px;
 }
 
 .password-form .form-actions {
-  margin-top: 32px;
-  text-align: center;
+    margin-top: 32px;
+    text-align: center;
 }
 
 .password-form .ant-btn-danger {
-  background: #ff4d4f;
-  border-color: #ff4d4f;
-  border-radius: 8px;
-  font-weight: 500;
-  height: 44px;
+    background: #ff4d4f;
+    border-color: #ff4d4f;
+    border-radius: 8px;
+    font-weight: 500;
+    height: 44px;
 }
 
 .password-form .ant-btn-danger:hover {
-  background: #ff7875;
-  border-color: #ff7875;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
+    background: #ff7875;
+    border-color: #ff7875;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .admin-profile {
-    padding: 16px;
-  }
-  
-  .profile-content {
-    padding: 16px 0;
-  }
-  
-  .avatar-section {
-    margin-bottom: 16px;
-    padding: 16px;
-  }
-  
-  .form-section {
-    padding: 16px 8px;
-  }
-  
-  .password-section {
-    padding: 24px 16px;
-  }
-  
-  .form-actions {
-    text-align: center;
-  }
+    .admin-profile {
+        padding: 16px;
+    }
+
+    .profile-content {
+        padding: 16px 0;
+    }
+
+    .avatar-section {
+        margin-bottom: 16px;
+        padding: 16px;
+    }
+
+    .form-section {
+        padding: 16px 8px;
+    }
+
+    .password-section {
+        padding: 24px 16px;
+    }
+
+    .form-actions {
+        text-align: center;
+    }
 }
 
 @media (max-width: 576px) {
-  .profile-avatar {
-    width: 100px !important;
-    height: 100px !important;
-  }
-  
-  .avatar-edit-btn {
-    width: 28px !important;
-    height: 28px !important;
-    min-width: 28px !important;
-  }
-  
-  .profile-header h2 {
-    font-size: 20px;
-  }
+    .profile-avatar {
+        width: 100px !important;
+        height: 100px !important;
+    }
+
+    .avatar-edit-btn {
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+    }
+
+    .profile-header h2 {
+        font-size: 20px;
+    }
 }
 
 /* Animation Effects */
 .profile-card {
-  animation: fadeInUp 0.6s ease-out;
+    animation: fadeInUp 0.6s ease-out;
 }
 
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .avatar-container {
-  animation: fadeIn 0.8s ease-out;
+    animation: fadeIn 0.8s ease-out;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 /* Loading States */
 .ant-btn-loading {
-  position: relative;
+    position: relative;
 }
 
 .ant-btn-loading::before {
-  background: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.35);
 }
 
 /* Form Focus States */
 .ant-form-item-has-error .ant-input,
 .ant-form-item-has-error .ant-input-password {
-  border-color: #ff4d4f;
-  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.1);
+    border-color: #ff4d4f;
+    box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.1);
 }
 
 .ant-form-item-has-success .ant-input,
 .ant-form-item-has-success .ant-input-password {
-  border-color: #52c41a;
-  box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.1);
+    border-color: #52c41a;
+    box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.1);
 }

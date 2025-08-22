@@ -1,0 +1,111 @@
+.variant-manager-simple {
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.variant-manager-simple:hover {
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.variant-manager-simple .ant-card-head {
+  background: linear-gradient(135deg, #f6ffed 0%, #f0f9ff 100%);
+  border-bottom: 1px solid #91caff;
+}
+
+.variant-manager-simple .ant-card-body {
+  padding: 16px;
+}
+
+.variant-manager-simple .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.variant-manager-simple .ant-input-number {
+  border-radius: 6px;
+}
+
+.variant-manager-simple .ant-input-number:focus,
+.variant-manager-simple .ant-input-number-focused {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Legacy styles for advanced mode (if needed later) */
+.variant-manager {
+  margin: 16px 0;
+}
+
+.variant-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.variant-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.variant-card {
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.variant-card:hover {
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.variant-card.inactive {
+  opacity: 0.6;
+  background-color: #f5f5f5;
+}
+
+.variant-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.variant-summary {
+  padding: 8px 0;
+}
+
+.price-display {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.variant-card .ant-card-head {
+  padding: 8px 16px;
+  min-height: auto;
+}
+
+.variant-card .ant-card-body {
+  padding: 12px 16px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .variant-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .variant-title {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .variant-title>div:last-child {
+    align-self: flex-end;
+  }
+}

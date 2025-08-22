@@ -38,15 +38,32 @@ function getItem(label, key, icon, children) {
 const items = [
   getItem(<Link to="/dashboard">Dashboard</Link>, "1", <PieChartOutlined />),
   getItem("Products", "sub1", <ShoppingCartOutlined />, [
-    getItem(<Link to="/add">Add Product</Link>, "3", <AppstoreAddOutlined />),
     getItem(
-      <Link to="/list">Product List</Link>,
-      "4",
+      <Link to="/products">Danh sách</Link>,
+      "products-list",
       <UnorderedListOutlined />
+    ),
+    getItem(
+      <Link to="/products/add">Thêm mới</Link>,
+      "products-add",
+      <AppstoreAddOutlined />
     ),
   ]),
   getItem(<Link to="/categories">Categories</Link>, "5", <AppstoreOutlined />),
   getItem(<Link to="/orders">Orders</Link>, "6", <FileOutlined />),
+  // Legacy menu items (to be removed later)
+  getItem("Legacy Products", "sub2", <ShoppingCartOutlined />, [
+    getItem(
+      <Link to="/add">Add Product (Old)</Link>,
+      "3",
+      <AppstoreAddOutlined />
+    ),
+    getItem(
+      <Link to="/list">Product List (Old)</Link>,
+      "4",
+      <UnorderedListOutlined />
+    ),
+  ]),
 ];
 
 const AdminLayout = () => {

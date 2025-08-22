@@ -15,7 +15,12 @@ import {
   Space,
   Badge,
 } from "antd";
-import { UserOutlined, LockOutlined, CameraOutlined, EditOutlined } from "@ant-design/icons";
+import {
+  UserOutlined,
+  LockOutlined,
+  CameraOutlined,
+  EditOutlined,
+} from "@ant-design/icons";
 import { useAuth } from "../../context/AuthContext";
 import { validationRules } from "../../utils";
 import "./AdminProfile.css";
@@ -116,7 +121,9 @@ const AdminProfile = () => {
                         icon={<CameraOutlined />}
                         size="small"
                         className="avatar-edit-btn"
-                        onClick={() => document.getElementById('avatar-upload').click()}
+                        onClick={() =>
+                          document.getElementById("avatar-upload").click()
+                        }
                       />
                     }
                     offset={[-10, 10]}
@@ -128,24 +135,26 @@ const AdminProfile = () => {
                       className="profile-avatar"
                     />
                   </Badge>
-                  
+
                   <Upload
                     id="avatar-upload"
                     accept="image/*"
                     showUploadList={false}
                     beforeUpload={handleAvatarUpload}
                     disabled={uploading}
-                    style={{ display: 'none' }}
+                    style={{ display: "none" }}
                   >
-                    <input type="file" style={{ display: 'none' }} />
+                    <input type="file" style={{ display: "none" }} />
                   </Upload>
-                  
+
                   <div className="avatar-info">
-                    <Title level={4} className="user-name">{user.name || "Chưa có tên"}</Title>
+                    <Title level={4} className="user-name">
+                      {user.name || "Chưa có tên"}
+                    </Title>
                     <Text type="secondary">{user.email}</Text>
                     <br />
                     <Text type="secondary" className="user-role">
-                      {user.role === 'ADMIN' ? 'Quản trị viên' : 'Nhân viên'}
+                      {user.role === "ADMIN" ? "Quản trị viên" : "Nhân viên"}
                     </Text>
                   </div>
                 </div>
@@ -170,22 +179,16 @@ const AdminProfile = () => {
                         name="name"
                         rules={validationRules.name}
                       >
-                        <Input 
-                          placeholder="Nhập họ và tên" 
+                        <Input
+                          placeholder="Nhập họ và tên"
                           prefix={<UserOutlined />}
                           size="large"
                         />
                       </Form.Item>
                     </Col>
                     <Col xs={24} sm={12}>
-                      <Form.Item
-                        label="Số điện thoại"
-                        name="phone"
-                      >
-                        <Input 
-                          placeholder="Nhập số điện thoại" 
-                          size="large"
-                        />
+                      <Form.Item label="Số điện thoại" name="phone">
+                        <Input placeholder="Nhập số điện thoại" size="large" />
                       </Form.Item>
                     </Col>
                   </Row>
@@ -195,11 +198,7 @@ const AdminProfile = () => {
                     name="email"
                     rules={validationRules.email}
                   >
-                    <Input 
-                      placeholder="Nhập email" 
-                      disabled 
-                      size="large"
-                    />
+                    <Input placeholder="Nhập email" disabled size="large" />
                   </Form.Item>
 
                   <Form.Item className="form-actions">
@@ -232,11 +231,12 @@ const AdminProfile = () => {
                 <div className="password-section">
                   <Title level={4}>Thay đổi mật khẩu</Title>
                   <Text type="secondary">
-                    Đảm bảo mật khẩu mới có ít nhất 6 ký tự và khác với mật khẩu cũ
+                    Đảm bảo mật khẩu mới có ít nhất 6 ký tự và khác với mật khẩu
+                    cũ
                   </Text>
-                  
+
                   <Divider />
-                  
+
                   <Form
                     form={passwordForm}
                     layout="vertical"
@@ -248,8 +248,8 @@ const AdminProfile = () => {
                       name="currentPassword"
                       rules={validationRules.password}
                     >
-                      <Input.Password 
-                        placeholder="Nhập mật khẩu hiện tại" 
+                      <Input.Password
+                        placeholder="Nhập mật khẩu hiện tại"
                         size="large"
                       />
                     </Form.Item>
@@ -259,8 +259,8 @@ const AdminProfile = () => {
                       name="newPassword"
                       rules={validationRules.password}
                     >
-                      <Input.Password 
-                        placeholder="Nhập mật khẩu mới" 
+                      <Input.Password
+                        placeholder="Nhập mật khẩu mới"
                         size="large"
                       />
                     </Form.Item>
@@ -273,16 +273,21 @@ const AdminProfile = () => {
                         validationRules.required,
                         ({ getFieldValue }) => ({
                           validator: (_, value) => {
-                            if (!value || getFieldValue("newPassword") === value) {
+                            if (
+                              !value ||
+                              getFieldValue("newPassword") === value
+                            ) {
                               return Promise.resolve();
                             }
-                            return Promise.reject(new Error("Mật khẩu xác nhận không khớp"));
+                            return Promise.reject(
+                              new Error("Mật khẩu xác nhận không khớp")
+                            );
                           },
                         }),
                       ]}
                     >
-                      <Input.Password 
-                        placeholder="Nhập lại mật khẩu mới" 
+                      <Input.Password
+                        placeholder="Nhập lại mật khẩu mới"
                         size="large"
                       />
                     </Form.Item>
