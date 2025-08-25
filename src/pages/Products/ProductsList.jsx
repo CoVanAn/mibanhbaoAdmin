@@ -83,7 +83,7 @@ const ProductsList = () => {
       title: "Hình ảnh",
       dataIndex: "image",
       key: "image",
-      width: 80,
+      width: 100,
       render: (imageUrl) => {
         return imageUrl ? (
           <Avatar
@@ -139,7 +139,7 @@ const ProductsList = () => {
               const category = categories.find((cat) => cat.id === categoryId);
               return (
                 <Tag key={categoryId} color="blue" size="small">
-                  {category?.name || "Unknown"}
+                  <Text>{category?.name || "Unknown"}</Text>
                 </Tag>
               );
             })
