@@ -16,48 +16,58 @@ import {
   Alert,
   Collapse,
 } from "antd";
-import { 
-  PlusOutlined, 
-  DeleteOutlined, 
-  EditOutlined, 
+import {
+  PlusOutlined,
+  DeleteOutlined,
+  EditOutlined,
   CalendarOutlined,
-  InfoCircleOutlined 
+  InfoCircleOutlined,
 } from "@ant-design/icons";
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
 import "./VariantManager.css";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 const { Panel } = Collapse;
 
-const VariantManager = ({ variants = [], onVariantsChange, product, mode = 'simple' }) => {
+const VariantManager = ({
+  variants = [],
+  onVariantsChange,
+  product,
+  mode = "simple",
+}) => {
   const [price, setPrice] = useState(0);
   const [priceHistory, setPriceHistory] = useState([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     // Extract current price and price history from variants
-    const defaultVariant = variants.find((v) => v.name?.toLowerCase() === "default") || variants[0];
-    
+    const defaultVariant =
+      variants.find((v) => v.name?.toLowerCase() === "default") || variants[0];
+
     if (defaultVariant?.prices) {
       // Sort prices by date to find current one
       const sortedPrices = defaultVariant.prices.sort((a, b) => {
         // Current active prices first
         if (a.isActive && !b.isActive) return -1;
         if (!a.isActive && b.isActive) return 1;
-        
+
         // Then by date range (current date within range)
         const now = new Date();
-        const aInRange = (!a.startsAt || new Date(a.startsAt) <= now) && (!a.endsAt || new Date(a.endsAt) >= now);
-        const bInRange = (!b.startsAt || new Date(b.startsAt) <= now) && (!b.endsAt || new Date(b.endsAt) >= now);
-        
+        const aInRange =
+          (!a.startsAt || new Date(a.startsAt) <= now) &&
+          (!a.endsAt || new Date(a.endsAt) >= now);
+        const bInRange =
+          (!b.startsAt || new Date(b.startsAt) <= now) &&
+          (!b.endsAt || new Date(b.endsAt) >= now);
+
         if (aInRange && !bInRange) return -1;
         if (!aInRange && bInRange) return 1;
-        
+
         // Finally by newest
         return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
       });
-      
+
       const currentPrice = sortedPrices[0]?.amount || product?.price || 0;
       setPrice(Number(currentPrice));
       setPriceHistory(sortedPrices);
@@ -93,18 +103,21 @@ const VariantManager = ({ variants = [], onVariantsChange, product, mode = 'simp
     };
 
     // Update variants with new price
-    const updatedVariants = variants.map(variant => {
-      if (variant.name?.toLowerCase() === 'default' || variants.indexOf(variant) === 0) {
+    const updatedVariants = variants.map((variant) => {
+      if (
+        variant.name?.toLowerCase() === "default" ||
+        variants.indexOf(variant) === 0
+      ) {
         return {
           ...variant,
-          prices: [...(variant.prices || []), newPrice]
+          prices: [...(variant.prices || []), newPrice],
         };
       }
       return variant;
     });
 
     onVariantsChange?.(updatedVariants);
-    message.success('Đã thêm lịch giá mới!');
+    message.success("Đã thêm lịch giá mới!");
   };
 
   const formatPrice = (price) => {
@@ -116,25 +129,27 @@ const VariantManager = ({ variants = [], onVariantsChange, product, mode = 'simp
 
   const formatDateRange = (startsAt, endsAt) => {
     if (!startsAt && !endsAt) return "Vĩnh viễn";
-    if (!startsAt) return `Đến ${dayjs(endsAt).format('DD/MM/YYYY')}`;
-    if (!endsAt) return `Từ ${dayjs(startsAt).format('DD/MM/YYYY')}`;
-    return `${dayjs(startsAt).format('DD/MM/YYYY')} - ${dayjs(endsAt).format('DD/MM/YYYY')}`;
+    if (!startsAt) return `Đến ${dayjs(endsAt).format("DD/MM/YYYY")}`;
+    if (!endsAt) return `Từ ${dayjs(startsAt).format("DD/MM/YYYY")}`;
+    return `${dayjs(startsAt).format("DD/MM/YYYY")} - ${dayjs(endsAt).format(
+      "DD/MM/YYYY"
+    )}`;
   };
 
   const isPriceActive = (priceObj) => {
     if (!priceObj.isActive) return false;
-    
+
     const now = new Date();
     const startsAt = priceObj.startsAt ? new Date(priceObj.startsAt) : null;
     const endsAt = priceObj.endsAt ? new Date(priceObj.endsAt) : null;
-    
+
     const isAfterStart = !startsAt || now >= startsAt;
     const isBeforeEnd = !endsAt || now <= endsAt;
-    
+
     return isAfterStart && isBeforeEnd;
   };
 
-  if (mode === 'simple' && !showAdvanced) {
+  if (mode === "simple" && !showAdvanced) {
     return (
       <Card
         size="small"
@@ -146,24 +161,36 @@ const VariantManager = ({ variants = [], onVariantsChange, product, mode = 'simp
           name="price"
           rules={[
             // Only require price if no existing price history
-            ...(priceHistory.length === 0 ? [
-              { required: true, message: "Vui lòng nhập giá!" }
-            ] : []),
-            { 
+            ...(priceHistory.length === 0
+              ? [{ required: true, message: "Vui lòng nhập giá!" }]
+              : []),
+            {
               validator: (_, value) => {
                 // If no value entered and we have price history, it's valid
-                if ((value === undefined || value === null || value === '') && priceHistory.length > 0) {
+                if (
+                  (value === undefined || value === null || value === "") &&
+                  priceHistory.length > 0
+                ) {
                   return Promise.resolve();
                 }
                 // If value is entered, must be > 0
-                if (value !== undefined && value !== null && value !== '' && Number(value) <= 0) {
+                if (
+                  value !== undefined &&
+                  value !== null &&
+                  value !== "" &&
+                  Number(value) <= 0
+                ) {
                   return Promise.reject(new Error("Giá phải lớn hơn 0!"));
                 }
                 return Promise.resolve();
-              }
-            }
+              },
+            },
           ]}
-          help={priceHistory.length > 0 ? "Để trống nếu không muốn thay đổi giá hiện tại" : undefined}
+          help={
+            priceHistory.length > 0
+              ? "Để trống nếu không muốn thay đổi giá hiện tại"
+              : undefined
+          }
         >
           <InputNumber
             style={{ width: "100%" }}
@@ -172,7 +199,11 @@ const VariantManager = ({ variants = [], onVariantsChange, product, mode = 'simp
               `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             }
             parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-            placeholder={priceHistory.length > 0 ? "Nhập giá mới (hoặc để trống)" : "Nhập giá sản phẩm"}
+            placeholder={
+              priceHistory.length > 0
+                ? "Nhập giá mới (hoặc để trống)"
+                : "Nhập giá sản phẩm"
+            }
             addonAfter="VNĐ"
             min={0}
             step={1000}
