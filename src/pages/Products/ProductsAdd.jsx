@@ -14,6 +14,7 @@ import {
   message,
   Space,
   Image,
+  Tabs,
 } from "antd";
 import {
   InboxOutlined,
@@ -24,12 +25,14 @@ import { useNavigate } from "react-router-dom";
 import { useProducts, useCategories } from "../../hooks";
 import { PageHeader } from "../../components/common";
 import { validationRules } from "../../utils";
+import VariantManagerAdvanced from "../../components/forms/VariantManagerAdvanced";
 import "./ProductsAdd.css";
 
 const { TextArea } = Input;
 const { Option } = Select;
 const { Title } = Typography;
 const { Dragger } = Upload;
+const { TabPane } = Tabs;
 
 const ProductsAdd = () => {
   const navigate = useNavigate();
@@ -39,6 +42,8 @@ const ProductsAdd = () => {
 
   const [images, setImages] = useState([]);
   const [previewImages, setPreviewImages] = useState([]);
+  const [variants, setVariants] = useState([]);
+  const [useVariants, setUseVariants] = useState(false);
 
   // Handle image upload
   const handleImageChange = ({ fileList }) => {
@@ -91,23 +96,34 @@ const ProductsAdd = () => {
         name: values.name,
         description: values.description,
         content: values.content,
-        price: values.price,
         categoryId: values.categoryId,
-        isActive: values.isActive ?? true,
-        isFeatured: values.isFeatured ?? false,
+        isActive: values.isActive !== false,
+        isFeatured: values.isFeatured || false,
         images: images.map((img) => img.originFileObj).filter(Boolean),
       };
 
-      await createProduct(productData);
-      message.success("Thêm sản phẩm thành công!");
+      // Handle pricing based on variant mode
+      if (useVariants && variants.length > 0) {
+        // Use first variant price as product price for backend compatibility
+        productData.price = variants[0]?.price || 0;
+        productData.variants = variants;
+      } else {
+        // Simple pricing mode
+        productData.price = values.price;
+      }
+
+      console.log("Submitting product data:", productData);
+
+      const result = await createProduct(productData);
+      console.log("Product created:", result);
+
+      message.success("Tạo sản phẩm thành công!");
       navigate("/products");
     } catch (error) {
       console.error("Create product error:", error);
-      message.error("Có lỗi xảy ra khi thêm sản phẩm!");
+      message.error("Có lỗi xảy ra khi tạo sản phẩm!");
     }
-  };
-
-  const handleCancel = () => {
+  };  const handleCancel = () => {
     navigate("/products");
   };
 
@@ -173,45 +189,93 @@ const ProductsAdd = () => {
                 />
               </Form.Item>
 
-              <Row gutter={16}>
-                <Col xs={24} sm={12}>
-                  <Form.Item
-                    label="Giá sản phẩm (VNĐ)"
-                    name="price"
-                    rules={[
-                      validationRules.required,
-                      {
-                        pattern: /^\d+(\.\d{1,2})?$/,
-                        message: "Giá phải là số hợp lệ",
-                      },
-                    ]}
-                  >
-                    <Input
-                      placeholder="0"
-                      size="large"
-                      suffix="VNĐ"
-                      type="number"
-                      min={0}
+              <Divider orientation="left">💰 Giá & Variants</Divider>
+              
+              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                <div>
+                  <Space>
+                    <Switch
+                      checked={useVariants}
+                      onChange={setUseVariants}
+                      checkedChildren="Nhiều variants"
+                      unCheckedChildren="Giá đơn giản"
                     />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12}>
-                  <Form.Item label="Danh mục" name="categoryId">
-                    <Select
-                      placeholder="Chọn danh mục"
-                      size="large"
-                      loading={loadingCategories}
-                      allowClear
-                    >
-                      {categories.map((category) => (
-                        <Option key={category.id} value={category.id}>
-                          {category.name}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
+                    <span style={{ color: '#666' }}>
+                      {useVariants ? 'Sử dụng variants để tạo nhiều phiên bản sản phẩm' : 'Sử dụng một giá cố định'}
+                    </span>
+                  </Space>
+                </div>
+
+                {!useVariants ? (
+                  <Row gutter={16}>
+                    <Col xs={24} sm={12}>
+                      <Form.Item
+                        label="Giá sản phẩm (VNĐ)"
+                        name="price"
+                        rules={[
+                          validationRules.required,
+                          {
+                            pattern: /^\d+(\.\d{1,2})?$/,
+                            message: "Giá phải là số hợp lệ",
+                          },
+                        ]}
+                      >
+                        <Input
+                          placeholder="0"
+                          size="large"
+                          suffix="VNĐ"
+                          type="number"
+                          min={0}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12}>
+                      <Form.Item label="Danh mục" name="categoryId">
+                        <Select
+                          placeholder="Chọn danh mục"
+                          size="large"
+                          loading={loadingCategories}
+                          allowClear
+                        >
+                          {categories.map((category) => (
+                            <Option key={category.id} value={category.id}>
+                              {category.name}
+                            </Option>
+                          ))}
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                ) : (
+                  <div>
+                    <Row gutter={16} style={{ marginBottom: 16 }}>
+                      <Col xs={24} sm={12}>
+                        <Form.Item label="Danh mục" name="categoryId">
+                          <Select
+                            placeholder="Chọn danh mục"
+                            size="large"
+                            loading={loadingCategories}
+                            allowClear
+                          >
+                            {categories.map((category) => (
+                              <Option key={category.id} value={category.id}>
+                                {category.name}
+                              </Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    
+                    <VariantManagerAdvanced
+                      variants={variants}
+                      onVariantsChange={setVariants}
+                      product={{ slug: form.getFieldValue('name') }}
+                      mode="advanced"
+                    />
+                  </div>
+                )}
+              </Space>
 
               <Divider />
 

@@ -74,7 +74,223 @@
 }
 
 .variant-summary {
-  padding: 8px 0;
+  margin-top: 8px;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.variant-summary h4 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 14px;
+}
+
+.variant-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.variant-item {
+  padding: 4px 8px;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.variant-item .variant-info {
+  flex: 1;
+}
+
+.variant-item .variant-price {
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.variant-help {
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* Advanced Variant Manager Styles */
+.variant-manager-advanced {
+  margin-top: 16px;
+}
+
+.variant-manager-advanced .ant-table {
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #f0f0f0;
+}
+
+.variant-manager-advanced .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.variant-manager-advanced .ant-table-tbody > tr:hover > td {
+  background: #f5f5f5;
+}
+
+.variant-switch-container {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid #e9ecef;
+}
+
+.variant-switch-container .ant-switch {
+  margin-right: 12px;
+}
+
+.variant-help-text {
+  color: #666;
+  font-size: 13px;
+  font-style: italic;
+  margin-top: 8px;
+}
+
+.variant-tag {
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+.variant-price-input {
+  width: 140px;
+}
+
+.variant-action-buttons .ant-btn {
+  margin-right: 4px;
+}
+
+.variant-modal .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.variant-modal .ant-form-item-label {
+  font-weight: 500;
+}
+
+/* ProductsList variants display */
+.product-variants-cell {
+  min-width: 180px;
+}
+
+.product-variants-cell .variant-item {
+  margin-bottom: 4px;
+  padding: 2px 0;
+}
+
+.product-variants-cell .variant-price {
+  font-weight: 600;
+  color: #1890ff;
+  font-size: 14px;
+}
+
+.product-variants-cell .variant-name {
+  font-size: 11px;
+  margin-left: 4px;
+  color: #666;
+}
+
+.product-variants-cell .variant-sku {
+  font-size: 10px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.product-variants-cell .variant-summary {
+  margin-top: 8px;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 4px;
+}
+
+.product-variants-cell .variant-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.variant-status-active {
+  color: #52c41a;
+}
+
+.variant-status-inactive {
+  color: #ff4d4f;
+}
+
+/* Table cell styles */
+.variant-table-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.variant-table-sku {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #666;
+}
+
+.variant-table-price {
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.variant-table-inventory {
+  text-align: center;
+}
+
+.variant-table-status {
+  text-align: center;
+}
+
+.variant-table-actions {
+  text-align: center;
+}
+
+/* Add variant button */
+.add-variant-btn {
+  margin-bottom: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .variant-price-input {
+    width: 100%;
+  }
+  
+  .variant-action-buttons {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  
+  .variant-action-buttons .ant-btn {
+    margin-right: 0;
+    flex: 1;
+    min-width: 70px;
+  }
+  
+  .variant-switch-container {
+    padding: 12px;
+  }
+  
+  .product-variants-cell {
+    min-width: 150px;
+  }
 }
 
 .price-display {

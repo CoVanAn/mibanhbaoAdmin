@@ -113,6 +113,7 @@ const ProductsList = () => {
       title: "Tên sản phẩm",
       dataIndex: "name",
       key: "name",
+      width: 460,
       render: (text, record) => (
         <div>
           <Text strong>{text}</Text>
@@ -150,66 +151,93 @@ const ProductsList = () => {
       ),
     },
     {
-      title: "Giá & Variants",
-      dataIndex: "price",
-      key: "price",
-      render: (price, record) => {
+      title: "Variants & Giá",
+      key: "variants",
+      width: 200,
+      render: (_, record) => {
         const variants = record.variants || [];
 
         if (variants.length === 0) {
           return (
             <Space direction="vertical" size="small">
               <Text strong style={{ color: "#1890ff", fontSize: "16px" }}>
-                {formatCurrency(price || 0)}
+                {formatCurrency(record.price || 0)}
               </Text>
-              {/* <Tag color="gray" style={{ fontSize: '11px' }}>
+              <Tag color="gray" style={{ fontSize: '11px' }}>
                 Không có variant
-              </Tag> */}
+              </Tag>
             </Space>
           );
         }
 
+        if (variants.length === 1) {
+          const variant = variants[0];
+          const currentPrice = variant.currentPrice || variant.price || record.price || 0;
+          
+          return (
+            <Space direction="vertical" size="small">
+              <Text strong style={{ color: "#1890ff", fontSize: "16px" }}>
+                {formatCurrency(currentPrice)}
+              </Text>
+              <Space>
+                <Tag color="blue" style={{ fontSize: '11px' }}>
+                  {variant.name || 'Default'}
+                </Tag>
+                {!variant.isActive && (
+                  <Tag color="red" style={{ fontSize: '10px' }}>
+                    Tạm dừng
+                  </Tag>
+                )}
+              </Space>
+              {variant.sku && (
+                <Text type="secondary" style={{ fontSize: '10px' }}>
+                  SKU: {variant.sku}
+                </Text>
+              )}
+            </Space>
+          );
+        }
+
+        // Multiple variants
         return (
           <Space direction="vertical" size="small">
             <div>
-              {variants.map((variant, index) => {
+              {variants.slice(0, 2).map((variant, index) => {
                 const currentPrice = variant.currentPrice || variant.price || 0;
                 return (
-                  <div key={variant.id} style={{ marginBottom: "4px" }}>
-                    <Space>
-                      <Text
-                        strong
-                        style={{ color: "#1890ff", fontSize: "14px" }}
-                      >
+                  <div key={variant.id || index} style={{ marginBottom: "4px" }}>
+                    <Space size="small">
+                      <Text strong style={{ color: "#1890ff", fontSize: "14px" }}>
                         {formatCurrency(currentPrice)}
                       </Text>
                       <Tag color="blue" style={{ fontSize: "10px" }}>
                         {variant.name || `Variant ${index + 1}`}
                       </Tag>
                       {!variant.isActive && (
-                        <Tag color="red" style={{ fontSize: "10px" }}>
-                          Tạm dừng
+                        <Tag color="red" style={{ fontSize: "9px" }}>
+                          Dừng
                         </Tag>
                       )}
                     </Space>
                   </div>
                 );
               })}
+              {variants.length > 2 && (
+                <Text type="secondary" style={{ fontSize: "11px" }}>
+                  +{variants.length - 2} variant khác
+                </Text>
+              )}
             </div>
-            <div>
+            <Space>
               <Tag color="green" style={{ fontSize: "11px" }}>
-                {variants.length} variant{variants.length > 1 ? "s" : ""}
+                {variants.length} variants
               </Tag>
-              {variants.filter((v) => v.isActive).length !==
-                variants.length && (
-                <Tag
-                  color="orange"
-                  style={{ fontSize: "11px", marginLeft: "4px" }}
-                >
+              {variants.filter((v) => v.isActive).length !== variants.length && (
+                <Tag color="orange" style={{ fontSize: "11px" }}>
                   {variants.filter((v) => v.isActive).length} hoạt động
                 </Tag>
               )}
-            </div>
+            </Space>
           </Space>
         );
       },

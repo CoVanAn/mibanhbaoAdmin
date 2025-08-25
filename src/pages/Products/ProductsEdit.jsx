@@ -17,6 +17,7 @@ import {
   Spin,
   Tooltip,
   Tag,
+  Tabs,
 } from "antd";
 import {
   InboxOutlined,
@@ -48,6 +49,7 @@ import { useProducts, useCategories } from "../../hooks";
 import { PageHeader } from "../../components/common";
 import { validationRules } from "../../utils";
 import VariantManager from "../../components/forms/VariantManager";
+import VariantManagerAdvanced from "../../components/forms/VariantManagerAdvanced";
 import "./ProductsEdit.css";
 
 const { TextArea } = Input;
@@ -144,6 +146,7 @@ const ProductsEdit = () => {
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
   const [variants, setVariants] = useState([]);
+  const [useVariants, setUseVariants] = useState(false);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -197,6 +200,11 @@ const ProductsEdit = () => {
         console.log("Variants from backend:", variantsData);
 
         setVariants(variantsData);
+
+        // Determine if using variants mode
+        const hasMultipleVariants = variantsData.length > 1;
+        const hasNamedVariants = variantsData.some(v => v.name !== "Default");
+        setUseVariants(hasMultipleVariants || hasNamedVariants);
 
         // Set form values with better data mapping
         const formValues = {
@@ -567,9 +575,31 @@ const ProductsEdit = () => {
                 />
               </Form.Item>
 
-              {/* Simplified Price Management */}
-              <Row gutter={16}>
-                <Col xs={24} sm={12}>
+              <Divider orientation="left">💰 Giá & Variants</Divider>
+              
+              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                <div>
+                  <Space>
+                    <Switch
+                      checked={useVariants}
+                      onChange={(checked) => {
+                        setUseVariants(checked);
+                        if (!checked && variants.length > 0) {
+                          // When switching to simple mode, keep the first variant's price
+                          const firstPrice = variants[0]?.price || 0;
+                          form.setFieldsValue({ price: firstPrice });
+                        }
+                      }}
+                      checkedChildren="Nhiều variants"
+                      unCheckedChildren="Giá đơn giản"
+                    />
+                    <span style={{ color: '#666' }}>
+                      {useVariants ? 'Quản lý nhiều variants của sản phẩm' : 'Sử dụng một giá cố định'}
+                    </span>
+                  </Space>
+                </div>
+
+                {!useVariants ? (
                   <VariantManager
                     variants={variants}
                     product={product}
@@ -580,14 +610,25 @@ const ProductsEdit = () => {
                         form.setFieldsValue({ price: newVariants[0].price });
                       }
                     }}
+                    mode="simple"
                   />
-                </Col>
+                ) : (
+                  <VariantManagerAdvanced
+                    variants={variants}
+                    onVariantsChange={setVariants}
+                    product={product}
+                    mode="advanced"
+                  />
+                )}
+              </Space>
+
+              <Row gutter={16}>
                 <Col xs={24} sm={12}>
                   <Form.Item label="Danh mục" name="categoryId">
                     <Select
                       placeholder="Chọn danh mục"
-                      loading={loadingCategories}
                       size="large"
+                      loading={loadingCategories}
                       allowClear
                     >
                       {categories.map((category) => (
@@ -598,9 +639,7 @@ const ProductsEdit = () => {
                     </Select>
                   </Form.Item>
                 </Col>
-              </Row>
-
-              <Divider />
+              </Row>              <Divider />
 
               <Row gutter={16}>
                 <Col xs={24} sm={12}>
