@@ -16,11 +16,11 @@ import {
   Tooltip,
   Modal,
 } from "antd";
-import { 
-  PlusOutlined, 
-  DeleteOutlined, 
+import {
+  PlusOutlined,
+  DeleteOutlined,
   EditOutlined,
-  InfoCircleOutlined 
+  InfoCircleOutlined,
 } from "@ant-design/icons";
 import { formatCurrency } from "../../utils";
 import { productsApi } from "../../api/products";
@@ -28,11 +28,11 @@ import "./VariantManager.css";
 
 const { Title, Text } = Typography;
 
-const VariantManagerAdvanced = ({ 
-  variants = [], 
-  onVariantsChange, 
-  product = {}, 
-  mode = 'advanced' 
+const VariantManagerAdvanced = ({
+  variants = [],
+  onVariantsChange,
+  product = {},
+  mode = "advanced",
 }) => {
   const [localVariants, setLocalVariants] = useState(variants);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -43,12 +43,12 @@ const VariantManagerAdvanced = ({
   // Load variants from API
   const loadVariants = async () => {
     if (!product?.id) return;
-    
+
     setLoading(true);
     try {
       const response = await productsApi.getVariants(product.id);
       const variantsData = response.variants || []; // Extract variants array from response
-      
+
       // Get prices for each variant and sort by price ascending
       const variantsWithPrices = await Promise.all(
         variantsData.map(async (variant) => {
@@ -56,37 +56,47 @@ const VariantManagerAdvanced = ({
           if (variant.prices && variant.prices.length > 0) {
             return {
               ...variant,
-              price: variant.prices[0].amount || 0
+              price: variant.prices[0].amount || 0,
             };
           }
-          
+
           // Fallback: try to get price from separate API call
           try {
-            const priceData = await productsApi.getVariantPrices(product.id, variant.id);
-            const currentPrice = priceData.currentPrice || (priceData.prices && priceData.prices[0]);
+            const priceData = await productsApi.getVariantPrices(
+              product.id,
+              variant.id
+            );
+            const currentPrice =
+              priceData.currentPrice ||
+              (priceData.prices && priceData.prices[0]);
             return {
               ...variant,
-              price: currentPrice?.amount || 0
+              price: currentPrice?.amount || 0,
             };
           } catch (error) {
             // If variant has no prices, return with price 0
-            console.warn(`No prices found for variant ${variant.id}:`, error.message);
+            console.warn(
+              `No prices found for variant ${variant.id}:`,
+              error.message
+            );
             return {
               ...variant,
-              price: 0
+              price: 0,
             };
           }
         })
       );
-      
+
       // Sort variants by price ascending
-      const sortedVariants = variantsWithPrices.sort((a, b) => (a.price || 0) - (b.price || 0));
-      
+      const sortedVariants = variantsWithPrices.sort(
+        (a, b) => (a.price || 0) - (b.price || 0)
+      );
+
       setLocalVariants(sortedVariants);
       onVariantsChange?.(sortedVariants);
     } catch (error) {
-      console.error('Error loading variants:', error);
-      message.error('Lỗi khi tải variants');
+      console.error("Error loading variants:", error);
+      message.error("Lỗi khi tải variants");
     } finally {
       setLoading(false);
     }
@@ -98,58 +108,65 @@ const VariantManagerAdvanced = ({
       loadVariants();
     } else {
       // For new products, show default variant
-      setLocalVariants([{
-        id: null,
-        name: "Default",
-        sku: "",
-        price: product?.price || 0,
-        isActive: true,
-        isDefault: true
-      }]);
+      setLocalVariants([
+        {
+          id: null,
+          name: "Default",
+          sku: "",
+          price: product?.price || 0,
+          isActive: true,
+          isDefault: true,
+        },
+      ]);
     }
   }, [product?.id]);
 
   const handleAddVariant = async (values) => {
     if (!product?.id) {
-      message.error('Cần lưu sản phẩm trước khi thêm variant');
+      message.error("Cần lưu sản phẩm trước khi thêm variant");
       return;
     }
 
     try {
       const newVariantData = {
         name: values.name,
-        sku: values.sku || `${product?.slug || 'PRODUCT'}-${values.name.toLowerCase()}`,
+        sku:
+          values.sku ||
+          `${product?.slug || "PRODUCT"}-${values.name.toLowerCase()}`,
         isActive: values.isActive !== false,
         initialStock: values.initialStock || 0,
-        safetyStock: values.safetyStock || 0
+        safetyStock: values.safetyStock || 0,
       };
 
-      const response = await productsApi.createVariant(product.id, newVariantData);
-      
+      const response = await productsApi.createVariant(
+        product.id,
+        newVariantData
+      );
+
       if (response.success) {
         // Add price for the new variant
         if (values.price) {
           await productsApi.setVariantPrice(product.id, response.id, {
-            amount: values.price
+            amount: values.price,
           });
         }
 
         // Refresh variants list
         await loadVariants();
-        
+
         setShowAddModal(false);
         form.resetFields();
-        message.success('Thêm variant thành công!');
+        message.success("Thêm variant thành công!");
       }
     } catch (error) {
-      console.error('Error adding variant:', error);
-      message.error('Lỗi khi thêm variant');
+      console.error("Error adding variant:", error);
+      message.error("Lỗi khi thêm variant");
     }
   };
 
   const handleEditVariant = async (values) => {
     if (!editingVariant?.id || !product?.id) {
-      message.error('Dữ liệu không hợp lệ');
+      message.error("Dữ liệu không hợp lệ");
       return;
     }
 
@@ -157,113 +174,129 @@ const VariantManagerAdvanced = ({
       const updateData = {
         name: values.name,
         sku: values.sku,
-        isActive: values.isActive
+        isActive: values.isActive,
       };
 
-      await productsApi.updateVariant(product.id, editingVariant.id, updateData);
-      
-      // Update price if changed
-      if (values.price !== editingVariant.price) {
+      await productsApi.updateVariant(
+        product.id,
+        editingVariant.id,
+        updateData
+      );
+
+      // Chỉ cập nhật giá nếu giá mới hợp lệ và khác giá cũ
+      if (
+        typeof values.price === "number" &&
+        values.price > 0 &&
+        values.price !== editingVariant.price
+      ) {
         await productsApi.setVariantPrice(product.id, editingVariant.id, {
-          amount: values.price
+          amount: values.price,
         });
       }
 
       // Refresh variants list
       await loadVariants();
-      
+
       setEditingVariant(null);
       setShowAddModal(false); // Close modal
       form.resetFields();
-      message.success('Cập nhật variant thành công!');
+      message.success("Cập nhật variant thành công!");
     } catch (error) {
-      console.error('Error updating variant:', error);
-      message.error('Lỗi khi cập nhật variant');
+      console.error("Error updating variant:", error);
+      message.error("Lỗi khi cập nhật variant");
     }
   };
 
   const handleDeleteVariant = async (variantId) => {
     if (!product?.id) {
-      message.error('Dữ liệu không hợp lệ');
+      message.error("Dữ liệu không hợp lệ");
       return;
     }
 
     try {
       await productsApi.deleteVariant(product.id, variantId);
       await loadVariants();
-      message.success('Xóa variant thành công!');
+      message.success("Xóa variant thành công!");
     } catch (error) {
-      console.error('Error deleting variant:', error);
-      message.error('Lỗi khi xóa variant');
+      console.error("Error deleting variant:", error);
+      message.error("Lỗi khi xóa variant");
     }
   };
 
   const handlePriceChange = async (variantId, newPrice) => {
     if (!product?.id) return;
-    
+
     try {
       await productsApi.setVariantPrice(product.id, variantId, {
-        amount: newPrice
+        amount: newPrice,
       });
-      
+
       // Reload variants from API to ensure data sync
       await loadVariants();
-      
-      message.success('Cập nhật giá thành công!');
+
+      message.success("Cập nhật giá thành công!");
     } catch (error) {
-      console.error('Error updating price:', error);
-      message.error('Lỗi khi cập nhật giá');
+      console.error("Error updating price:", error);
+      message.error("Lỗi khi cập nhật giá");
     }
   };
 
   const columns = [
     {
-      title: 'Tên Variant',
-      dataIndex: 'name',
-      key: 'name',
+      title: "Tên Variant",
+      dataIndex: "name",
+      key: "name",
       render: (text, record) => (
         <Space>
           <Text strong>{text}</Text>
           {record.isDefault && (
-            <Tag color="blue" size="small">Mặc định</Tag>
+            <Tag color="blue" size="small">
+              Mặc định
+            </Tag>
           )}
           {!record.isActive && (
-            <Tag color="red" size="small">Tạm dừng</Tag>
+            <Tag color="red" size="small">
+              Tạm dừng
+            </Tag>
           )}
         </Space>
       ),
     },
     {
-      title: 'SKU',
-      dataIndex: 'sku',
-      key: 'sku',
+      title: "SKU",
+      dataIndex: "sku",
+      key: "sku",
       render: (text) => (
-        <Text code style={{ fontSize: '12px' }}>{text || 'Chưa có SKU'}</Text>
+        <Text code style={{ fontSize: "12px" }}>
+          {text || "Chưa có SKU"}
+        </Text>
       ),
     },
     {
-      title: 'Giá',
-      dataIndex: 'price',
-      key: 'price',
+      title: "Giá",
+      dataIndex: "price",
+      key: "price",
       render: (price, record) => (
         <InputNumber
           size="small"
           value={price}
-          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+          formatter={(value) =>
+            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
           parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
           addonAfter="VNĐ"
           min={0}
           step={1000}
-          style={{ width: '140px' }}
+          style={{ width: "140px" }}
           className="variant-price-input"
           onChange={(value) => handlePriceChange(record.id, value)}
         />
       ),
     },
     {
-      title: 'Trạng thái',
-      dataIndex: 'isActive',
-      key: 'isActive',
+      title: "Trạng thái",
+      dataIndex: "isActive",
+      key: "isActive",
       render: (isActive, record) => (
         <Switch
           checked={isActive}
@@ -273,24 +306,26 @@ const VariantManagerAdvanced = ({
               await productsApi.updateVariant(product.id, record.id, {
                 name: record.name,
                 sku: record.sku,
-                isActive: checked
+                isActive: checked,
               });
-              
+
               // Reload variants to ensure data sync
               await loadVariants();
-              
-              message.success(`${checked ? 'Kích hoạt' : 'Tạm dừng'} variant thành công!`);
+
+              message.success(
+                `${checked ? "Kích hoạt" : "Tạm dừng"} variant thành công!`
+              );
             } catch (error) {
-              console.error('Error updating variant status:', error);
-              message.error('Lỗi khi cập nhật trạng thái');
+              console.error("Error updating variant status:", error);
+              message.error("Lỗi khi cập nhật trạng thái");
             }
           }}
         />
       ),
     },
     {
-      title: 'Thao tác',
-      key: 'actions',
+      title: "Thao tác",
+      key: "actions",
       render: (_, record) => (
         <Space className="variant-action-buttons">
           <Tooltip title="Chỉnh sửa">
@@ -299,7 +334,10 @@ const VariantManagerAdvanced = ({
               icon={<EditOutlined />}
               onClick={() => {
                 setEditingVariant(record);
-                form.setFieldsValue(record);
+                form.setFieldsValue({
+                  ...record,
+                  price: typeof record.price === "number" ? record.price : 0,
+                });
                 setShowAddModal(true);
               }}
             />
@@ -313,11 +351,7 @@ const VariantManagerAdvanced = ({
               cancelText="Hủy"
             >
               <Tooltip title="Xóa">
-                <Button
-                  type="text"
-                  danger
-                  icon={<DeleteOutlined />}
-                />
+                <Button type="text" danger icon={<DeleteOutlined />} />
               </Tooltip>
             </Popconfirm>
           )}
@@ -327,9 +361,10 @@ const VariantManagerAdvanced = ({
   ];
 
   // Simple mode - just show price input
-  if (mode === 'simple') {
-    const defaultVariant = localVariants.find(v => v.isDefault) || localVariants[0];
-    
+  if (mode === "simple") {
+    const defaultVariant =
+      localVariants.find((v) => v.isDefault) || localVariants[0];
+
     return (
       <Card
         size="small"
@@ -340,24 +375,37 @@ const VariantManagerAdvanced = ({
           label="Giá bán"
           rules={[
             { required: !defaultVariant, message: "Vui lòng nhập giá!" },
-            { type: 'number', min: 0, message: "Giá phải lớn hơn 0!" },
+            { type: "number", min: 0, message: "Giá phải lớn hơn 0!" },
             {
               validator: (_, value) => {
-                if ((value === undefined || value === null || value === '') && defaultVariant) {
+                if (
+                  (value === undefined || value === null || value === "") &&
+                  defaultVariant
+                ) {
                   return Promise.resolve();
                 }
                 return Promise.resolve();
-              }
-            }
+              },
+            },
           ]}
-          help={defaultVariant ? "Để trống nếu không muốn thay đổi giá hiện tại" : undefined}
+          help={
+            defaultVariant
+              ? "Để trống nếu không muốn thay đổi giá hiện tại"
+              : undefined
+          }
         >
           <InputNumber
-            style={{ width: '100%' }}
+            style={{ width: "100%" }}
             value={defaultVariant?.price}
-            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+            formatter={(value) =>
+              `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            }
             parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-            placeholder={defaultVariant ? "Nhập giá mới (hoặc để trống)" : "Nhập giá sản phẩm"}
+            placeholder={
+              defaultVariant
+                ? "Nhập giá mới (hoặc để trống)"
+                : "Nhập giá sản phẩm"
+            }
             addonAfter="VNĐ"
             min={0}
             step={1000}
@@ -371,7 +419,7 @@ const VariantManagerAdvanced = ({
                   sku: "",
                   price: value,
                   isActive: true,
-                  isDefault: true
+                  isDefault: true,
                 };
                 setLocalVariants([newVariant]);
                 onVariantsChange?.([newVariant]);
@@ -390,7 +438,7 @@ const VariantManagerAdvanced = ({
         <Space>
           <span>🔄 Quản lý Variants</span>
           <Tooltip title="Variants cho phép bạn tạo nhiều phiên bản khác nhau của sản phẩm với giá riêng">
-            <InfoCircleOutlined style={{ color: '#1890ff' }} />
+            <InfoCircleOutlined style={{ color: "#1890ff" }} />
           </Tooltip>
         </Space>
       }
@@ -404,6 +452,7 @@ const VariantManagerAdvanced = ({
             setShowAddModal(true);
           }}
           className="add-variant-btn"
+          disabled={!product?.id}
         >
           Thêm Variant
         </Button>
@@ -416,9 +465,16 @@ const VariantManagerAdvanced = ({
         rowKey="id"
         size="small"
         pagination={false}
-        scroll={{ x: 'max-content' }}
+        scroll={{ x: "max-content" }}
         loading={loading}
+        // Disable row actions if chưa có productId
+        rowClassName={() => (!product?.id ? "variant-row-disabled" : "")}
       />
+      {!product?.id && (
+        <div style={{ color: "#faad14", marginTop: 12 }}>
+          Vui lòng lưu sản phẩm trước khi thêm hoặc chỉnh sửa variants.
+        </div>
+      )}
 
       <Modal
         title={editingVariant ? "Chỉnh sửa Variant" : "Thêm Variant mới"}
@@ -441,15 +497,12 @@ const VariantManagerAdvanced = ({
           <Form.Item
             name="name"
             label="Tên Variant"
-            rules={[{ required: true, message: 'Vui lòng nhập tên variant!' }]}
+            rules={[{ required: true, message: "Vui lòng nhập tên variant!" }]}
           >
             <Input placeholder="Ví dụ: Size L, Màu đỏ, v.v." />
           </Form.Item>
 
-          <Form.Item
-            name="sku"
-            label="SKU (Mã sản phẩm)"
-          >
+          <Form.Item name="sku" label="SKU (Mã sản phẩm)">
             <Input placeholder="Để trống để tự động tạo" />
           </Form.Item>
 
@@ -457,13 +510,15 @@ const VariantManagerAdvanced = ({
             name="price"
             label="Giá"
             rules={[
-              { required: true, message: 'Vui lòng nhập giá!' },
-              { type: 'number', min: 0, message: 'Giá phải lớn hơn 0!' }
+              { required: true, message: "Vui lòng nhập giá!" },
+              { type: "number", min: 0, message: "Giá phải lớn hơn 0!" },
             ]}
           >
             <InputNumber
-              style={{ width: '100%' }}
-              formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+              style={{ width: "100%" }}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
               parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
               placeholder="Nhập giá variant"
               addonAfter="VNĐ"
@@ -478,7 +533,7 @@ const VariantManagerAdvanced = ({
             initialValue={0}
           >
             <InputNumber
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
               placeholder="Nhập số lượng tồn kho ban đầu"
               min={0}
             />
@@ -490,7 +545,7 @@ const VariantManagerAdvanced = ({
             initialValue={0}
           >
             <InputNumber
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
               placeholder="Số lượng tồn kho tối thiểu"
               min={0}
             />

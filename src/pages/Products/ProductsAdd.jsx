@@ -123,7 +123,8 @@ const ProductsAdd = () => {
       console.error("Create product error:", error);
       message.error("Có lỗi xảy ra khi tạo sản phẩm!");
     }
-  };  const handleCancel = () => {
+  };
+  const handleCancel = () => {
     navigate("/products");
   };
 
@@ -190,8 +191,12 @@ const ProductsAdd = () => {
               </Form.Item>
 
               <Divider orientation="left">💰 Giá & Variants</Divider>
-              
-              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+
+              <Space
+                direction="vertical"
+                size="middle"
+                style={{ width: "100%" }}
+              >
                 <div>
                   <Space>
                     <Switch
@@ -200,8 +205,10 @@ const ProductsAdd = () => {
                       checkedChildren="Nhiều variants"
                       unCheckedChildren="Giá đơn giản"
                     />
-                    <span style={{ color: '#666' }}>
-                      {useVariants ? 'Sử dụng variants để tạo nhiều phiên bản sản phẩm' : 'Sử dụng một giá cố định'}
+                    <span style={{ color: "#666" }}>
+                      {useVariants
+                        ? "Sử dụng variants để tạo nhiều phiên bản sản phẩm"
+                        : "Sử dụng một giá cố định"}
                     </span>
                   </Space>
                 </div>
@@ -266,11 +273,11 @@ const ProductsAdd = () => {
                         </Form.Item>
                       </Col>
                     </Row>
-                    
+
                     <VariantManagerAdvanced
                       variants={variants}
                       onVariantsChange={setVariants}
-                      product={{ slug: form.getFieldValue('name') }}
+                      product={{ slug: form.getFieldValue("name") }}
                       mode="advanced"
                     />
                   </div>

@@ -203,7 +203,7 @@ const ProductsEdit = () => {
 
         // Determine if using variants mode
         const hasMultipleVariants = variantsData.length > 1;
-        const hasNamedVariants = variantsData.some(v => v.name !== "Default");
+        const hasNamedVariants = variantsData.some((v) => v.name !== "Default");
         setUseVariants(hasMultipleVariants || hasNamedVariants);
 
         // Set form values with better data mapping
@@ -544,7 +544,6 @@ const ProductsEdit = () => {
                   size="large"
                 />
               </Form.Item>
-
               <Form.Item label="Mô tả ngắn" name="description">
                 <TextArea
                   placeholder={
@@ -559,7 +558,6 @@ const ProductsEdit = () => {
                   showCount
                 />
               </Form.Item>
-
               <Form.Item label="Nội dung chi tiết" name="content">
                 <TextArea
                   placeholder={
@@ -574,10 +572,12 @@ const ProductsEdit = () => {
                   showCount
                 />
               </Form.Item>
-
               <Divider orientation="left">💰 Giá & Variants</Divider>
-              
-              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+              <Space
+                direction="vertical"
+                size="middle"
+                style={{ width: "100%" }}
+              >
                 <div>
                   <Space>
                     <Switch
@@ -593,8 +593,10 @@ const ProductsEdit = () => {
                       checkedChildren="Nhiều variants"
                       unCheckedChildren="Giá đơn giản"
                     />
-                    <span style={{ color: '#666' }}>
-                      {useVariants ? 'Quản lý nhiều variants của sản phẩm' : 'Sử dụng một giá cố định'}
+                    <span style={{ color: "#666" }}>
+                      {useVariants
+                        ? "Quản lý nhiều variants của sản phẩm"
+                        : "Sử dụng một giá cố định"}
                     </span>
                   </Space>
                 </div>
@@ -621,7 +623,6 @@ const ProductsEdit = () => {
                   />
                 )}
               </Space>
-
               <Row gutter={16}>
                 <Col xs={24} sm={12}>
                   <Form.Item label="Danh mục" name="categoryId">
@@ -639,8 +640,8 @@ const ProductsEdit = () => {
                     </Select>
                   </Form.Item>
                 </Col>
-              </Row>              <Divider />
-
+              </Row>{" "}
+              <Divider />
               <Row gutter={16}>
                 <Col xs={24} sm={12}>
                   <Form.Item

@@ -132,14 +132,14 @@
   border: 1px solid #f0f0f0;
 }
 
-.variant-manager-advanced .ant-table-thead > tr > th {
+.variant-manager-advanced .ant-table-thead>tr>th {
   background: #fafafa;
   font-weight: 600;
   color: #333;
   border-bottom: 2px solid #f0f0f0;
 }
 
-.variant-manager-advanced .ant-table-tbody > tr:hover > td {
+.variant-manager-advanced .ant-table-tbody>tr:hover>td {
   background: #f5f5f5;
 }
 
@@ -271,23 +271,23 @@
   .variant-price-input {
     width: 100%;
   }
-  
+
   .variant-action-buttons {
     display: flex;
     gap: 4px;
     flex-wrap: wrap;
   }
-  
+
   .variant-action-buttons .ant-btn {
     margin-right: 0;
     flex: 1;
     min-width: 70px;
   }
-  
+
   .variant-switch-container {
     padding: 12px;
   }
-  
+
   .product-variants-cell {
     min-width: 150px;
   }

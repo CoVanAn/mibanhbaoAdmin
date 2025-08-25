@@ -151,7 +151,7 @@ const ProductsList = () => {
       ),
     },
     {
-      title: "Variants & Giá",
+      title: "Giá",
       key: "variants",
       width: 200,
       render: (_, record) => {
@@ -163,7 +163,7 @@ const ProductsList = () => {
               <Text strong style={{ color: "#1890ff", fontSize: "16px" }}>
                 {formatCurrency(record.price || 0)}
               </Text>
-              <Tag color="gray" style={{ fontSize: '11px' }}>
+              <Tag color="gray" style={{ fontSize: "11px" }}>
                 Không có variant
               </Tag>
             </Space>
@@ -172,25 +172,26 @@ const ProductsList = () => {
 
         if (variants.length === 1) {
           const variant = variants[0];
-          const currentPrice = variant.currentPrice || variant.price || record.price || 0;
-          
+          const currentPrice =
+            variant.currentPrice || variant.price || record.price || 0;
+
           return (
             <Space direction="vertical" size="small">
               <Text strong style={{ color: "#1890ff", fontSize: "16px" }}>
                 {formatCurrency(currentPrice)}
               </Text>
               <Space>
-                <Tag color="blue" style={{ fontSize: '11px' }}>
-                  {variant.name || 'Default'}
+                <Tag color="blue" style={{ fontSize: "11px" }}>
+                  {variant.name || "Default"}
                 </Tag>
                 {!variant.isActive && (
-                  <Tag color="red" style={{ fontSize: '10px' }}>
+                  <Tag color="red" style={{ fontSize: "10px" }}>
                     Tạm dừng
                   </Tag>
                 )}
               </Space>
               {variant.sku && (
-                <Text type="secondary" style={{ fontSize: '10px' }}>
+                <Text type="secondary" style={{ fontSize: "10px" }}>
                   SKU: {variant.sku}
                 </Text>
               )}
@@ -205,9 +206,15 @@ const ProductsList = () => {
               {variants.slice(0, 2).map((variant, index) => {
                 const currentPrice = variant.currentPrice || variant.price || 0;
                 return (
-                  <div key={variant.id || index} style={{ marginBottom: "4px" }}>
+                  <div
+                    key={variant.id || index}
+                    style={{ marginBottom: "4px" }}
+                  >
                     <Space size="small">
-                      <Text strong style={{ color: "#1890ff", fontSize: "14px" }}>
+                      <Text
+                        strong
+                        style={{ color: "#1890ff", fontSize: "14px" }}
+                      >
                         {formatCurrency(currentPrice)}
                       </Text>
                       <Tag color="blue" style={{ fontSize: "10px" }}>
@@ -232,7 +239,8 @@ const ProductsList = () => {
               <Tag color="green" style={{ fontSize: "11px" }}>
                 {variants.length} variants
               </Tag>
-              {variants.filter((v) => v.isActive).length !== variants.length && (
+              {variants.filter((v) => v.isActive).length !==
+                variants.length && (
                 <Tag color="orange" style={{ fontSize: "11px" }}>
                   {variants.filter((v) => v.isActive).length} hoạt động
                 </Tag>

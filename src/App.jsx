@@ -10,7 +10,12 @@ import List from "./pages/List/List";
 import Orders from "./pages/Orders/Orders";
 import AdminProfile from "./pages/Profile/AdminProfile";
 import Categories from "./pages/Categories/Categories";
-import { ProductsList, ProductsAdd, ProductsEdit } from "./pages/Products";
+import {
+  ProductsList,
+  ProductsAdd,
+  ProductsEdit,
+  ProductsView,
+} from "./pages/Products";
 import AdminLayout from "./components/Layout/AdminLayout";
 
 const App = () => {
@@ -46,6 +51,7 @@ const App = () => {
           <Route path="products" element={<ProductsList />} />
           <Route path="products/add" element={<ProductsAdd />} />
           <Route path="products/edit/:id" element={<ProductsEdit />} />
+          <Route path="products/view/:id" element={<ProductsView />} />
 
           {/* Legacy Routes */}
           <Route path="add" element={<Add />} />
