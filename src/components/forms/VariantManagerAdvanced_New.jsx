@@ -296,7 +296,10 @@ const VariantManagerAdvanced = ({
               icon={<EditOutlined />}
               onClick={() => {
                 setEditingVariant(record);
-                form.setFieldsValue(record);
+                form.setFieldsValue({
+                  ...record,
+                  price: record.price,
+                });
                 setShowAddModal(true);
               }}
             />

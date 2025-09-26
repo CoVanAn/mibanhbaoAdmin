@@ -151,12 +151,12 @@ const ProductsList = () => {
       ),
     },
     {
-      title: "Giá",
+      title: "Biến thể",
       key: "variants",
       width: 200,
       render: (_, record) => {
-        const variants = record.variants || [];
-
+        const variants = Array.isArray(record.variants) ? record.variants : [];
+        // 0 variant
         if (variants.length === 0) {
           return (
             <Space direction="vertical" size="small">
@@ -169,12 +169,10 @@ const ProductsList = () => {
             </Space>
           );
         }
-
+        // 1 variant
         if (variants.length === 1) {
           const variant = variants[0];
-          const currentPrice =
-            variant.currentPrice || variant.price || record.price || 0;
-
+          const currentPrice = variant.price || record.price || 0;
           return (
             <Space direction="vertical" size="small">
               <Text strong style={{ color: "#1890ff", fontSize: "16px" }}>
@@ -190,21 +188,20 @@ const ProductsList = () => {
                   </Tag>
                 )}
               </Space>
-              {variant.sku && (
+              {/* {variant.sku && (
                 <Text type="secondary" style={{ fontSize: "10px" }}>
                   SKU: {variant.sku}
                 </Text>
-              )}
+              )} */}
             </Space>
           );
         }
-
-        // Multiple variants
+        // Nhiều variant
         return (
           <Space direction="vertical" size="small">
             <div>
               {variants.slice(0, 2).map((variant, index) => {
-                const currentPrice = variant.currentPrice || variant.price || 0;
+                const currentPrice = variant.price || 0;
                 return (
                   <div
                     key={variant.id || index}
@@ -235,17 +232,16 @@ const ProductsList = () => {
                 </Text>
               )}
             </div>
-            <Space>
+            {/* <Space>
               <Tag color="green" style={{ fontSize: "11px" }}>
                 {variants.length} variants
               </Tag>
-              {variants.filter((v) => v.isActive).length !==
-                variants.length && (
+              {variants.filter((v) => v.isActive).length !== variants.length && (
                 <Tag color="orange" style={{ fontSize: "11px" }}>
                   {variants.filter((v) => v.isActive).length} hoạt động
                 </Tag>
               )}
-            </Space>
+            </Space> */}
           </Space>
         );
       },
