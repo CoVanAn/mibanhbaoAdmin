@@ -95,12 +95,17 @@ const AdminLayout = () => {
     <Layout
       style={{
         minHeight: "100vh",
+        position: "relative",
       }}
     >
       <Sider
         collapsible
         collapsed={collapsed}
         onCollapse={(value) => setCollapsed(value)}
+        style={{
+          position: "fixed",
+          height: "100vh",
+        }}
       >
         <div className="demo-logo-vertical">
           {/* <img src={assets.logo} alt="Logo" /> */}
@@ -121,6 +126,9 @@ const AdminLayout = () => {
             display: "flex",
             justifyContent: "flex-end",
             alignItems: "center",
+            position: "fixed",
+            width: `calc(100% - ${collapsed ? 80 : 200}px)`,
+            right: 0,
           }}
         >
           <Dropdown menu={{ items: userMenuItems }} trigger={["click"]}>
@@ -140,6 +148,12 @@ const AdminLayout = () => {
         <Content
           style={{
             margin: "16px",
+            position: "absolute",
+            top: 64,
+            left: collapsed ? 80 : 200,
+            right: 0,
+            bottom: 0,
+            overflow: "auto",
           }}
         >
           <div
@@ -156,6 +170,11 @@ const AdminLayout = () => {
         <Footer
           style={{
             textAlign: "center",
+            position: "absolute",
+            left: collapsed ? 80 : 200,
+            bottom: 0,
+            right: 0,
+            background: colorBgContainer,
           }}
         >
           Mi Banh Bao Admin Panel ©{new Date().getFullYear()} Created by CoVanAn

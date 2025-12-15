@@ -24,6 +24,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useProducts, useCategories } from "../../hooks";
 import { PageHeader } from "../../components/common";
+import RichTextEditor from "../../components/forms/RichTextEditor";
 import { validationRules } from "../../utils";
 import VariantManagerAdvanced from "../../components/forms/VariantManagerAdvanced";
 import "./ProductsAdd.css";
@@ -182,12 +183,7 @@ const ProductsAdd = () => {
               </Form.Item>
 
               <Form.Item label="Nội dung chi tiết" name="content">
-                <TextArea
-                  placeholder="Nội dung chi tiết về sản phẩm (hỗ trợ HTML)"
-                  rows={6}
-                  maxLength={5000}
-                  showCount
-                />
+                <RichTextEditor placeholder="Nội dung chi tiết (hỗ trợ đậm/ nghiêng/ danh sách)" />
               </Form.Item>
 
               <Divider orientation="left">💰 Giá & Variants</Divider>

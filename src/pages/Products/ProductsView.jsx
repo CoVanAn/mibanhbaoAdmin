@@ -146,6 +146,25 @@ const ProductsView = () => {
         </Col>
       </Row>
       <Divider />
+      {product.content && (
+        <>
+          <Title level={5}>Nội dung chi tiết</Title>
+          <div
+            style={{
+              padding: "16px 24px",
+              background: "#fafafa",
+              borderRadius: "8px",
+              marginBottom: 16,
+              whiteSpace: "pre-wrap",
+              wordWrap: "break-word",
+              lineHeight: "1.8",
+            }}
+            dangerouslySetInnerHTML={{ __html: product.content }}
+          />
+          <Divider />
+        </>
+      )}
+
       <Title level={5} style={{ marginTop: 16 }}>
         Danh sách Variants
       </Title>

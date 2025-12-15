@@ -50,6 +50,7 @@ import { PageHeader } from "../../components/common";
 import { validationRules } from "../../utils";
 import VariantManager from "../../components/forms/VariantManager";
 import VariantManagerAdvanced from "../../components/forms/VariantManagerAdvanced";
+import RichTextEditor from "../../components/forms/RichTextEditor";
 import "./ProductsEdit.css";
 
 const { TextArea } = Input;
@@ -559,18 +560,7 @@ const ProductsEdit = () => {
                 />
               </Form.Item>
               <Form.Item label="Nội dung chi tiết" name="content">
-                <TextArea
-                  placeholder={
-                    product.content
-                      ? `Hiện tại: ${product.content.substring(0, 100)}${
-                          product.content.length > 100 ? "..." : ""
-                        }`
-                      : "Nội dung chi tiết về sản phẩm (hỗ trợ HTML)"
-                  }
-                  rows={6}
-                  maxLength={5000}
-                  showCount
-                />
+                <RichTextEditor placeholder="Nội dung chi tiết (hỗ trợ đậm/ nghiêng/ danh sách)" />
               </Form.Item>
               <Divider orientation="left">💰 Giá & Variants</Divider>
               <Space
