@@ -560,7 +560,7 @@ const ProductsEdit = () => {
                 />
               </Form.Item>
               <Form.Item label="Nội dung chi tiết" name="content">
-                <RichTextEditor placeholder="Nội dung chi tiết (hỗ trợ đậm/ nghiêng/ danh sách)" />
+                <RichTextEditor />
               </Form.Item>
               <Divider orientation="left">💰 Giá & Variants</Divider>
               <Space
