@@ -18,6 +18,7 @@ import {
   Tooltip,
   Tag,
   Tabs,
+  Table,
 } from "antd";
 import {
   InboxOutlined,
@@ -208,14 +209,22 @@ const ProductsEdit = () => {
         setUseVariants(hasMultipleVariants || hasNamedVariants);
 
         // Set form values with better data mapping
+        // Helper to get display price: prefer product.price, else default variant's active price
+        const getDisplayPrice = () => {
+          if (productData.price) return productData.price;
+          const variants = productData.variants || [];
+          const defaultVariant =
+            variants.find((v) => v.isDefault) || variants[0];
+          const activePrice = defaultVariant?.prices?.find((p) => p.isActive);
+          const anyPrice = defaultVariant?.prices?.[0];
+          return activePrice?.amount || anyPrice?.amount || "";
+        };
+
         const formValues = {
           name: productData.name || "",
           description: productData.description || "",
           content: productData.content || "",
-          price:
-            productData.price ||
-            productData.variants?.[0]?.prices?.[0]?.amount ||
-            "",
+          price: getDisplayPrice(),
           // Handle both new and old data structure for categories
           categoryId:
             productData.categoryIds?.[0] ||
@@ -463,13 +472,22 @@ const ProductsEdit = () => {
                 <div className="info-item">
                   <strong>Giá hiện tại:</strong>
                   <div>
-                    {product.price
-                      ? `${parseInt(product.price).toLocaleString()} VNĐ`
-                      : product.variants?.[0]?.prices?.[0]?.amount
-                      ? `${parseInt(
-                          product.variants[0].prices[0].amount
-                        ).toLocaleString()} VNĐ`
-                      : "Chưa có giá"}
+                    {(() => {
+                      if (product.price) {
+                        return `${parseInt(product.price).toLocaleString()} VNĐ`;
+                      }
+                      const variants = product.variants || [];
+                      const defaultVariant =
+                        variants.find((v) => v.isDefault) || variants[0];
+                      const activePrice = defaultVariant?.prices?.find(
+                        (p) => p.isActive
+                      );
+                      const anyPrice = defaultVariant?.prices?.[0];
+                      const amount = activePrice?.amount || anyPrice?.amount;
+                      return amount
+                        ? `${parseInt(amount).toLocaleString()} VNĐ`
+                        : "Chưa có giá";
+                    })()}
                   </div>
                 </div>
               </Col>
@@ -568,6 +586,58 @@ const ProductsEdit = () => {
                 size="middle"
                 style={{ width: "100%" }}
               >
+                {/* Current Inventory by Variant */}
+                {Array.isArray(variants) && variants.length > 0 && (
+                  <>
+                    <Title level={5}>Tồn kho hiện tại</Title>
+                    <Table
+                      dataSource={variants}
+                      rowKey={(r) => r.id || r.sku}
+                      size="small"
+                      pagination={false}
+                      columns={[
+                        { title: "Tên", dataIndex: "name", key: "name" },
+                        { title: "SKU", dataIndex: "sku", key: "sku" },
+                        {
+                          title: "Số lượng",
+                          key: "quantity",
+                          render: (_, r) => {
+                            const qty =
+                              r.inventory?.quantity ??
+                              r.stock ??
+                              r.quantity ??
+                              (Array.isArray(r.inventories)
+                                ? r.inventories[0]?.quantity
+                                : undefined);
+                            return qty !== undefined && qty !== null ? (
+                              <Tag>{Number(qty).toLocaleString()}</Tag>
+                            ) : (
+                              <Tag color="default">Không có</Tag>
+                            );
+                          },
+                        },
+                        {
+                          title: "Tồn kho an toàn",
+                          key: "safetyStock",
+                          render: (_, r) => {
+                            const safety =
+                              r.inventory?.safetyStock ??
+                              r.safetyStock ??
+                              (Array.isArray(r.inventories)
+                                ? r.inventories[0]?.safetyStock
+                                : undefined);
+                            return safety !== undefined && safety !== null ? (
+                              <Tag color="blue">{Number(safety).toLocaleString()}</Tag>
+                            ) : (
+                              <Tag color="default">Không có</Tag>
+                            );
+                          },
+                        },
+                      ]}
+                      style={{ marginBottom: 12 }}
+                    />
+                  </>
+                )}
                 <div>
                   <Space>
                     <Switch

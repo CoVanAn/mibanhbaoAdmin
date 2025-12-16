@@ -191,6 +191,41 @@ const ProductsView = () => {
               ),
           },
           {
+            title: "Số lượng",
+            key: "quantity",
+            render: (_, r) => {
+              const qty =
+                r.inventory?.quantity ??
+                r.stock ??
+                r.quantity ??
+                (Array.isArray(r.inventories)
+                  ? r.inventories[0]?.quantity
+                  : undefined);
+              return qty !== undefined && qty !== null ? (
+                <Tag>{Number(qty).toLocaleString()}</Tag>
+              ) : (
+                <Tag color="default">Không có</Tag>
+              );
+            },
+          },
+          {
+            title: "Tồn kho an toàn",
+            key: "safetyStock",
+            render: (_, r) => {
+              const safety =
+                r.inventory?.safetyStock ??
+                r.safetyStock ??
+                (Array.isArray(r.inventories)
+                  ? r.inventories[0]?.safetyStock
+                  : undefined);
+              return safety !== undefined && safety !== null ? (
+                <Tag color="blue">{Number(safety).toLocaleString()}</Tag>
+              ) : (
+                <Tag color="default">Không có</Tag>
+              );
+            },
+          },
+          {
             title: "Trạng thái",
             dataIndex: "isActive",
             key: "isActive",

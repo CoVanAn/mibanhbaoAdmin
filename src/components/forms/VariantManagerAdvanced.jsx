@@ -54,9 +54,10 @@ const VariantManagerAdvanced = ({
         variantsData.map(async (variant) => {
           // Use price from backend if available (from getVariants)
           if (variant.prices && variant.prices.length > 0) {
+            const active = variant.prices.find((p) => p.isActive);
             return {
               ...variant,
-              price: variant.prices[0].amount || 0,
+              price: (active?.amount || variant.prices[0].amount || 0),
             };
           }
 
@@ -68,6 +69,7 @@ const VariantManagerAdvanced = ({
             );
             const currentPrice =
               priceData.currentPrice ||
+              (priceData.prices && priceData.prices.find((p) => p.isActive)) ||
               (priceData.prices && priceData.prices[0]);
             return {
               ...variant,
@@ -87,13 +89,15 @@ const VariantManagerAdvanced = ({
         })
       );
 
-      // Sort variants by price ascending
-      const sortedVariants = variantsWithPrices.sort(
-        (a, b) => (a.price || 0) - (b.price || 0)
-      );
+      // Keep default first, then others by name for stable display
+      const orderedVariants = variantsWithPrices.sort((a, b) => {
+        if (a.isDefault && !b.isDefault) return -1;
+        if (!a.isDefault && b.isDefault) return 1;
+        return (a.name || "").localeCompare(b.name || "");
+      });
 
-      setLocalVariants(sortedVariants);
-      onVariantsChange?.(sortedVariants);
+      setLocalVariants(orderedVariants);
+      onVariantsChange?.(orderedVariants);
     } catch (error) {
       console.error("Error loading variants:", error);
       message.error("Lỗi khi tải variants");
@@ -292,6 +296,41 @@ const VariantManagerAdvanced = ({
           onChange={(value) => handlePriceChange(record.id, value)}
         />
       ),
+    },
+    {
+      title: "Số lượng",
+      key: "quantity",
+      render: (_, record) => {
+        const qty =
+          record.inventory?.quantity ??
+          record.stock ??
+          record.quantity ??
+          (Array.isArray(record.inventories)
+            ? record.inventories[0]?.quantity
+            : undefined);
+        return qty !== undefined && qty !== null ? (
+          <Tag>{Number(qty).toLocaleString()}</Tag>
+        ) : (
+          <Tag color="default">Không có</Tag>
+        );
+      },
+    },
+    {
+      title: "Tồn kho an toàn",
+      key: "safetyStock",
+      render: (_, record) => {
+        const safety =
+          record.inventory?.safetyStock ??
+          record.safetyStock ??
+          (Array.isArray(record.inventories)
+            ? record.inventories[0]?.safetyStock
+            : undefined);
+        return safety !== undefined && safety !== null ? (
+          <Tag color="blue">{Number(safety).toLocaleString()}</Tag>
+        ) : (
+          <Tag color="default">Không có</Tag>
+        );
+      },
     },
     {
       title: "Trạng thái",

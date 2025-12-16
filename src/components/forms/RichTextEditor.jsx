@@ -20,7 +20,7 @@ const modules = {
     ["blockquote", "link"],
     ["clean"],
   ],
-};
+};  
 
 const formats = [
   "header",
