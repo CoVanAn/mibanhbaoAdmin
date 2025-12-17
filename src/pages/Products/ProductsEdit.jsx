@@ -48,7 +48,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useNavigate, useParams } from "react-router-dom";
 import { useProducts, useCategories } from "../../hooks";
 import { PageHeader } from "../../components/common";
-import { validationRules } from "../../utils";
+import { validationRules, formatCurrency } from "../../utils";
 import VariantManager from "../../components/forms/VariantManager";
 import VariantManagerAdvanced from "../../components/forms/VariantManagerAdvanced";
 import RichTextEditor from "../../components/forms/RichTextEditor";
@@ -356,7 +356,7 @@ const ProductsEdit = () => {
         name: values.name,
         description: values.description || "",
         content: values.content || "",
-        price: parseFloat(finalPrice),
+        ...( !useVariants ? { price: parseFloat(finalPrice) } : {} ),
         categoryId: values.categoryId || null,
         isActive: values.isActive !== undefined ? values.isActive : true,
         isFeatured: values.isFeatured !== undefined ? values.isFeatured : false,
@@ -425,7 +425,7 @@ const ProductsEdit = () => {
         extra={
           <Space>
             <Button icon={<ArrowLeftOutlined />} onClick={handleCancel}>
-              Hủy
+              Quay lại
             </Button>
             {process.env.NODE_ENV === "development" && (
               <Button
@@ -472,22 +472,9 @@ const ProductsEdit = () => {
                 <div className="info-item">
                   <strong>Giá hiện tại:</strong>
                   <div>
-                    {(() => {
-                      if (product.price) {
-                        return `${parseInt(product.price).toLocaleString()} VNĐ`;
-                      }
-                      const variants = product.variants || [];
-                      const defaultVariant =
-                        variants.find((v) => v.isDefault) || variants[0];
-                      const activePrice = defaultVariant?.prices?.find(
-                        (p) => p.isActive
-                      );
-                      const anyPrice = defaultVariant?.prices?.[0];
-                      const amount = activePrice?.amount || anyPrice?.amount;
-                      return amount
-                        ? `${parseInt(amount).toLocaleString()} VNĐ`
-                        : "Chưa có giá";
-                    })()}
+                    {product.currentPrice?.amount
+                      ? formatCurrency(product.currentPrice.amount)
+                      : "Chưa có giá"}
                   </div>
                 </div>
               </Col>
@@ -495,20 +482,15 @@ const ProductsEdit = () => {
                 <div className="info-item">
                   <strong>Danh mục:</strong>
                   <div>
-                    {product.categoryIds?.length > 0
-                      ? product.categoryIds
-                          .map((catId) => {
-                            const cat = categories.find((c) => c.id === catId);
-                            return cat?.name;
-                          })
-                          .filter(Boolean)
-                          .join(", ")
-                      : product.categories?.length > 0
-                      ? product.categories
-                          .map((c) => c.category?.name || c.name)
-                          .filter(Boolean)
-                          .join(", ")
-                      : "Chưa có danh mục"}
+                    {(product.categories || [])
+                      .map((cat) => {
+                        const category = categories.find(
+                          (c) => c.id === cat.categoryId
+                        );
+                        return category?.name || null;
+                      })
+                      .filter(Boolean)
+                      .join(", ") || "Chưa có"}
                   </div>
                 </div>
               </Col>
@@ -516,16 +498,23 @@ const ProductsEdit = () => {
                 <div className="info-item">
                   <strong>Trạng thái:</strong>
                   <div>
-                    <Space>
-                      <span
-                        style={{ color: product.isActive ? "green" : "red" }}
-                      >
-                        {product.isActive ? "● Hoạt động" : "● Ẩn"}
-                      </span>
-                      {product.isFeatured && (
-                        <span style={{ color: "gold" }}>★ Nổi bật</span>
-                      )}
-                    </Space>
+                    {product.isActive ? (
+                      <Tag color="success">Đang hoạt động</Tag>
+                    ) : (
+                      <Tag color="error">Tạm dừng</Tag>
+                    )}
+                  </div>
+                </div>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <div className="info-item">
+                  <strong>Nổi bật:</strong>
+                  <div>
+                    {product.isFeatured ? (
+                      <Tag color="purple">Nổi bật</Tag>
+                    ) : (
+                      "Không"
+                    )}
                   </div>
                 </div>
               </Col>

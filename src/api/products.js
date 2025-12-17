@@ -226,24 +226,40 @@ export const productsApi = {
     return response.data;
   },
 
-  updateVariantPrice: async (productId, variantId, priceData) => {
+  updateVariantPrice: async (productId, variantId, priceId, priceData) => {
     const response = await apiClient.patch(
-      `/api/product/${productId}/variants/${variantId}/price`,
+      `/api/product/${productId}/variants/${variantId}/price/${priceId}`,
       priceData
     );
     return response.data;
   },
 
-  getVariantPrices: async (productId, variantId) => {
-    const response = await apiClient.get(
-      `/api/product/${productId}/variants/${variantId}/prices`
-    );
+  getVariantPrices: async (productId, variantId, options = {}) => {
+    const query = new URLSearchParams();
+    if (options.includeInactive) {
+      query.set("includeInactive", "true");
+    }
+
+    const url = query.toString()
+      ? `/api/product/${productId}/variants/${variantId}/prices?${query}`
+      : `/api/product/${productId}/variants/${variantId}/prices`;
+
+    const response = await apiClient.get(url);
     return response.data;
   },
 
   deleteVariantPrice: async (productId, variantId, priceId) => {
     const response = await apiClient.delete(
-      `/api/product/${productId}/variants/${variantId}/prices/${priceId}`
+      `/api/product/${productId}/variants/${variantId}/price/${priceId}`
+    );
+    return response.data;
+  },
+
+  // Inventory Management
+  updateVariantInventory: async (productId, variantId, inventoryData) => {
+    const response = await apiClient.patch(
+      `/api/product/${productId}/variants/${variantId}/inventory`,
+      inventoryData
     );
     return response.data;
   },

@@ -15,15 +15,19 @@ import {
   Table,
   Tooltip,
   Modal,
+  Row,
+  Col,
 } from "antd";
 import {
   PlusOutlined,
   DeleteOutlined,
   EditOutlined,
   InfoCircleOutlined,
+  DatabaseOutlined,
 } from "@ant-design/icons";
 import { formatCurrency } from "../../utils";
 import { productsApi } from "../../api/products";
+import PriceManagementModal from "./PriceManagementModal";
 import "./VariantManager.css";
 
 const { Title, Text } = Typography;
@@ -37,8 +41,11 @@ const VariantManagerAdvanced = ({
   const [localVariants, setLocalVariants] = useState(variants);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingVariant, setEditingVariant] = useState(null);
+  const [inventoryVariant, setInventoryVariant] = useState(null); // State for inventory modal
+  const [priceVariant, setPriceVariant] = useState(null); // State for price management
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const [inventoryForm] = Form.useForm();
 
   // Load variants from API
   const loadVariants = async () => {
@@ -47,50 +54,31 @@ const VariantManagerAdvanced = ({
     setLoading(true);
     try {
       const response = await productsApi.getVariants(product.id);
-      const variantsData = response.variants || []; // Extract variants array from response
+      const variantsData = response.variants || [];
 
-      // Get prices for each variant and sort by price ascending
-      const variantsWithPrices = await Promise.all(
-        variantsData.map(async (variant) => {
-          // Use price from backend if available (from getVariants)
-          if (variant.prices && variant.prices.length > 0) {
-            const active = variant.prices.find((p) => p.isActive);
-            return {
-              ...variant,
-              price: (active?.amount || variant.prices[0].amount || 0),
-            };
-          }
+      // The getVariants endpoint now returns everything we need (including currentPrice and inventory)
+      // No need for extra API calls per variant.
+      const processedVariants = variantsData.map((variant) => {
+        const currentPrice = variant.currentPrice;
+        let priceValue = 0;
 
-          // Fallback: try to get price from separate API call
-          try {
-            const priceData = await productsApi.getVariantPrices(
-              product.id,
-              variant.id
-            );
-            const currentPrice =
-              priceData.currentPrice ||
-              (priceData.prices && priceData.prices.find((p) => p.isActive)) ||
-              (priceData.prices && priceData.prices[0]);
-            return {
-              ...variant,
-              price: currentPrice?.amount || 0,
-            };
-          } catch (error) {
-            // If variant has no prices, return with price 0
-            console.warn(
-              `No prices found for variant ${variant.id}:`,
-              error.message
-            );
-            return {
-              ...variant,
-              price: 0,
-            };
-          }
-        })
-      );
+        if (typeof currentPrice === "number") {
+          priceValue = currentPrice;
+        } else if (currentPrice?.amount !== undefined) {
+          priceValue = Number(currentPrice.amount || 0);
+        } else if (variant.prices?.length) {
+          priceValue = Number(variant.prices[0]?.amount || 0);
+        }
+
+        return {
+          ...variant,
+          price: priceValue,
+          inventory: variant.inventory || { quantity: 0, safetyStock: 0 },
+        };
+      });
 
       // Keep default first, then others by name for stable display
-      const orderedVariants = variantsWithPrices.sort((a, b) => {
+      const orderedVariants = processedVariants.sort((a, b) => {
         if (a.isDefault && !b.isDefault) return -1;
         if (!a.isDefault && b.isDefault) return 1;
         return (a.name || "").localeCompare(b.name || "");
@@ -187,17 +175,6 @@ const VariantManagerAdvanced = ({
         updateData
       );
 
-      // Chỉ cập nhật giá nếu giá mới hợp lệ và khác giá cũ
-      if (
-        typeof values.price === "number" &&
-        values.price > 0 &&
-        values.price !== editingVariant.price
-      ) {
-        await productsApi.setVariantPrice(product.id, editingVariant.id, {
-          amount: values.price,
-        });
-      }
-
       // Refresh variants list
       await loadVariants();
 
@@ -227,22 +204,49 @@ const VariantManagerAdvanced = ({
     }
   };
 
-  const handlePriceChange = async (variantId, newPrice) => {
-    if (!product?.id) return;
+  const handleInventoryModalOpen = (variant) => {
+    setInventoryVariant(variant);
+    inventoryForm.setFieldsValue({
+      quantity: variant.inventory?.quantity ?? 0,
+      safetyStock: variant.inventory?.safetyStock ?? 0,
+    });
+  };
+
+  const handleInventoryModalCancel = () => {
+    setInventoryVariant(null);
+    inventoryForm.resetFields();
+  };
+
+  const handleInventoryUpdate = async (values) => {
+    if (!inventoryVariant) return;
 
     try {
-      await productsApi.setVariantPrice(product.id, variantId, {
-        amount: newPrice,
-      });
-
-      // Reload variants from API to ensure data sync
-      await loadVariants();
-
-      message.success("Cập nhật giá thành công!");
+      setLoading(true);
+      await productsApi.updateVariantInventory(
+        product.id,
+        inventoryVariant.id,
+        {
+          quantity: values.quantity,
+          safetyStock: values.safetyStock,
+        }
+      );
+      message.success("Cập nhật tồn kho thành công!");
+      handleInventoryModalCancel();
+      await loadVariants(); // Refresh data
     } catch (error) {
-      console.error("Error updating price:", error);
-      message.error("Lỗi khi cập nhật giá");
+      console.error("Error updating inventory:", error);
+      message.error("Lỗi khi cập nhật tồn kho.");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handlePriceModalOpen = (variant) => {
+    setPriceVariant(variant);
+  };
+
+  const handlePriceModalClose = () => {
+    setPriceVariant(null);
   };
 
   const columns = [
@@ -277,25 +281,10 @@ const VariantManagerAdvanced = ({
       ),
     },
     {
-      title: "Giá",
+      title: "Giá hiện tại",
       dataIndex: "price",
       key: "price",
-      render: (price, record) => (
-        <InputNumber
-          size="small"
-          value={price}
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-          addonAfter="VNĐ"
-          min={0}
-          step={1000}
-          style={{ width: "140px" }}
-          className="variant-price-input"
-          onChange={(value) => handlePriceChange(record.id, value)}
-        />
-      ),
+      render: (price) => <Text strong>{formatCurrency(price)}</Text>,
     },
     {
       title: "Số lượng",
@@ -379,6 +368,20 @@ const VariantManagerAdvanced = ({
                 });
                 setShowAddModal(true);
               }}
+            />
+          </Tooltip>
+          <Tooltip title="Quản lý giá">
+            <Button
+              type="text"
+              icon={<i className="fa-solid fa-tags"></i>}
+              onClick={() => handlePriceModalOpen(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Quản lý tồn kho">
+            <Button
+              type="text"
+              icon={<DatabaseOutlined />}
+              onClick={() => handleInventoryModalOpen(record)}
             />
           </Tooltip>
           {!record.isDefault && (
@@ -502,19 +505,13 @@ const VariantManagerAdvanced = ({
         columns={columns}
         dataSource={localVariants}
         rowKey="id"
-        size="small"
         pagination={false}
-        scroll={{ x: "max-content" }}
         loading={loading}
-        // Disable row actions if chưa có productId
-        rowClassName={() => (!product?.id ? "variant-row-disabled" : "")}
+        size="small"
+        className="variants-table"
       />
-      {!product?.id && (
-        <div style={{ color: "#faad14", marginTop: 12 }}>
-          Vui lòng lưu sản phẩm trước khi thêm hoặc chỉnh sửa variants.
-        </div>
-      )}
 
+      {/* Add/Edit Variant Modal */}
       <Modal
         title={editingVariant ? "Chỉnh sửa Variant" : "Thêm Variant mới"}
         open={showAddModal}
@@ -524,79 +521,161 @@ const VariantManagerAdvanced = ({
           form.resetFields();
         }}
         onOk={() => form.submit()}
-        okText={editingVariant ? "Cập nhật" : "Thêm"}
-        cancelText="Hủy"
-        className="variant-modal"
+        confirmLoading={loading}
+        destroyOnClose
       >
         <Form
           form={form}
           layout="vertical"
           onFinish={editingVariant ? handleEditVariant : handleAddVariant}
+          initialValues={{
+            isActive: true,
+            price: 0,
+            initialStock: 0,
+            safetyStock: 0,
+          }}
         >
           <Form.Item
             name="name"
             label="Tên Variant"
             rules={[{ required: true, message: "Vui lòng nhập tên variant!" }]}
           >
-            <Input placeholder="Ví dụ: Size L, Màu đỏ, v.v." />
+            <Input placeholder="VD: Lớn, Nhỏ, Xanh, Đỏ" />
           </Form.Item>
-
-          <Form.Item name="sku" label="SKU (Mã sản phẩm)">
-            <Input placeholder="Để trống để tự động tạo" />
-          </Form.Item>
-
           <Form.Item
-            name="price"
-            label="Giá"
+            name="sku"
+            label="SKU (Mã định danh sản phẩm)"
+            help="Để trống để tự động tạo SKU."
+          >
+            <Input placeholder="VD: BANHBAO-LON" />
+          </Form.Item>
+          {!editingVariant && (
+            <>
+              <Form.Item
+                name="price"
+                label="Giá ban đầu"
+                rules={[
+                  {
+                    type: "number",
+                    min: 0,
+                    message: "Giá phải là số không âm!",
+                  },
+                ]}
+              >
+                <InputNumber
+                  style={{ width: "100%" }}
+                  placeholder="Nhập giá cho variant này"
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                  addonAfter="VNĐ"
+                />
+              </Form.Item>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="initialStock"
+                    label="Số lượng ban đầu"
+                    rules={[
+                      {
+                        type: "number",
+                        min: 0,
+                        message: "Số lượng phải là số không âm!",
+                      },
+                    ]}
+                  >
+                    <InputNumber
+                      style={{ width: "100%" }}
+                      placeholder="Số lượng trong kho"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="safetyStock"
+                    label="Tồn kho an toàn"
+                    rules={[
+                      {
+                        type: "number",
+                        min: 0,
+                        message: "Số lượng phải là số không âm!",
+                      },
+                    ]}
+                  >
+                    <InputNumber
+                      style={{ width: "100%" }}
+                      placeholder="Ngưỡng cảnh báo tồn kho"
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </>
+          )}
+          <Form.Item name="isActive" label="Trạng thái" valuePropName="checked">
+            <Switch
+              checkedChildren="Đang hoạt động"
+              unCheckedChildren="Tạm dừng"
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Price Management Modal */}
+      {priceVariant && (
+        <PriceManagementModal
+          product={product}
+          variant={priceVariant}
+          open={!!priceVariant}
+          onClose={handlePriceModalClose}
+          onUpdate={loadVariants}
+        />
+      )}
+
+      {/* Inventory Management Modal */}
+      <Modal
+        title={`Quản lý tồn kho cho: ${inventoryVariant?.name}`}
+        open={!!inventoryVariant}
+        onCancel={handleInventoryModalCancel}
+        onOk={() => inventoryForm.submit()}
+        confirmLoading={loading}
+        destroyOnClose
+      >
+        <Form
+          form={inventoryForm}
+          layout="vertical"
+          onFinish={handleInventoryUpdate}
+        >
+          <Form.Item
+            name="quantity"
+            label="Số lượng hiện tại"
             rules={[
-              { required: true, message: "Vui lòng nhập giá!" },
-              { type: "number", min: 0, message: "Giá phải lớn hơn 0!" },
+              { required: true, message: "Vui lòng nhập số lượng!" },
+              {
+                type: "number",
+                min: 0,
+                message: "Số lượng phải là số không âm!",
+              },
+            ]}
+          >
+            <InputNumber style={{ width: "100%" }} placeholder="Số lượng trong kho" />
+          </Form.Item>
+          <Form.Item
+            name="safetyStock"
+            label="Tồn kho an toàn"
+            rules={[
+              { required: true, message: "Vui lòng nhập tồn kho an toàn!" },
+              {
+                type: "number",
+                min: 0,
+                message: "Số lượng phải là số không âm!",
+              },
             ]}
           >
             <InputNumber
               style={{ width: "100%" }}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-              placeholder="Nhập giá variant"
-              addonAfter="VNĐ"
-              min={0}
-              step={1000}
+              placeholder="Ngưỡng cảnh báo tồn kho thấp"
             />
-          </Form.Item>
-
-          <Form.Item
-            name="initialStock"
-            label="Số lượng ban đầu"
-            initialValue={0}
-          >
-            <InputNumber
-              style={{ width: "100%" }}
-              placeholder="Nhập số lượng tồn kho ban đầu"
-              min={0}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="safetyStock"
-            label="Tồn kho an toàn"
-            initialValue={0}
-          >
-            <InputNumber
-              style={{ width: "100%" }}
-              placeholder="Số lượng tồn kho tối thiểu"
-              min={0}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="isActive"
-            label="Trạng thái"
-            valuePropName="checked"
-            initialValue={true}
-          >
-            <Switch checkedChildren="Hoạt động" unCheckedChildren="Tạm dừng" />
           </Form.Item>
         </Form>
       </Modal>
