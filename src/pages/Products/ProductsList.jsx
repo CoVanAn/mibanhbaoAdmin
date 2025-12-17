@@ -232,16 +232,6 @@ const ProductsList = () => {
                 </Text>
               )}
             </div>
-            {/* <Space>
-              <Tag color="green" style={{ fontSize: "11px" }}>
-                {variants.length} variants
-              </Tag>
-              {variants.filter((v) => v.isActive).length !== variants.length && (
-                <Tag color="orange" style={{ fontSize: "11px" }}>
-                  {variants.filter((v) => v.isActive).length} hoạt động
-                </Tag>
-              )}
-            </Space> */}
           </Space>
         );
       },
@@ -266,50 +256,7 @@ const ProductsList = () => {
         </Tag>
       ),
     },
-    // {
-    //   title: "Variants",
-    //   key: "variants",
-    //   width: 120,
-    //   render: (_, record) => {
-    //     const variants = record.variants || [];
 
-    //     if (variants.length === 0) {
-    //       return <Text type="secondary">Không có</Text>;
-    //     }
-
-    //     if (variants.length === 1) {
-    //       const variant = variants[0];
-    //       return (
-    //         <Tooltip title={`SKU: ${variant.sku || "N/A"}`}>
-    //           <Tag color="blue" style={{ fontSize: "11px" }}>
-    //             {variant.name}
-    //           </Tag>
-    //         </Tooltip>
-    //       );
-    //     }
-
-    //     return (
-    //       <Tooltip
-    //         title={
-    //           <div>
-    //             {variants.map((v, index) => (
-    //               <div key={v.id || index}>
-    //                 <strong>{v.name}</strong> - SKU: {v.sku || "N/A"}
-    //                 {index < variants.length - 1 && <br />}
-    //               </div>
-    //             ))}
-    //           </div>
-    //         }
-    //       >
-    //         <Space>
-    //           <Tag color="blue" style={{ fontSize: "11px" }}>
-    //             {variants.length} variants
-    //           </Tag>
-    //         </Space>
-    //       </Tooltip>
-    //     );
-    //   },
-    // },
     {
       title: "Hành động",
       key: "actions",

@@ -5,9 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import AuthContextProvider from "./context/AuthContext";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import AdminLogin from "./pages/Auth/AdminLogin";
-import Add from "./pages/Add/Add";
-import List from "./pages/List/List";
-import Orders from "./pages/Orders/Orders";
+// import Orders from "./pages/Orders/Orders";
 import AdminProfile from "./pages/Profile/AdminProfile";
 import Categories from "./pages/Categories/Categories";
 import {
@@ -53,13 +51,9 @@ const App = () => {
           <Route path="products/edit/:id" element={<ProductsEdit />} />
           <Route path="products/view/:id" element={<ProductsView />} />
 
-          {/* Legacy Routes */}
-          <Route path="add" element={<Add />} />
-          <Route path="list" element={<List />} />
-
           {/* Other Routes */}
           <Route path="categories" element={<Categories />} />
-          <Route path="orders" element={<Orders />} />
+          {/* <Route path="orders" element={<Orders />} /> */}
           <Route path="profile" element={<AdminProfile />} />
         </Route>
       </Routes>

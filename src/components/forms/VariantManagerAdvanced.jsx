@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   Form,
@@ -658,7 +658,10 @@ const VariantManagerAdvanced = ({
               },
             ]}
           >
-            <InputNumber style={{ width: "100%" }} placeholder="Số lượng trong kho" />
+            <InputNumber
+              style={{ width: "100%" }}
+              placeholder="Số lượng trong kho"
+            />
           </Form.Item>
           <Form.Item
             name="safetyStock"

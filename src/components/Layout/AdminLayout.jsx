@@ -37,7 +37,7 @@ function getItem(label, key, icon, children) {
 
 const items = [
   getItem(<Link to="/dashboard">Dashboard</Link>, "1", <PieChartOutlined />),
-  getItem("Products", "sub1", <ShoppingCartOutlined />, [
+  getItem("Sản phẩm", "sub1", <ShoppingCartOutlined />, [
     getItem(
       <Link to="/products">Danh sách</Link>,
       "products-list",
@@ -49,8 +49,8 @@ const items = [
       <AppstoreAddOutlined />
     ),
   ]),
-  getItem(<Link to="/categories">Categories</Link>, "5", <AppstoreOutlined />),
-  getItem(<Link to="/orders">Orders</Link>, "6", <FileOutlined />),
+  getItem(<Link to="/categories">Phân loại</Link>, "5", <AppstoreOutlined />),
+  getItem(<Link to="/orders">Đơn hàng</Link>, "6", <FileOutlined />),
   // Legacy menu items (to be removed later)
   getItem("Legacy Products", "sub2", <ShoppingCartOutlined />, [
     getItem(

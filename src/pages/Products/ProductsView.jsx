@@ -181,9 +181,6 @@ const ProductsView = () => {
             dataIndex: ["prices", 0, "amount"],
             key: "price",
             render: (_, r) =>
-              //   r.prices?.[0]?.amount !== undefined && r.prices?.[0]?.amount !== null && !isNaN(r.prices[0].amount)
-              //     ? Number(r.prices[0].amount).toLocaleString() + " VNĐ"
-              //     : <Tag color="red">Chưa có giá</Tag>,
               r.price && r.price.length > 0 ? (
                 <Text>{Number(r.price).toLocaleString()} VNĐ</Text>
               ) : (
