@@ -19,8 +19,8 @@ import {
   Avatar,
   Space,
 } from "antd";
-import { Outlet, useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { Outlet, Link } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 import "./AdminLayout.css";
 // import { assets } from "../../assets/assets";
 
@@ -72,12 +72,6 @@ const AdminLayout = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
 
   const userMenuItems = [
     {
@@ -86,8 +80,8 @@ const AdminLayout = () => {
     },
     {
       key: "logout",
-      label: "Logout",
-      onClick: handleLogout,
+      label: "Đăng xuất",
+      onClick: logout,
     },
   ];
 

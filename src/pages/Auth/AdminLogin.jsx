@@ -1,6 +1,6 @@
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import { toast } from "react-toastify";
 import "./AdminLogin.css";
 
@@ -9,11 +9,26 @@ const AdminLogin = () => {
     email: "",
     password: "",
   });
+
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, loading: authLoading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="admin-login">
+        <div className="admin-login-container">
+          <div className="loading-spinner">
+            <p>Đang kiểm tra phiên đăng nhập...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -47,9 +62,9 @@ const AdminLogin = () => {
       await login(formData.email, formData.password);
       toast.success("Đăng nhập thành công!");
 
-      // Redirect to intended page or dashboard
+      // Redirect to intended page or dashboard using React Router
       const from = location.state?.from?.pathname || "/";
-      window.location.href = from;
+      navigate(from, { replace: true });
     } catch (error) {
       setErrorMessage(error.message);
       toast.error(error.message);

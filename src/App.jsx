@@ -2,8 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import AuthContextProvider from "./context/AuthContext";
-import ProtectedRoute from "./components/Auth/ProtectedRoute";
+import ProtectedRoute from "./components/Auth/ProtectedRouteNew";
 import AdminLogin from "./pages/Auth/AdminLogin";
 // import Orders from "./pages/Orders/Orders";
 import AdminProfile from "./pages/Profile/AdminProfile";
@@ -18,7 +17,7 @@ import AdminLayout from "./components/Layout/AdminLayout";
 
 const App = () => {
   return (
-    <AuthContextProvider>
+    <>
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -57,7 +56,7 @@ const App = () => {
           <Route path="profile" element={<AdminProfile />} />
         </Route>
       </Routes>
-    </AuthContextProvider>
+    </>
   );
 };
 

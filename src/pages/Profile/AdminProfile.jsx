@@ -21,7 +21,7 @@ import {
   CameraOutlined,
   EditOutlined,
 } from "@ant-design/icons";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import { validationRules } from "../../utils";
 import "./AdminProfile.css";
 
@@ -29,7 +29,7 @@ const { TabPane } = Tabs;
 const { Title, Text } = Typography;
 
 const AdminProfile = () => {
-  const { user, updateUserProfile } = useAuth();
+  const { user, updateProfile, changePassword } = useAuth();
   const [profileForm] = Form.useForm();
   const [passwordForm] = Form.useForm();
   const [uploading, setUploading] = useState(false);
@@ -51,7 +51,7 @@ const AdminProfile = () => {
       const formData = new FormData();
       formData.append("avatar", file);
 
-      await updateUserProfile(formData);
+      await updateProfile(formData);
       message.success("Cập nhật avatar thành công!");
     } catch (error) {
       message.error("Lỗi khi upload avatar");
@@ -65,7 +65,7 @@ const AdminProfile = () => {
   const handleProfileUpdate = async (values) => {
     setUpdating(true);
     try {
-      await updateUserProfile(values);
+      await updateProfile(values);
       message.success("Cập nhật thông tin thành công!");
     } catch (error) {
       message.error("Lỗi khi cập nhật thông tin");
@@ -79,10 +79,7 @@ const AdminProfile = () => {
     setChangingPassword(true);
     try {
       // Call API to change password
-      await updateUserProfile({
-        currentPassword: values.currentPassword,
-        newPassword: values.newPassword,
-      });
+      await changePassword(values.currentPassword, values.newPassword);
       message.success("Đổi mật khẩu thành công!");
       passwordForm.resetFields();
     } catch (error) {

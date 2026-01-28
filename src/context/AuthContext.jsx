@@ -75,6 +75,11 @@ const AuthContextProvider = (props) => {
           throw new Error("Access denied - Admin/Staff only");
         }
 
+        // Save token to localStorage IMMEDIATELY before state update
+        // This prevents race condition when page reloads before useEffect runs
+        localStorage.setItem("adminToken", newToken);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+
         setToken(newToken);
         setUser(userData);
 
@@ -180,11 +185,15 @@ const AuthContextProvider = (props) => {
     }
   };
 
+  // Computed property for authentication status
+  const isAuthenticated = !!token && !!user;
+
   const contextValue = {
     useAuth,
     user,
     token,
     loading,
+    isAuthenticated,
     login,
     logout,
     updateUserProfile,
