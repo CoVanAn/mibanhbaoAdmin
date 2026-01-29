@@ -2,7 +2,10 @@ import apiClient from "./client";
 
 export const productsApi = {
   getAll: async (params = {}) => {
-    const response = await apiClient.get("/api/product/list", { params });
+    // Admin always includes inactive products
+    const response = await apiClient.get("/api/product/list", {
+      params: { ...params, includeInactive: 1 },
+    });
     return response.data;
   },
 
@@ -39,6 +42,7 @@ export const productsApi = {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+      timeout: 60000, // 60 seconds for file uploads
     });
     return response.data;
   },
@@ -88,7 +92,7 @@ export const productsApi = {
       if (productData.existingImageIds) {
         formData.append(
           "existingImageIds",
-          JSON.stringify(productData.existingImageIds)
+          JSON.stringify(productData.existingImageIds),
         );
       }
 
@@ -96,7 +100,7 @@ export const productsApi = {
       if (productData.imagePositions) {
         formData.append(
           "imagePositions",
-          JSON.stringify(productData.imagePositions)
+          JSON.stringify(productData.imagePositions),
         );
       }
 
@@ -105,6 +109,7 @@ export const productsApi = {
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        timeout: 60000, // 60 seconds for file uploads
       });
       console.log("FormData response:", response.data);
       return response.data;
@@ -128,21 +133,21 @@ export const productsApi = {
       `/api/product/${productId}/categories`,
       {
         categoryIds,
-      }
+      },
     );
     return response.data;
   },
 
   addCategory: async (productId, categoryId) => {
     const response = await apiClient.post(
-      `/api/product/${productId}/categories/${categoryId}`
+      `/api/product/${productId}/categories/${categoryId}`,
     );
     return response.data;
   },
 
   removeCategory: async (productId, categoryId) => {
     const response = await apiClient.delete(
-      `/api/product/${productId}/categories/${categoryId}`
+      `/api/product/${productId}/categories/${categoryId}`,
     );
     return response.data;
   },
@@ -161,14 +166,14 @@ export const productsApi = {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      }
+      },
     );
     return response.data;
   },
 
   deleteMedia: async (productId, mediaId) => {
     const response = await apiClient.delete(
-      `/api/product/${productId}/media/${mediaId}`
+      `/api/product/${productId}/media/${mediaId}`,
     );
     return response.data;
   },
@@ -176,7 +181,7 @@ export const productsApi = {
   reorderMedia: async (productId, mediaOrder) => {
     const response = await apiClient.patch(
       `/api/product/${productId}/media/reorder`,
-      { mediaOrder }
+      { mediaOrder },
     );
     return response.data;
   },
@@ -189,7 +194,7 @@ export const productsApi = {
 
   getVariant: async (productId, variantId) => {
     const response = await apiClient.get(
-      `/api/product/${productId}/variants/${variantId}`
+      `/api/product/${productId}/variants/${variantId}`,
     );
     return response.data;
   },
@@ -197,7 +202,7 @@ export const productsApi = {
   createVariant: async (productId, variantData) => {
     const response = await apiClient.post(
       `/api/product/${productId}/variants`,
-      variantData
+      variantData,
     );
     return response.data;
   },
@@ -205,23 +210,24 @@ export const productsApi = {
   updateVariant: async (productId, variantId, variantData) => {
     const response = await apiClient.patch(
       `/api/product/${productId}/variants/${variantId}`,
-      variantData
+      variantData,
     );
     return response.data;
   },
 
   deleteVariant: async (productId, variantId) => {
     const response = await apiClient.delete(
-      `/api/product/${productId}/variants/${variantId}`
+      `/api/product/${productId}/variants/${variantId}`,
     );
     return response.data;
   },
 
   // Price Management
   setVariantPrice: async (productId, variantId, priceData) => {
+    console.log("setVariantPrice called:", { productId, variantId, priceData });
     const response = await apiClient.post(
       `/api/product/${productId}/variants/${variantId}/price`,
-      priceData
+      { amount: Number(priceData.amount) },
     );
     return response.data;
   },
@@ -229,7 +235,7 @@ export const productsApi = {
   updateVariantPrice: async (productId, variantId, priceId, priceData) => {
     const response = await apiClient.patch(
       `/api/product/${productId}/variants/${variantId}/price/${priceId}`,
-      priceData
+      priceData,
     );
     return response.data;
   },
@@ -250,7 +256,7 @@ export const productsApi = {
 
   deleteVariantPrice: async (productId, variantId, priceId) => {
     const response = await apiClient.delete(
-      `/api/product/${productId}/variants/${variantId}/price/${priceId}`
+      `/api/product/${productId}/variants/${variantId}/price/${priceId}`,
     );
     return response.data;
   },
@@ -259,7 +265,7 @@ export const productsApi = {
   updateVariantInventory: async (productId, variantId, inventoryData) => {
     const response = await apiClient.patch(
       `/api/product/${productId}/variants/${variantId}/inventory`,
-      inventoryData
+      inventoryData,
     );
     return response.data;
   },
@@ -272,7 +278,7 @@ export const productsApi = {
 
   cleanupVariants: async (productId) => {
     const response = await apiClient.post(
-      `/api/product/${productId}/cleanup-variants`
+      `/api/product/${productId}/cleanup-variants`,
     );
     return response.data;
   },

@@ -1,6 +1,5 @@
 import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+import { API_URL } from "@/src/constants/api";
 
 // Create axios instance with credentials enabled for HttpOnly cookies
 const apiClient = axios.create({
@@ -9,7 +8,7 @@ const apiClient = axios.create({
     "Content-Type": "application/json",
   },
   withCredentials: true, // Enable sending cookies
-  timeout: 10000,
+  timeout: 30000, // 30 seconds default timeout
 });
 
 // Track if we're currently refreshing token to prevent multiple refresh calls
@@ -61,17 +60,20 @@ const refreshAccessToken = async () => {
     const response = await axios.post(
       `${API_URL}/api/user/refresh-token`,
       {},
-      { withCredentials: true }
+      { withCredentials: true },
     );
 
     if (response.data.success) {
       const { accessToken } = response.data;
 
       // Store new access token in memory
-      window.__adminAccessToken = accessToken;
+      if (typeof window !== "undefined") {
+        window.__adminAccessToken = accessToken;
+      }
 
       // Update authorization header
-      apiClient.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+      apiClient.defaults.headers.common["Authorization"] =
+        `Bearer ${accessToken}`;
 
       processQueue(null, accessToken);
       isRefreshing = false;
@@ -86,7 +88,9 @@ const refreshAccessToken = async () => {
     isRefreshing = false;
 
     // Clear token on refresh failure
-    delete window.__adminAccessToken;
+    if (typeof window !== "undefined") {
+      delete window.__adminAccessToken;
+    }
 
     throw error;
   }
@@ -95,7 +99,8 @@ const refreshAccessToken = async () => {
 // Request interceptor - add access token and proactively refresh if expiring soon
 apiClient.interceptors.request.use(
   async (config) => {
-    const token = window.__adminAccessToken;
+    const token =
+      typeof window !== "undefined" ? window.__adminAccessToken : null;
 
     if (token) {
       // Check if token is expiring soon (within 5 minutes)
@@ -119,7 +124,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor - handle token refresh on 401 (fallback)
@@ -128,83 +133,72 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If error is 401 and has TOKEN_EXPIRED code (fallback if proactive refresh missed)
-    if (
-      error.response?.status === 401 &&
-      error.response?.data?.code === "TOKEN_EXPIRED" &&
-      !originalRequest._retry
-    ) {
-      originalRequest._retry = true;
+    // If error is 401 and we haven't retried yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      const errorCode = error.response?.data?.code;
 
-      try {
-        // Call refresh token
-        const newToken = await refreshAccessToken();
+      // Don't retry for these endpoints to avoid infinite loops
+      const isAuthEndpoint =
+        originalRequest.url?.includes("/api/user/login") ||
+        originalRequest.url?.includes("/api/user/refresh-token") ||
+        originalRequest.url?.includes("/api/user/logout");
 
-        if (newToken) {
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          // Retry original request with new token
-          return apiClient(originalRequest);
+      if (isAuthEndpoint) {
+        return Promise.reject(error);
+      }
+
+      // For TOKEN_EXPIRED, INVALID_TOKEN, or NO_TOKEN - try to refresh
+      if (
+        errorCode === "TOKEN_EXPIRED" ||
+        errorCode === "INVALID_TOKEN" ||
+        errorCode === "NO_TOKEN"
+      ) {
+        originalRequest._retry = true;
+
+        try {
+          // Call refresh token
+          const newToken = await refreshAccessToken();
+
+          if (newToken) {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            // Retry original request with new token
+            return apiClient(originalRequest);
+          }
+        } catch (refreshError) {
+          // Clear token and redirect to login
+          if (typeof window !== "undefined") {
+            delete window.__adminAccessToken;
+            // Dispatch custom event for auth failure
+            window.dispatchEvent(new CustomEvent("auth:failed"));
+          }
+          return Promise.reject(refreshError);
         }
-      } catch (refreshError) {
-        // Clear token and reject
-        delete window.__adminAccessToken;
-        return Promise.reject(refreshError);
       }
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 // Helper to set access token in interceptor
 export const setAccessToken = (token) => {
-  window.__adminAccessToken = token;
+  if (typeof window !== "undefined") {
+    window.__adminAccessToken = token;
+  }
   apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 };
 
 // Helper to clear access token
 export const clearAccessToken = () => {
-  delete window.__adminAccessToken;
+  if (typeof window !== "undefined") {
+    delete window.__adminAccessToken;
+  }
   delete apiClient.defaults.headers.common["Authorization"];
 };
 
-// API functions
-export const authAPI = {
-  login: async (email, password) => {
-    const response = await apiClient.post("/api/user/login", {
-      email,
-      password,
-    });
-    return response.data;
-  },
-
-  refreshToken: async () => {
-    const response = await apiClient.post("/api/user/refresh-token", {});
-    return response.data;
-  },
-
-  logout: async () => {
-    const response = await apiClient.post("/api/user/logout", {});
-    return response.data;
-  },
-
-  getProfile: async () => {
-    const response = await apiClient.get("/api/user/profile");
-    return response.data;
-  },
-
-  updateProfile: async (profileData) => {
-    const response = await apiClient.patch("/api/user/profile", profileData);
-    return response.data;
-  },
-
-  changePassword: async (currentPassword, newPassword) => {
-    const response = await apiClient.patch("/api/user/change-password", {
-      currentPassword,
-      newPassword,
-    });
-    return response.data;
-  },
+// Helper to get current access token
+export const getAccessToken = () => {
+  return typeof window !== "undefined" ? window.__adminAccessToken : null;
 };
 
 export default apiClient;

@@ -120,27 +120,49 @@ const VariantManagerAdvanced = ({
     }
 
     try {
+      // Build variant data - let server handle SKU generation if not provided
       const newVariantData = {
         name: values.name,
-        sku:
-          values.sku ||
-          `${product?.slug || "PRODUCT"}-${values.name.toLowerCase()}`,
         isActive: values.isActive !== false,
         initialStock: values.initialStock || 0,
         safetyStock: values.safetyStock || 0,
       };
 
+      // Only include SKU if user provided one
+      if (values.sku && values.sku.trim()) {
+        newVariantData.sku = values.sku
+          .trim()
+          .toUpperCase()
+          .replace(/[^A-Z0-9-]/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "");
+      }
+
+      console.log("Creating variant with data:", newVariantData);
+
       const response = await productsApi.createVariant(
         product.id,
-        newVariantData
+        newVariantData,
       );
 
-      if (response.success) {
+      console.log("Create variant response:", response);
+
+      // Check if variant was created (response.id or response.success)
+      const variantId = response.id || response.data?.id;
+      if (variantId) {
         // Add price for the new variant
-        if (values.price) {
-          await productsApi.setVariantPrice(product.id, response.id, {
-            amount: values.price,
-          });
+        if (values.price && Number(values.price) > 0) {
+          try {
+            await productsApi.setVariantPrice(product.id, variantId, {
+              amount: Number(values.price),
+            });
+          } catch (priceError) {
+            console.error("Error setting variant price:", priceError);
+            // Variant was created but price failed - still show partial success
+            message.warning(
+              "Variant đã được tạo nhưng không thể set giá. Vui lòng thêm giá sau.",
+            );
+          }
         }
 
         // Refresh variants list
@@ -149,10 +171,17 @@ const VariantManagerAdvanced = ({
         setShowAddModal(false);
         form.resetFields();
         message.success("Thêm variant thành công!");
+      } else {
+        message.error("Không thể tạo variant");
       }
     } catch (error) {
       console.error("Error adding variant:", error);
-      message.error("Lỗi khi thêm variant");
+      // Show more detailed error if available
+      const errorMsg =
+        error.response?.data?.errors?.[0]?.message ||
+        error.response?.data?.message ||
+        "Lỗi khi thêm variant";
+      message.error(errorMsg);
     }
   };
 
@@ -172,7 +201,7 @@ const VariantManagerAdvanced = ({
       await productsApi.updateVariant(
         product.id,
         editingVariant.id,
-        updateData
+        updateData,
       );
 
       // Refresh variants list
@@ -228,7 +257,7 @@ const VariantManagerAdvanced = ({
         {
           quantity: values.quantity,
           safetyStock: values.safetyStock,
-        }
+        },
       );
       message.success("Cập nhật tồn kho thành công!");
       handleInventoryModalCancel();
@@ -239,6 +268,20 @@ const VariantManagerAdvanced = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle price change for a variant (simple mode)
+  const handlePriceChange = async (variantId, newPrice) => {
+    if (!product?.id || !variantId) return;
+
+    // Update local state immediately for responsive UI
+    setLocalVariants((prev) =>
+      prev.map((v) => (v.id === variantId ? { ...v, price: newPrice } : v)),
+    );
+
+    // Debounce API call - only save when user stops typing
+    // For now, we'll let the user save manually via the price modal
+    // or we can add a save button
   };
 
   const handlePriceModalOpen = (variant) => {
@@ -341,7 +384,7 @@ const VariantManagerAdvanced = ({
               await loadVariants();
 
               message.success(
-                `${checked ? "Kích hoạt" : "Tạm dừng"} variant thành công!`
+                `${checked ? "Kích hoạt" : "Tạm dừng"} variant thành công!`,
               );
             } catch (error) {
               console.error("Error updating variant status:", error);

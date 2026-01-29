@@ -45,7 +45,7 @@ const PriceManagementModal = ({
       const response = await productsApi.getVariantPrices(
         product.id,
         variant.id,
-        { includeInactive: true }
+        { includeInactive: true },
       );
       const currentPriceId = response.currentPrice?.id;
       const normalized = (response.prices || []).slice();
@@ -110,11 +110,15 @@ const PriceManagementModal = ({
 
   const handleFormSubmit = async (values) => {
     const priceData = {
-      amount: values.amount,
-      isActive: values.isActive,
-      startsAt: values.dates ? values.dates[0].toISOString() : null,
-      endsAt: values.dates ? values.dates[1].toISOString() : null,
+      amount: Number(values.amount),
+      isActive: values.isActive !== false,
     };
+
+    // Only include dates if they exist
+    if (values.dates && values.dates[0] && values.dates[1]) {
+      priceData.startsAt = values.dates[0].toISOString();
+      priceData.endsAt = values.dates[1].toISOString();
+    }
 
     try {
       if (editingPrice) {
@@ -123,7 +127,7 @@ const PriceManagementModal = ({
           product.id,
           variant.id,
           editingPrice.id,
-          priceData
+          priceData,
         );
         message.success("Cập nhật giá thành công!");
       } else {
@@ -164,10 +168,10 @@ const PriceManagementModal = ({
       render: (amount) => <strong>{formatCurrency(amount)}</strong>,
     },
     {
-        title: "Loại giá",
-        key: "type",
-        render: (_, record) =>
-          record.startsAt ? (
+      title: "Loại giá",
+      key: "type",
+      render: (_, record) =>
+        record.startsAt ? (
           <Tag icon={<ClockCircleOutlined />} color="blue">
             Theo lịch
           </Tag>
@@ -190,9 +194,9 @@ const PriceManagementModal = ({
     {
       title: "Thời gian áp dụng",
       key: "period",
-        render: (_, record) =>
-          record.startsAt && record.endsAt
-            ? `${formatDate(record.startsAt)} - ${formatDate(record.endsAt)}`
+      render: (_, record) =>
+        record.startsAt && record.endsAt
+          ? `${formatDate(record.startsAt)} - ${formatDate(record.endsAt)}`
           : "Luôn áp dụng",
     },
     {
@@ -298,7 +302,12 @@ const PriceManagementModal = ({
               format="DD/MM/YYYY HH:mm"
             />
           </Form.Item>
-          <Form.Item name="isActive" label="Trạng thái" valuePropName="checked" initialValue={true}>
+          <Form.Item
+            name="isActive"
+            label="Trạng thái"
+            valuePropName="checked"
+            initialValue={true}
+          >
             <Switch checkedChildren="Hoạt động" unCheckedChildren="Vô hiệu" />
           </Form.Item>
         </Form>

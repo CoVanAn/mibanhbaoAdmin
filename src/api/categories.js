@@ -1,9 +1,10 @@
 import apiClient from "./client";
 
 export const categoriesApi = {
-  getAll: async (includeInactive = false) => {
+  // Admin always includes inactive categories by default
+  getAll: async (includeInactive = true) => {
     const response = await apiClient.get(
-      `/api/category/list?includeInactive=${includeInactive ? "1" : "0"}`
+      `/api/category/list?includeInactive=${includeInactive ? "1" : "0"}`,
     );
     return response.data;
   },

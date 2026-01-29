@@ -39,10 +39,25 @@ const Categories = () => {
   // Handle create/update category
   const handleSubmit = async (values) => {
     try {
+      // Clean and prepare data
+      const categoryData = {
+        name: values.name?.trim(),
+        position:
+          typeof values.position === "number"
+            ? values.position
+            : parseInt(values.position, 10) || 0,
+        isActive: values.isActive ?? true,
+      };
+
+      // Only include parentId if it has a valid value (not null, undefined, or empty)
+      if (values.parentId) {
+        categoryData.parentId = Number(values.parentId);
+      }
+
       if (editingCategory) {
-        await updateCategory(editingCategory.id, values);
+        await updateCategory(editingCategory.id, categoryData);
       } else {
-        await createCategory(values);
+        await createCategory(categoryData);
       }
 
       setModalVisible(false);
@@ -266,6 +281,13 @@ const Categories = () => {
             label="Vị trí sắp xếp"
             name="position"
             help="Số thứ tự để sắp xếp (số nhỏ hơn sẽ hiển thị trước)"
+            rules={[
+              { type: "number", min: 0, message: "Vị trí phải là số không âm" },
+            ]}
+            getValueFromEvent={(e) => {
+              const value = parseInt(e.target.value, 10);
+              return isNaN(value) ? 0 : value;
+            }}
           >
             <Input type="number" min={0} placeholder="0" />
           </Form.Item>

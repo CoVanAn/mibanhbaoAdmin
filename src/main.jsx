@@ -8,9 +8,12 @@ import "antd/dist/reset.css";
 import "./styles/variables.css";
 import "./styles/globals.css";
 import "./styles/components.css";
+import { QueryProvider } from "./lib/providers.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>
+  <QueryProvider>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </QueryProvider>,
 );

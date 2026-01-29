@@ -1,8 +1,16 @@
 import { useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import useStore from "../store/useStore";
-import { authAPI, setAccessToken, clearAccessToken } from "../lib/api";
+import { setAccessToken, clearAccessToken } from "../lib/api";
+import {
+  login as loginApi,
+  logout as logoutApi,
+  refreshToken as refreshTokenApi,
+  fetchProfile,
+  updateProfile as updateProfileApi,
+  changePassword as changePasswordApi,
+} from "@/src/queries/auth";
 
 /**
  * Hook to handle authentication for Admin panel
@@ -12,6 +20,7 @@ import { authAPI, setAccessToken, clearAccessToken } from "../lib/api";
  */
 export const useAuth = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Store selectors
   const token = useStore((state) => state.token);
@@ -27,14 +36,35 @@ export const useAuth = () => {
   const isAdmin = user?.role === "ADMIN" || user?.role === "STAFF";
   const loading = !isInitialized;
 
+  // Listen for auth failure events from API interceptor
+  useEffect(() => {
+    const handleAuthFailed = () => {
+      console.log("Auth failed event received");
+      clearAuth();
+      clearAccessToken();
+      // Only redirect if not already on login page
+      if (location.pathname !== "/login") {
+        toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        navigate("/login", { replace: true });
+      }
+    };
+
+    window.addEventListener("auth:failed", handleAuthFailed);
+    return () => {
+      window.removeEventListener("auth:failed", handleAuthFailed);
+    };
+  }, [clearAuth, navigate, location.pathname]);
+
   // Initialize auth on mount - try to refresh token from HttpOnly cookie
   useEffect(() => {
     if (isInitialized) return;
 
     const initAuth = async () => {
       try {
+        console.log("Admin: Attempting to restore session from cookie...");
         // Try to refresh access token using HttpOnly cookie
-        const response = await authAPI.refreshToken();
+        const response = await refreshTokenApi();
+        console.log("Admin: Refresh token response:", response);
 
         if (response.success && response.accessToken) {
           // Set token in store and axios interceptor
@@ -42,25 +72,28 @@ export const useAuth = () => {
           setAccessToken(response.accessToken);
 
           // Get user profile
-          const profileResponse = await authAPI.getProfile();
-          if (profileResponse.user) {
-            const userData = profileResponse.user;
+          const userData = await fetchProfile();
+          console.log("Admin: User profile loaded:", userData);
 
-            // Check if user has admin/staff role
-            if (userData.role === "ADMIN" || userData.role === "STAFF") {
-              setUser(userData);
-              console.log("Admin session restored");
-            } else {
-              // User doesn't have admin access
-              console.log("User doesn't have admin access");
-              clearAuth();
-              clearAccessToken();
-            }
+          // Check if user has admin/staff role
+          if (userData.role === "ADMIN" || userData.role === "STAFF") {
+            setUser(userData);
+            console.log("Admin: Session restored successfully");
+          } else {
+            // User doesn't have admin access
+            console.log("Admin: User doesn't have admin access");
+            clearAuth();
+            clearAccessToken();
           }
+        } else {
+          console.log("Admin: Refresh token failed - no token returned");
         }
       } catch (error) {
         // No valid refresh token cookie, user needs to login
-        console.log("No valid admin session, user needs to login");
+        console.log(
+          "Admin: No valid session -",
+          error.response?.data?.message || error.message,
+        );
         clearAuth();
         clearAccessToken();
       } finally {
@@ -75,10 +108,10 @@ export const useAuth = () => {
   const login = useCallback(
     async (email, password) => {
       try {
-        const response = await authAPI.login(email, password);
+        const response = await loginApi(email, password);
 
         if (response.success) {
-          const { token: newToken, user: userData } = response;
+          const { accessToken, user: userData } = response;
 
           // Check if user has admin/staff role
           if (userData.role !== "ADMIN" && userData.role !== "STAFF") {
@@ -86,8 +119,8 @@ export const useAuth = () => {
           }
 
           // Set token in store and axios interceptor
-          setToken(newToken);
-          setAccessToken(newToken);
+          setToken(accessToken);
+          setAccessToken(accessToken);
           setUser(userData);
 
           return { success: true, user: userData };
@@ -97,17 +130,19 @@ export const useAuth = () => {
       } catch (error) {
         console.error("Login error:", error);
         throw new Error(
-          error.response?.data?.message || error.message || "Đăng nhập thất bại"
+          error.response?.data?.message ||
+            error.message ||
+            "Đăng nhập thất bại",
         );
       }
     },
-    [setToken, setUser]
+    [setToken, setUser],
   );
 
   // Logout function
   const logout = useCallback(async () => {
     try {
-      await authAPI.logout();
+      await logoutApi();
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
@@ -122,13 +157,10 @@ export const useAuth = () => {
   const updateProfile = useCallback(
     async (profileData) => {
       try {
-        const response = await authAPI.updateProfile(profileData);
-        if (response.success) {
-          setUser((prev) => ({ ...prev, ...response.user }));
-          toast.success("Cập nhật thông tin thành công!");
-          return { success: true, user: response.user };
-        }
-        throw new Error(response.message || "Cập nhật thất bại");
+        const userData = await updateProfileApi(profileData);
+        setUser(userData);
+        toast.success("Cập nhật thông tin thành công!");
+        return { success: true, user: userData };
       } catch (error) {
         const errorMessage =
           error.response?.data?.message || error.message || "Cập nhật thất bại";
@@ -136,21 +168,20 @@ export const useAuth = () => {
         return { success: false, error: errorMessage };
       }
     },
-    [setUser]
+    [setUser],
   );
 
   // Change password
   const changePassword = useCallback(async (currentPassword, newPassword) => {
     try {
-      const response = await authAPI.changePassword(currentPassword, newPassword);
-      if (response.success) {
-        toast.success("Đổi mật khẩu thành công!");
-        return { success: true };
-      }
-      throw new Error(response.message || "Đổi mật khẩu thất bại");
+      await changePasswordApi(currentPassword, newPassword);
+      toast.success("Đổi mật khẩu thành công!");
+      return { success: true };
     } catch (error) {
       const errorMessage =
-        error.response?.data?.message || error.message || "Đổi mật khẩu thất bại";
+        error.response?.data?.message ||
+        error.message ||
+        "Đổi mật khẩu thất bại";
       toast.error(errorMessage);
       return { success: false, error: errorMessage };
     }
