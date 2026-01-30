@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import {
   Card,
   Table,
@@ -20,9 +20,12 @@ import {
   DeleteOutlined,
   EyeOutlined,
 } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
-import { useProducts } from "../../hooks";
-import { useCategories } from "../../hooks";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  useProductsQuery,
+  useDeleteProductMutation,
+} from "../../hooks/useProductQuery";
+import { useCategoriesQuery } from "../../hooks/useCategoryQuery";
 import { PageHeader, Loading } from "../../components/common";
 import { formatCurrency } from "../../utils";
 import "./ProductsList.css";
@@ -33,11 +36,54 @@ const { Text } = Typography;
 
 const ProductsList = () => {
   const navigate = useNavigate();
-  const { products, loadingProducts, deleting, deleteProduct } = useProducts();
-  const { categories, loadingCategories } = useCategories();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  // TanStack Query hooks
+  const {
+    data: products = [],
+    isLoading: loadingProducts,
+  } = useProductsQuery({ includeInactive: 1 });
+  const { data: categories = [], isLoading: loadingCategories } =
+    useCategoriesQuery(true);
+  const deleteProductMutation = useDeleteProductMutation();
+
+  // Read filter state from URL params
+  const searchTerm = searchParams.get("search") || "";
+  const selectedCategory = searchParams.get("categoryId")
+    ? Number(searchParams.get("categoryId"))
+    : null;
+
+  // Update URL params when filters change
+  const updateFilters = useCallback(
+    (updates) => {
+      setSearchParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        Object.entries(updates).forEach(([key, value]) => {
+          if (value === null || value === undefined || value === "") {
+            newParams.delete(key);
+          } else {
+            newParams.set(key, String(value));
+          }
+        });
+        return newParams;
+      });
+    },
+    [setSearchParams],
+  );
+
+  const handleSearchChange = useCallback(
+    (value) => {
+      updateFilters({ search: value });
+    },
+    [updateFilters],
+  );
+
+  const handleCategoryChange = useCallback(
+    (value) => {
+      updateFilters({ categoryId: value });
+    },
+    [updateFilters],
+  );
 
   // Filter products based on search and category
   const filteredProducts = useMemo(() => {
@@ -48,14 +94,14 @@ const ProductsList = () => {
       filtered = filtered.filter(
         (product) =>
           product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.description?.toLowerCase().includes(searchTerm.toLowerCase())
+          product.description?.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
     // Category filter
     if (selectedCategory) {
       filtered = filtered.filter((product) =>
-        product.categoryIds?.includes(selectedCategory)
+        product.categoryIds?.includes(selectedCategory),
       );
     }
 
@@ -64,7 +110,7 @@ const ProductsList = () => {
 
   const handleDelete = async (id) => {
     try {
-      await deleteProduct(id);
+      await deleteProductMutation.mutateAsync(id);
     } catch (error) {
       console.error("Delete error:", error);
     }
@@ -287,13 +333,13 @@ const ProductsList = () => {
               onConfirm={() => handleDelete(record.id)}
               okText="Có"
               cancelText="Không"
-              okButtonProps={{ danger: true, loading: deleting }}
+              okButtonProps={{ danger: true, loading: deleteProductMutation.isPending }}
             >
               <Button
                 danger
                 size="small"
                 icon={<DeleteOutlined />}
-                loading={deleting}
+                loading={deleteProductMutation.isPending}
               />
             </Popconfirm>
           </Tooltip>
@@ -331,21 +377,22 @@ const ProductsList = () => {
                 placeholder="Tìm kiếm sản phẩm..."
                 allowClear
                 size="large"
-                onSearch={setSearchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchTerm}
+                onSearch={handleSearchChange}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 style={{ width: "100%" }}
               />
             </Col>
             <Col xs={24} sm={12} md={8} lg={6}>
               <Select
                 placeholder="Chọn danh mục"
-                allowClear
                 size="large"
                 style={{ width: "100%" }}
                 value={selectedCategory}
-                onChange={setSelectedCategory}
+                onChange={handleCategoryChange}
                 loading={loadingCategories}
               >
+                <Option value={null}>Tất cả danh mục</Option>
                 {categories.map((category) => (
                   <Option key={category.id} value={category.id}>
                     {category.name}

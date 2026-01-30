@@ -46,7 +46,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useNavigate, useParams } from "react-router-dom";
-import { useProducts, useCategories } from "../../hooks";
+import {
+  useProductQuery,
+  useUpdateProductMutation,
+} from "../../hooks/useProductQuery";
+import { useCategoriesQuery } from "../../hooks/useCategoryQuery";
 import { PageHeader } from "../../components/common";
 import { validationRules, formatCurrency } from "../../utils";
 import VariantManager from "../../components/forms/VariantManager";
@@ -137,10 +141,17 @@ const ProductsEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [form] = Form.useForm();
-  const { getProduct, updateProduct, updating } = useProducts();
-  const { categories, loadingCategories } = useCategories();
 
-  const [loading, setLoading] = useState(true);
+  // TanStack Query hooks
+  const {
+    data: productData,
+    isLoading: loadingProduct,
+    isError,
+  } = useProductQuery(id);
+  const { data: categories = [], isLoading: loadingCategories } =
+    useCategoriesQuery(true);
+  const updateProductMutation = useUpdateProductMutation();
+
   const [product, setProduct] = useState(null);
   const [newImages, setNewImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
@@ -155,32 +166,25 @@ const ProductsEdit = () => {
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
-  // Load product data
+  // Process product data when it loads
   useEffect(() => {
-    const loadProduct = async () => {
-      try {
-        setLoading(true);
-        console.log("Loading product with ID:", id);
+    if (productData) {
+      const data = productData.data || productData;
+      console.log("Product data loaded:", data);
 
-        const response = await getProduct(id);
-        console.log("Raw API response:", response);
+      setProduct(data);
 
-        const productData = response.data || response;
-        console.log("Product data after extraction:", productData);
+      // Set existing images with proper structure
+      const imageItems = data.images || data.media || [];
+      console.log("Image items from backend:", imageItems);
 
-        setProduct(productData);
-
-        // Set existing images with proper structure - backend returns 'images' array
-        const imageItems = productData.images || productData.media || [];
-        console.log("Image items from backend:", imageItems);
-
-        if (imageItems.length === 0) {
+      if (imageItems.length === 0) {
           console.warn(
             "No images found in product data. Product structure:",
-            Object.keys(productData)
+            Object.keys(productData),
           );
         }
 
@@ -240,22 +244,11 @@ const ProductsEdit = () => {
         };
 
         console.log("Setting form values:", formValues);
-        console.log("Product data:", productData);
+        console.log("Product data:", data);
 
         form.setFieldsValue(formValues);
-      } catch (error) {
-        console.error("Load product error:", error);
-        message.error("Không thể tải thông tin sản phẩm!");
-        navigate("/products");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-      loadProduct();
     }
-  }, [id, getProduct, form, navigate]);
+  }, [productData, form]);
 
   // Handle drag end for existing images
   const handleDragEnd = (event) => {
@@ -308,7 +301,7 @@ const ProductsEdit = () => {
     setNewImages(newImageList);
 
     const newPreviews = previewImages.filter(
-      (_, index) => newImages[index]?.uid !== file.uid
+      (_, index) => newImages[index]?.uid !== file.uid,
     );
     setPreviewImages(newPreviews);
 
@@ -344,7 +337,7 @@ const ProductsEdit = () => {
           size: img.size,
           type: img.type,
           hasOriginFileObj: !!img.originFileObj,
-        }))
+        })),
       );
       console.log("Variants data:", variants);
 
@@ -356,7 +349,7 @@ const ProductsEdit = () => {
         name: values.name,
         description: values.description || "",
         content: values.content || "",
-        ...( !useVariants ? { price: parseFloat(finalPrice) } : {} ),
+        ...(!useVariants ? { price: parseFloat(finalPrice) } : {}),
         categoryId: values.categoryId || null,
         isActive: values.isActive !== undefined ? values.isActive : true,
         isFeatured: values.isFeatured !== undefined ? values.isFeatured : false,
@@ -372,32 +365,22 @@ const ProductsEdit = () => {
 
       console.log("Submitting product data:", productData);
 
-      const result = await updateProduct(id, productData);
-      console.log("Update result:", result);
+      await updateProductMutation.mutateAsync({ id, data: productData });
+      console.log("Update success");
 
-      // Show success message and navigate
-      message.success("Cập nhật sản phẩm thành công!");
-      console.log("Navigating back to products list...");
-      navigate("/products");
+      // Navigate back (success message handled by mutation)
+      navigate(-1);
     } catch (error) {
       console.error("Update product error:", error);
-
-      // More specific error handling
-      if (error.response?.data?.message) {
-        message.error(`Lỗi: ${error.response.data.message}`);
-      } else if (error.message) {
-        message.error(`Có lỗi xảy ra: ${error.message}`);
-      } else {
-        message.error("Có lỗi xảy ra khi cập nhật sản phẩm!");
-      }
+      // Error is handled by mutation's onError
     }
   };
 
   const handleCancel = () => {
-    navigate("/products");
+    navigate(-1);
   };
 
-  if (loading) {
+  if (loadingProduct) {
     return (
       <div className="products-edit-loading">
         <Spin size="large" />
@@ -409,9 +392,7 @@ const ProductsEdit = () => {
     return (
       <div className="products-edit-error">
         <Title level={3}>Không tìm thấy sản phẩm</Title>
-        <Button onClick={() => navigate("/products")}>
-          Quay lại danh sách
-        </Button>
+        <Button onClick={() => navigate(-1)}>Quay lại danh sách</Button>
       </div>
     );
   }
@@ -421,7 +402,7 @@ const ProductsEdit = () => {
       <PageHeader
         title={`Chỉnh sửa: ${product.name}`}
         subtitle="Cập nhật thông tin sản phẩm"
-        onBack={() => navigate("/products")}
+        onBack={() => navigate(-1)}
         extra={
           <Space>
             <Button icon={<ArrowLeftOutlined />} onClick={handleCancel}>
@@ -444,7 +425,7 @@ const ProductsEdit = () => {
             <Button
               type="primary"
               icon={<SaveOutlined />}
-              loading={updating}
+              loading={updateProductMutation.isPending}
               onClick={() => form.submit()}
             >
               Cập nhật
@@ -485,7 +466,7 @@ const ProductsEdit = () => {
                     {(product.categories || [])
                       .map((cat) => {
                         const category = categories.find(
-                          (c) => c.id === cat.categoryId
+                          (c) => c.id === cat.categoryId,
                         );
                         return category?.name || null;
                       })
@@ -616,7 +597,9 @@ const ProductsEdit = () => {
                                 ? r.inventories[0]?.safetyStock
                                 : undefined);
                             return safety !== undefined && safety !== null ? (
-                              <Tag color="blue">{Number(safety).toLocaleString()}</Tag>
+                              <Tag color="blue">
+                                {Number(safety).toLocaleString()}
+                              </Tag>
                             ) : (
                               <Tag color="default">Không có</Tag>
                             );

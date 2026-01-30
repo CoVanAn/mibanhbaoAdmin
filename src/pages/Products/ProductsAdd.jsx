@@ -22,7 +22,8 @@ import {
   ArrowLeftOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { useProducts, useCategories } from "../../hooks";
+import { useCreateProductMutation } from "../../hooks/useProductQuery";
+import { useCategoriesQuery } from "../../hooks/useCategoryQuery";
 import { PageHeader } from "../../components/common";
 import RichTextEditor from "../../components/forms/RichTextEditor";
 import { validationRules } from "../../utils";
@@ -38,8 +39,11 @@ const { TabPane } = Tabs;
 const ProductsAdd = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
-  const { createProduct, creating } = useProducts();
-  const { categories, loadingCategories } = useCategories();
+
+  // TanStack Query hooks
+  const createProductMutation = useCreateProductMutation();
+  const { data: categories = [], isLoading: loadingCategories } =
+    useCategoriesQuery(true);
 
   const [images, setImages] = useState([]);
   const [previewImages, setPreviewImages] = useState([]);
@@ -66,7 +70,7 @@ const ProductsAdd = () => {
     setImages(newImages);
 
     const newPreviews = previewImages.filter(
-      (_, index) => images[index]?.uid !== file.uid
+      (_, index) => images[index]?.uid !== file.uid,
     );
     setPreviewImages(newPreviews);
 
@@ -111,18 +115,32 @@ const ProductsAdd = () => {
       } else {
         // Simple pricing mode
         productData.price = values.price;
+        // Include initial quantity and safety stock
+        if (
+          values.quantity !== undefined &&
+          values.quantity !== null &&
+          values.quantity !== ""
+        ) {
+          productData.quantity = Number(values.quantity);
+        }
+        if (
+          values.safetyStock !== undefined &&
+          values.safetyStock !== null &&
+          values.safetyStock !== ""
+        ) {
+          productData.safetyStock = Number(values.safetyStock);
+        }
       }
 
       console.log("Submitting product data:", productData);
 
-      const result = await createProduct(productData);
+      const result = await createProductMutation.mutateAsync(productData);
       console.log("Product created:", result);
 
-      message.success("Tạo sản phẩm thành công!");
       navigate("/products");
     } catch (error) {
       console.error("Create product error:", error);
-      message.error("Có lỗi xảy ra khi tạo sản phẩm!");
+      // Error is handled by mutation's onError
     }
   };
   const handleCancel = () => {
@@ -143,7 +161,7 @@ const ProductsAdd = () => {
             <Button
               type="primary"
               icon={<SaveOutlined />}
-              loading={creating}
+              loading={createProductMutation.isPending}
               onClick={() => form.submit()}
             >
               Lưu sản phẩm
@@ -210,45 +228,77 @@ const ProductsAdd = () => {
                 </div>
 
                 {!useVariants ? (
-                  <Row gutter={16}>
-                    <Col xs={24} sm={12}>
-                      <Form.Item
-                        label="Giá sản phẩm (VNĐ)"
-                        name="price"
-                        rules={[
-                          validationRules.required,
-                          {
-                            pattern: /^\d+(\.\d{1,2})?$/,
-                            message: "Giá phải là số hợp lệ",
-                          },
-                        ]}
-                      >
-                        <Input
-                          placeholder="0"
-                          size="large"
-                          suffix="VNĐ"
-                          type="number"
-                          min={0}
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} sm={12}>
-                      <Form.Item label="Danh mục" name="categoryId">
-                        <Select
-                          placeholder="Chọn danh mục"
-                          size="large"
-                          loading={loadingCategories}
-                          allowClear
+                  <>
+                    <Row gutter={16}>
+                      <Col xs={24} sm={12}>
+                        <Form.Item
+                          label="Giá sản phẩm (VNĐ)"
+                          name="price"
+                          rules={[
+                            validationRules.required,
+                            {
+                              pattern: /^\d+(\.\d{1,2})?$/,
+                              message: "Giá phải là số hợp lệ",
+                            },
+                          ]}
                         >
-                          {categories.map((category) => (
-                            <Option key={category.id} value={category.id}>
-                              {category.name}
-                            </Option>
-                          ))}
-                        </Select>
-                      </Form.Item>
-                    </Col>
-                  </Row>
+                          <Input
+                            placeholder="0"
+                            size="large"
+                            suffix="VNĐ"
+                            type="number"
+                            min={0}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} sm={12}>
+                        <Form.Item label="Danh mục" name="categoryId">
+                          <Select
+                            placeholder="Chọn danh mục"
+                            size="large"
+                            loading={loadingCategories}
+                            allowClear
+                          >
+                            {categories.map((category) => (
+                              <Option key={category.id} value={category.id}>
+                                {category.name}
+                              </Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    <Row gutter={16}>
+                      <Col xs={24} sm={12}>
+                        <Form.Item
+                          label="Số lượng ban đầu"
+                          name="quantity"
+                          tooltip="Số lượng tồn kho ban đầu cho sản phẩm"
+                        >
+                          <Input
+                            placeholder="0"
+                            size="large"
+                            type="number"
+                            min={0}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} sm={12}>
+                        <Form.Item
+                          label="Mức cảnh báo tồn kho"
+                          name="safetyStock"
+                          tooltip="Cảnh báo khi số lượng dưới mức này"
+                        >
+                          <Input
+                            placeholder="0"
+                            size="large"
+                            type="number"
+                            min={0}
+                          />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </>
                 ) : (
                   <div>
                     <Row gutter={16} style={{ marginBottom: 16 }}>

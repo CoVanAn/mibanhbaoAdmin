@@ -12,7 +12,13 @@ import {
   Tag,
 } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { useCategories } from "../../hooks";
+import {
+  useCategoriesQuery,
+  useCreateCategoryMutation,
+  useUpdateCategoryMutation,
+  useDeleteCategoryMutation,
+  useCategoryHelpers,
+} from "../../hooks/useCategoryQuery";
 import { validationRules } from "../../utils";
 import "./Categories.css";
 
@@ -23,18 +29,13 @@ const Categories = () => {
   const [editingCategory, setEditingCategory] = useState(null);
   const [form] = Form.useForm();
 
-  const {
-    categories,
-    loadingCategories,
-    creating,
-    updating,
-    deleting,
-    createCategory,
-    updateCategory,
-    deleteCategory,
-    getCategoryDisplayName,
-    getParentOptions,
-  } = useCategories();
+  // TanStack Query hooks
+  const { data: categories = [], isLoading: loadingCategories } =
+    useCategoriesQuery(true);
+  const createCategoryMutation = useCreateCategoryMutation();
+  const updateCategoryMutation = useUpdateCategoryMutation();
+  const deleteCategoryMutation = useDeleteCategoryMutation();
+  const { getCategoryDisplayName, getParentOptions } = useCategoryHelpers();
 
   // Handle create/update category
   const handleSubmit = async (values) => {
@@ -55,25 +56,28 @@ const Categories = () => {
       }
 
       if (editingCategory) {
-        await updateCategory(editingCategory.id, categoryData);
+        await updateCategoryMutation.mutateAsync({
+          id: editingCategory.id,
+          data: categoryData,
+        });
       } else {
-        await createCategory(categoryData);
+        await createCategoryMutation.mutateAsync(categoryData);
       }
 
       setModalVisible(false);
       setEditingCategory(null);
       form.resetFields();
     } catch (error) {
-      // Error handling is done in the hook
+      // Error handling is done in the mutation
     }
   };
 
   // Handle delete category
   const handleDelete = async (categoryId) => {
     try {
-      await deleteCategory(categoryId);
+      await deleteCategoryMutation.mutateAsync(categoryId);
     } catch (error) {
-      // Error handling is done in the hook
+      // Error handling is done in the mutation
     }
   };
 
@@ -170,7 +174,7 @@ const Categories = () => {
             size="small"
             icon={<EditOutlined />}
             onClick={() => openModal(record)}
-            loading={updating}
+            loading={updateCategoryMutation.isPending}
           >
             Sửa
           </Button>
@@ -186,7 +190,7 @@ const Categories = () => {
               danger
               size="small"
               icon={<DeleteOutlined />}
-              loading={deleting}
+              loading={deleteCategoryMutation.isPending}
             >
               Xóa
             </Button>
@@ -204,7 +208,7 @@ const Categories = () => {
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => openModal()}
-          loading={creating}
+          loading={createCategoryMutation.isPending}
         >
           Thêm Category
         </Button>
@@ -310,7 +314,10 @@ const Categories = () => {
               <Button
                 type="primary"
                 htmlType="submit"
-                loading={creating || updating}
+                loading={
+                  createCategoryMutation.isPending ||
+                  updateCategoryMutation.isPending
+                }
               >
                 {editingCategory ? "Cập nhật" : "Thêm mới"}
               </Button>

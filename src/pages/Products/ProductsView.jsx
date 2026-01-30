@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Card,
@@ -14,36 +14,23 @@ import {
 } from "antd";
 import { Image } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import { productsApi } from "../../api/products";
+import { useProductQuery } from "../../hooks/useProductQuery";
 
 const { Title, Text } = Typography;
 
 const ProductsView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      setLoading(true);
-      try {
-        const data = await productsApi.getById(id);
-        setProduct(data || null);
-      } catch (error) {
-        setProduct(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProduct();
-  }, [id]);
+  // TanStack Query hook
+  const { data: productData, isLoading, isError } = useProductQuery(id);
+  const product = productData?.data || productData;
 
-  if (loading)
+  if (isLoading)
     return (
       <Spin size="large" style={{ margin: "40px auto", display: "block" }} />
     );
-  if (!product)
+  if (!product || isError)
     return (
       <Card>
         <Text type="danger">Không tìm thấy sản phẩm!</Text>
@@ -57,10 +44,7 @@ const ProductsView = () => {
       bodyStyle={{ padding: 32 }}
       title={
         <Space align="center">
-          <Button
-            icon={<ArrowLeftOutlined />}
-            onClick={() => navigate("/products")}
-          >
+          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
             Quay lại
           </Button>
           <Title level={3} style={{ margin: 0 }}>
@@ -132,9 +116,9 @@ const ProductsView = () => {
               {product.categories?.[0]?.name
                 ? product.categories[0].name
                 : Array.isArray(product.categoryIds) &&
-                  product.categoryIds.length > 0
-                ? `#${product.categoryIds.join(", #")}`
-                : "Không có"}
+                    product.categoryIds.length > 0
+                  ? `#${product.categoryIds.join(", #")}`
+                  : "Không có"}
             </Tag>
             <Text strong>Giá:</Text>{" "}
             <Tag color="green">{product.price?.toLocaleString()} VNĐ</Tag>
@@ -178,14 +162,15 @@ const ProductsView = () => {
           { title: "SKU", dataIndex: "sku", key: "sku" },
           {
             title: "Giá",
-            dataIndex: ["prices", 0, "amount"],
             key: "price",
-            render: (_, r) =>
-              r.price && r.price.length > 0 ? (
-                <Text>{Number(r.price).toLocaleString()} VNĐ</Text>
+            render: (_, r) => {
+              const price = r.price ?? r.currentPrice;
+              return price !== null && price !== undefined ? (
+                <Text>{Number(price).toLocaleString()} VNĐ</Text>
               ) : (
                 <Tag color="red">Chưa có giá</Tag>
-              ),
+              );
+            },
           },
           {
             title: "Số lượng",

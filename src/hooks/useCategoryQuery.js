@@ -114,7 +114,13 @@ export function useCategoryHelpers() {
     return `${getCategoryDisplayName(parent, allCategories)} > ${category.name}`;
   };
 
+  // Returns filtered categories (excluding the one being edited)
   const getParentOptions = (excludeId = null) => {
+    return categories.filter((cat) => cat.id !== excludeId);
+  };
+
+  // Returns categories as {value, label} for Select components
+  const getCategorySelectOptions = (excludeId = null) => {
     return categories
       .filter((cat) => cat.id !== excludeId)
       .map((cat) => ({
@@ -123,17 +129,10 @@ export function useCategoryHelpers() {
       }));
   };
 
-  const getCategoryOptions = () => {
-    return categories.map((cat) => ({
-      value: cat.id,
-      label: getCategoryDisplayName(cat),
-    }));
-  };
-
   return {
     categories,
     getCategoryDisplayName,
     getParentOptions,
-    getCategoryOptions,
+    getCategorySelectOptions,
   };
 }
