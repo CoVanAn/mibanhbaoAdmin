@@ -211,10 +211,10 @@
 }
 
 /* Animation */
-.product-form-card,
+/* .product-form-card,
 .product-image-card {
     animation: fadeInUp 0.6s ease-out;
-}
+} */
 
 @keyframes fadeInUp {
     from {
