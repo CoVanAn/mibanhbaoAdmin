@@ -98,7 +98,9 @@ export const parseProductDetail = (payload) => {
 };
 
 export const parseProductList = (payload) => {
-  const parsed = ProductListSchema.safeParse(payload);
+  // Handle both formats: direct array or { data: [...], pagination: {...} }
+  const data = payload?.data ?? payload;
+  const parsed = ProductListSchema.safeParse(data);
   if (!parsed.success) {
     console.error("Unexpected product list shape", parsed.error);
     throw new Error("Không thể tải danh sách sản phẩm");
