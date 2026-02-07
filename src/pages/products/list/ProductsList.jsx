@@ -24,11 +24,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   useProductsQuery,
   useDeleteProductMutation,
-} from "../../hooks/useProductQuery";
-import { useCategoriesQuery } from "../../hooks/useCategoryQuery";
-import { PageHeader, Loading } from "../../components/common";
-import { formatCurrency } from "../../utils";
-import "./ProductsList.css";
+} from "../../../hooks/useProductQuery";
+import { useCategoriesQuery } from "../../../hooks/useCategoryQuery";
+import { PageHeader, Loading } from "../../../components/common";
+import { formatCurrency } from "../../../utils";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -39,10 +38,9 @@ const ProductsList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // TanStack Query hooks
-  const {
-    data: products = [],
-    isLoading: loadingProducts,
-  } = useProductsQuery({ includeInactive: 1 });
+  const { data: products = [], isLoading: loadingProducts } = useProductsQuery({
+    includeInactive: 1,
+  });
   const { data: categories = [], isLoading: loadingCategories } =
     useCategoriesQuery(true);
   const deleteProductMutation = useDeleteProductMutation();
@@ -333,7 +331,10 @@ const ProductsList = () => {
               onConfirm={() => handleDelete(record.id)}
               okText="Có"
               cancelText="Không"
-              okButtonProps={{ danger: true, loading: deleteProductMutation.isPending }}
+              okButtonProps={{
+                danger: true,
+                loading: deleteProductMutation.isPending,
+              }}
             >
               <Button
                 danger
@@ -353,25 +354,25 @@ const ProductsList = () => {
   }
 
   return (
-    <div className="products-list">
+    <div style={{ padding: 24 }}>
       <PageHeader
         title="Quản lý sản phẩm"
         subtitle="Danh sách tất cả sản phẩm trong hệ thống"
-        extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            size="large"
-            onClick={() => navigate("/products/add")}
-          >
-            Thêm sản phẩm
-          </Button>
-        }
+        // extra={
+        //   <Button
+        //     type="primary"
+        //     icon={<PlusOutlined />}
+        //     size="large"
+        //     onClick={() => navigate("/products/add")}
+        //   >
+        //     Thêm sản phẩm
+        //   </Button>
+        // }
       />
 
-      <Card className="products-card">
-        <div className="products-filters">
-          <Row gutter={16} align="middle">
+      <Card>
+        <Space direction="vertical" size="large" style={{ width: "100%" }}>
+          <Row gutter={[16, 16]} align="middle">
             <Col xs={24} sm={12} md={8} lg={6}>
               <Search
                 placeholder="Tìm kiếm sản phẩm..."
@@ -380,7 +381,6 @@ const ProductsList = () => {
                 value={searchTerm}
                 onSearch={handleSearchChange}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                style={{ width: "100%" }}
               />
             </Col>
             <Col xs={24} sm={12} md={8} lg={6}>
@@ -401,7 +401,7 @@ const ProductsList = () => {
               </Select>
             </Col>
             <Col xs={24} sm={24} md={8} lg={12}>
-              <div className="products-stats">
+              <div style={{ textAlign: "right" }}>
                 <Text type="secondary">
                   Hiển thị {filteredProducts.length} / {products.length} sản
                   phẩm
@@ -409,24 +409,23 @@ const ProductsList = () => {
               </div>
             </Col>
           </Row>
-        </div>
 
-        <Table
-          columns={columns}
-          dataSource={filteredProducts}
-          rowKey="id"
-          pagination={{
-            total: filteredProducts.length,
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} của ${total} sản phẩm`,
-            pageSizeOptions: ["10", "20", "50", "100"],
-          }}
-          scroll={{ x: 1200 }}
-          className="products-table"
-        />
+          <Table
+            columns={columns}
+            dataSource={filteredProducts}
+            rowKey="id"
+            pagination={{
+              total: filteredProducts.length,
+              pageSize: 10,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} của ${total} sản phẩm`,
+              pageSizeOptions: ["10", "20", "50", "100"],
+            }}
+            scroll={{ x: 1200 }}
+          />
+        </Space>
       </Card>
     </div>
   );

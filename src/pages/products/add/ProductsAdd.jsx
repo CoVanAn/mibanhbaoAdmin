@@ -22,13 +22,12 @@ import {
   ArrowLeftOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { useCreateProductMutation } from "../../hooks/useProductQuery";
-import { useCategoriesQuery } from "../../hooks/useCategoryQuery";
-import { PageHeader } from "../../components/common";
-import RichTextEditor from "../../components/forms/RichTextEditor";
-import { validationRules } from "../../utils";
-import VariantManagerAdvanced from "../../components/forms/VariantManagerAdvanced";
-import "./ProductsAdd.css";
+import { useCreateProductMutation } from "../../../hooks/useProductQuery";
+import { useCategoriesQuery } from "../../../hooks/useCategoryQuery";
+import { PageHeader } from "../../../components/common";
+import RichTextEditor from "../../../components/forms/RichTextEditor";
+import { validationRules } from "../../../utils";
+import VariantManagerAdvanced from "../../../components/forms/VariantManagerAdvanced";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -148,7 +147,7 @@ const ProductsAdd = () => {
   };
 
   return (
-    <div className="products-add">
+    <div style={{ padding: 24 }}>
       <PageHeader
         title="Thêm sản phẩm mới"
         subtitle="Tạo sản phẩm mới trong hệ thống"
@@ -173,7 +172,7 @@ const ProductsAdd = () => {
       <Row gutter={24}>
         {/* Main Form */}
         <Col xs={24} lg={16}>
-          <Card title="Thông tin cơ bản" className="product-form-card">
+          <Card title="Thông tin cơ bản">
             <Form
               form={form}
               layout="vertical"
@@ -364,7 +363,7 @@ const ProductsAdd = () => {
 
         {/* Image Upload */}
         <Col xs={24} lg={8}>
-          <Card title="Hình ảnh sản phẩm" className="product-image-card">
+          <Card title="Hình ảnh sản phẩm">
             <Form.Item>
               <Dragger
                 multiple
@@ -374,7 +373,6 @@ const ProductsAdd = () => {
                 onRemove={handleImageRemove}
                 beforeUpload={beforeUpload}
                 accept="image/*"
-                className="product-upload"
               >
                 <p className="ant-upload-drag-icon">
                   <InboxOutlined />
@@ -392,9 +390,17 @@ const ProductsAdd = () => {
               <>
                 <Divider />
                 <Title level={5}>Xem trước</Title>
-                <div className="image-preview-grid">
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fill, minmax(100px, 1fr))",
+                    gap: 12,
+                    marginTop: 16,
+                  }}
+                >
                   {previewImages.map((url, index) => (
-                    <div key={index} className="preview-item">
+                    <div key={index}>
                       <Image
                         src={url}
                         alt={`Preview ${index + 1}`}
@@ -412,7 +418,7 @@ const ProductsAdd = () => {
             )}
 
             <Divider />
-            <div className="upload-tips">
+            <div>
               <Title level={5}>Lưu ý:</Title>
               <ul>
                 <li>Kích thước khuyến nghị: 800x800px</li>

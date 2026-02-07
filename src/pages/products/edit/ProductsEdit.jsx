@@ -49,14 +49,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   useProductQuery,
   useUpdateProductMutation,
-} from "../../hooks/useProductQuery";
-import { useCategoriesQuery } from "../../hooks/useCategoryQuery";
-import { PageHeader } from "../../components/common";
-import { validationRules, formatCurrency } from "../../utils";
-import VariantManager from "../../components/forms/VariantManager";
-import VariantManagerAdvanced from "../../components/forms/VariantManagerAdvanced";
-import RichTextEditor from "../../components/forms/RichTextEditor";
-import "./ProductsEdit.css";
+} from "../../../hooks/useProductQuery";
+import { useCategoriesQuery } from "../../../hooks/useCategoryQuery";
+import { PageHeader } from "../../../components/common";
+import { validationRules, formatCurrency } from "../../../utils";
+import VariantManager from "../../../components/forms/VariantManager";
+import VariantManagerAdvanced from "../../../components/forms/VariantManagerAdvanced";
+import RichTextEditor from "../../../components/forms/RichTextEditor";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -78,15 +77,19 @@ const SortableImageItem = ({ id, image, index, onRemove, onPreview }) => {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    position: "relative",
+    borderRadius: 12,
+    overflow: "hidden",
+    border: "2px solid",
+    borderColor: isDragging ? "#1890ff" : "#f0f0f0",
+    boxShadow: isDragging
+      ? "0 8px 16px rgba(0,0,0,0.2)"
+      : "0 2px 8px rgba(0,0,0,0.1)",
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`sortable-image-item ${isDragging ? "dragging" : ""}`}
-    >
-      <div className="image-container">
+    <div ref={setNodeRef} style={style}>
+      <div>
         <Image
           src={image.url}
           alt={image.alt || `Product image ${index + 1}`}
@@ -98,9 +101,31 @@ const SortableImageItem = ({ id, image, index, onRemove, onPreview }) => {
           }}
         />
 
-        {/* Image Controls */}
-        <div className="image-controls">
-          <div className="image-actions">
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.4)",
+            opacity: 0,
+            transition: "opacity 0.2s",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: 8,
+              padding: 8,
+            }}
+          >
             <Tooltip title="Xem chi tiết">
               <Button
                 size="small"
@@ -117,21 +142,58 @@ const SortableImageItem = ({ id, image, index, onRemove, onPreview }) => {
                 danger
                 icon={<DeleteOutlined />}
                 onClick={() => onRemove(image.id)}
-                className="action-btn remove-btn"
               />
             </Tooltip>
           </div>
 
-          <div className="drag-handle" {...attributes} {...listeners}>
+          <div
+            style={{
+              padding: 8,
+              cursor: "move",
+              display: "flex",
+              justifyContent: "center",
+              color: "white",
+            }}
+            {...attributes}
+            {...listeners}
+          >
             <DragOutlined />
           </div>
         </div>
 
-        {/* Position Badge */}
-        <div className="position-badge">{index + 1}</div>
+        <div
+          style={{
+            position: "absolute",
+            top: 8,
+            left: 8,
+            background: "#1890ff",
+            color: "white",
+            borderRadius: 4,
+            padding: "2px 8px",
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+          {index + 1}
+        </div>
 
-        {/* Main Image Badge */}
-        {index === 0 && <div className="main-badge">Ảnh chính</div>}
+        {index === 0 && (
+          <div
+            style={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              background: "#faad14",
+              color: "white",
+              borderRadius: 4,
+              padding: "2px 8px",
+              fontSize: 11,
+              fontWeight: 600,
+            }}
+          >
+            Ảnh chính
+          </div>
+        )}
       </div>
     </div>
   );
@@ -182,71 +244,68 @@ const ProductsEdit = () => {
       console.log("Image items from backend:", imageItems);
 
       if (imageItems.length === 0) {
-          console.warn(
-            "No images found in product data. Product structure:",
-            Object.keys(productData),
-          );
-        }
+        console.warn(
+          "No images found in product data. Product structure:",
+          Object.keys(productData),
+        );
+      }
 
-        const processedImages = imageItems.map((item, index) => ({
-          id: item.id || `existing-${index}`,
-          url: item.url,
-          alt: item.alt || `Product image ${index + 1}`,
-          position: item.position !== undefined ? item.position : index,
-        }));
+      const processedImages = imageItems.map((item, index) => ({
+        id: item.id || `existing-${index}`,
+        url: item.url,
+        alt: item.alt || `Product image ${index + 1}`,
+        position: item.position !== undefined ? item.position : index,
+      }));
 
-        // Sort by position to ensure correct order
-        processedImages.sort((a, b) => a.position - b.position);
+      // Sort by position to ensure correct order
+      processedImages.sort((a, b) => a.position - b.position);
 
-        console.log("Processed images:", processedImages);
-        setExistingImages(processedImages);
+      console.log("Processed images:", processedImages);
+      setExistingImages(processedImages);
 
-        // Process variants data
-        const variantsData = productData.variants || [];
-        console.log("Variants from backend:", variantsData);
+      // Process variants data
+      const variantsData = productData.variants || [];
+      console.log("Variants from backend:", variantsData);
 
-        setVariants(variantsData);
+      setVariants(variantsData);
 
-        // Determine if using variants mode
-        const hasMultipleVariants = variantsData.length > 1;
-        const hasNamedVariants = variantsData.some((v) => v.name !== "Default");
-        setUseVariants(hasMultipleVariants || hasNamedVariants);
+      // Determine if using variants mode
+      const hasMultipleVariants = variantsData.length > 1;
+      const hasNamedVariants = variantsData.some((v) => v.name !== "Default");
+      setUseVariants(hasMultipleVariants || hasNamedVariants);
 
-        // Set form values with better data mapping
-        // Helper to get display price: prefer product.price, else default variant's active price
-        const getDisplayPrice = () => {
-          if (productData.price) return productData.price;
-          const variants = productData.variants || [];
-          const defaultVariant =
-            variants.find((v) => v.isDefault) || variants[0];
-          const activePrice = defaultVariant?.prices?.find((p) => p.isActive);
-          const anyPrice = defaultVariant?.prices?.[0];
-          return activePrice?.amount || anyPrice?.amount || "";
-        };
+      // Set form values with better data mapping
+      // Helper to get display price: prefer product.price, else default variant's active price
+      const getDisplayPrice = () => {
+        if (productData.price) return productData.price;
+        const variants = productData.variants || [];
+        const defaultVariant = variants.find((v) => v.isDefault) || variants[0];
+        const activePrice = defaultVariant?.prices?.find((p) => p.isActive);
+        const anyPrice = defaultVariant?.prices?.[0];
+        return activePrice?.amount || anyPrice?.amount || "";
+      };
 
-        const formValues = {
-          name: productData.name || "",
-          description: productData.description || "",
-          content: productData.content || "",
-          price: getDisplayPrice(),
-          // Handle both new and old data structure for categories
-          categoryId:
-            productData.categoryIds?.[0] ||
-            productData.categories?.[0]?.categoryId ||
-            productData.categories?.[0]?.id ||
-            "",
-          isActive:
-            productData.isActive !== undefined ? productData.isActive : true,
-          isFeatured:
-            productData.isFeatured !== undefined
-              ? productData.isFeatured
-              : false,
-        };
+      const formValues = {
+        name: productData.name || "",
+        description: productData.description || "",
+        content: productData.content || "",
+        price: getDisplayPrice(),
+        // Handle both new and old data structure for categories
+        categoryId:
+          productData.categoryIds?.[0] ||
+          productData.categories?.[0]?.categoryId ||
+          productData.categories?.[0]?.id ||
+          "",
+        isActive:
+          productData.isActive !== undefined ? productData.isActive : true,
+        isFeatured:
+          productData.isFeatured !== undefined ? productData.isFeatured : false,
+      };
 
-        console.log("Setting form values:", formValues);
-        console.log("Product data:", data);
+      console.log("Setting form values:", formValues);
+      console.log("Product data:", data);
 
-        form.setFieldsValue(formValues);
+      form.setFieldsValue(formValues);
     }
   }, [productData, form]);
 
@@ -382,7 +441,14 @@ const ProductsEdit = () => {
 
   if (loadingProduct) {
     return (
-      <div className="products-edit-loading">
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "50vh",
+        }}
+      >
         <Spin size="large" />
       </div>
     );
@@ -390,7 +456,16 @@ const ProductsEdit = () => {
 
   if (!product) {
     return (
-      <div className="products-edit-error">
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "50vh",
+          textAlign: "center",
+        }}
+      >
         <Title level={3}>Không tìm thấy sản phẩm</Title>
         <Button onClick={() => navigate(-1)}>Quay lại danh sách</Button>
       </div>
@@ -398,7 +473,7 @@ const ProductsEdit = () => {
   }
 
   return (
-    <div className="products-edit">
+    <div style={{ padding: 24 }}>
       <PageHeader
         title={`Chỉnh sửa: ${product.name}`}
         subtitle="Cập nhật thông tin sản phẩm"
@@ -439,13 +514,31 @@ const ProductsEdit = () => {
         <Col xs={24}>
           <Card
             title="Thông tin sản phẩm hiện tại"
-            className="product-summary-card"
             style={{ marginBottom: 16 }}
           >
             <Row gutter={16}>
               <Col xs={24} sm={12} md={6}>
-                <div className="info-item">
-                  <strong>Tên sản phẩm:</strong>
+                <div
+                  style={{
+                    marginBottom: 12,
+                    padding: 8,
+                    background: "white",
+                    borderRadius: 6,
+                    borderLeft: "3px solid #1890ff",
+                  }}
+                >
+                  <strong
+                    style={{
+                      display: "block",
+                      color: "#495057",
+                      fontSize: 12,
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                      marginBottom: 4,
+                    }}
+                  >
+                    Tên sản phẩm:
+                  </strong>
                   <div>{product.name || "Chưa có"}</div>
                 </div>
               </Col>
@@ -517,7 +610,7 @@ const ProductsEdit = () => {
 
         {/* Main Form */}
         <Col xs={24} lg={16}>
-          <Card title="Thông tin cơ bản" className="product-form-card">
+          <Card title="Thông tin cơ bản">
             <Form form={form} layout="vertical" onFinish={handleSubmit}>
               <Form.Item
                 label="Tên sản phẩm"
@@ -706,7 +799,7 @@ const ProductsEdit = () => {
 
         {/* Image Management */}
         <Col xs={24} lg={8}>
-          <Card title="Quản lý hình ảnh" className="product-image-card">
+          <Card title="Quản lý hình ảnh">
             {/* Existing Images with Drag & Drop */}
             {existingImages.length > 0 ? (
               <>

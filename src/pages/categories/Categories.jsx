@@ -20,7 +20,6 @@ import {
   useCategoryHelpers,
 } from "../../hooks/useCategoryQuery";
 import { validationRules } from "../../utils";
-import "./Categories.css";
 
 const { Option } = Select;
 
@@ -113,7 +112,7 @@ const Categories = () => {
         <div>
           <strong>{text}</strong>
           {record.parentId && (
-            <div className="category-hierarchy">
+            <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>
               {getCategoryDisplayName(record)}
             </div>
           )}
@@ -124,7 +123,7 @@ const Categories = () => {
       title: "Slug",
       dataIndex: "slug",
       key: "slug",
-      render: (text) => <code className="category-slug">{text}</code>,
+      render: (text) => <code style={{ fontFamily: "Monaco, Menlo, Ubuntu Mono, monospace", backgroundColor: "#f5f5f5", padding: "2px 6px", borderRadius: 4, fontSize: 12 }}>{text}</code>,
     },
     {
       title: "Parent",
@@ -152,7 +151,7 @@ const Categories = () => {
       dataIndex: "isActive",
       key: "isActive",
       render: (isActive) => (
-        <Tag color={isActive ? "green" : "red"} className="category-status-tag">
+        <Tag color={isActive ? "green" : "red"}>
           {isActive ? "Hoạt động" : "Tạm ngừng"}
         </Tag>
       ),
@@ -168,7 +167,7 @@ const Categories = () => {
       key: "actions",
       width: 150,
       render: (_, record) => (
-        <Space className="category-actions">
+        <Space>
           <Button
             type="primary"
             size="small"
@@ -201,9 +200,9 @@ const Categories = () => {
   ];
 
   return (
-    <div className="categories-page">
-      <div className="categories-header">
-        <h2>Quản lý Categories</h2>
+    <div style={{ padding: 24 }}>
+      <div style={{ marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h2 style={{ margin: 0, color: "#1f2937", fontSize: 24, fontWeight: 600 }}>Quản lý Categories</h2>
         <Button
           type="primary"
           icon={<PlusOutlined />}
@@ -238,7 +237,6 @@ const Categories = () => {
         }}
         footer={null}
         width={600}
-        className="category-modal"
       >
         <Form
           form={form}

@@ -2,17 +2,17 @@ import { Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import ProtectedRoute from "./components/Auth/ProtectedRouteNew";
-import AdminLogin from "./pages/Auth/AdminLogin";
+import ProtectedRoute from "./components/auth/ProtectedRouteNew";
+import AdminLogin from "./pages/login/AdminLogin";
 // import Orders from "./pages/Orders/Orders";
-import AdminProfile from "./pages/Profile/AdminProfile";
-import Categories from "./pages/Categories/Categories";
+import AdminProfile from "./pages/profile/AdminProfile";
+import Categories from "./pages/categories/Categories";
 import {
   ProductsList,
   ProductsAdd,
   ProductsEdit,
   ProductsView,
-} from "./pages/Products";
+} from "./pages/products";
 import AdminLayout from "./components/Layout/AdminLayout";
 
 const App = () => {

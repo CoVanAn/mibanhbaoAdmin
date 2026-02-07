@@ -14,7 +14,7 @@ import {
 } from "antd";
 import { Image } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import { useProductQuery } from "../../hooks/useProductQuery";
+import { useProductQuery } from "../../../hooks/useProductQuery";
 
 const { Title, Text } = Typography;
 
@@ -50,7 +50,6 @@ const ProductsView = () => {
           <Title level={3} style={{ margin: 0 }}>
             {product.name}
           </Title>
-          {product.isFeatured && <Tag color="gold">Nổi bật</Tag>}
         </Space>
       }
     >
@@ -111,7 +110,7 @@ const ProductsView = () => {
             <Text strong>Mô tả:</Text>
             <Text>{product.description}</Text>
             <Divider style={{ margin: "8px 0" }} />
-            <Text strong>Danh mục:</Text>{" "}
+            <Text strong>Danh mục:</Text>
             <Tag color="blue">
               {product.categories?.[0]?.name
                 ? product.categories[0].name
@@ -120,12 +119,13 @@ const ProductsView = () => {
                   ? `#${product.categoryIds.join(", #")}`
                   : "Không có"}
             </Tag>
-            <Text strong>Giá:</Text>{" "}
-            <Tag color="green">{product.price?.toLocaleString()} VNĐ</Tag>
-            <Text strong>Trạng thái:</Text>{" "}
+            {/* <Text strong>Giá:</Text>{" "}
+            <Tag color="green">{product.price?.toLocaleString()} VNĐ</Tag> */}
+            <Text strong>Trạng thái:</Text>
             <Tag color={product.isActive ? "green" : "red"}>
               {product.isActive ? "Hoạt động" : "Ẩn"}
             </Tag>
+            {product.isFeatured && <Tag color="gold">Nổi bật</Tag>}
           </Space>
         </Col>
       </Row>

@@ -1,0 +1,112 @@
+/* Minimal CSS for Drag & Drop functionality only */
+.sortable-image-item {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #f0f0f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.sortable-image-item.dragging {
+  border-color: #1890ff;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.image-controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transition: opacity 0.2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sortable-image-item:hover .image-controls {
+  opacity: 1;
+}
+
+.image-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+}
+
+.drag-handle {
+  padding: 8px;
+  cursor: move;
+  display: flex;
+  justify-content: center;
+  color: white;
+}
+
+.position-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: #1890ff;
+  color: white;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.main-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #faad14;
+  color: white;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.existing-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.image-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.no-images-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.no-images-icon {
+  margin-bottom: 16px;
+}
+
+.section-header {
+  margin-bottom: 16px;
+}
+
+.upload-tips {
+  margin-top: 16px;
+}
+
+.upload-tips ul {
+  padding-left: 20px;
+  margin: 8px 0;
+  color: #666;
+}
+
+.upload-tips li {
+  margin: 4px 0;
+  font-size: 13px;
+}

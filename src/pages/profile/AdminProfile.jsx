@@ -23,7 +23,6 @@ import {
 } from "@ant-design/icons";
 import { useAuth } from "../../hooks/useAuth";
 import { validationRules } from "../../utils";
-import "./AdminProfile.css";
 
 const { TabPane } = Tabs;
 const { Title, Text } = Typography;
@@ -38,7 +37,14 @@ const AdminProfile = () => {
 
   if (!user) {
     return (
-      <div className="loading-container">
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
         <div>Loading profile...</div>
       </div>
     );
@@ -90,14 +96,20 @@ const AdminProfile = () => {
   };
 
   return (
-    <div className="admin-profile">
-      <div className="profile-header">
+    <div style={{ padding: 24, minHeight: "100vh" }}>
+      <div style={{ marginBottom: 24, textAlign: "center" }}>
         <Title level={2}>Thông tin cá nhân</Title>
         <Text type="secondary">Quản lý thông tin và mật khẩu của bạn</Text>
       </div>
 
-      <Card className="profile-card">
-        <Tabs defaultActiveKey="profile" type="card" className="profile-tabs">
+      <Card
+        style={{
+          borderRadius: 12,
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+          overflow: "hidden",
+        }}
+      >
+        <Tabs defaultActiveKey="profile" type="card">
           <TabPane
             tab={
               <Space>
@@ -107,8 +119,21 @@ const AdminProfile = () => {
             }
             key="profile"
           >
-            <Row gutter={32} className="profile-content">
-              <Col xs={24} md={8} className="avatar-section">
+            <Row gutter={32} style={{ padding: "24px 0" }}>
+              <Col
+                xs={24}
+                md={8}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  padding: 24,
+                  background:
+                    "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+                  borderRadius: 12,
+                  marginBottom: 24,
+                }}
+              >
                 <div className="avatar-container">
                   <Badge
                     count={
@@ -117,7 +142,11 @@ const AdminProfile = () => {
                         shape="circle"
                         icon={<CameraOutlined />}
                         size="small"
-                        className="avatar-edit-btn"
+                        style={{
+                          background: "#1890ff",
+                          border: "2px solid #fff",
+                          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+                        }}
                         onClick={() =>
                           document.getElementById("avatar-upload").click()
                         }
@@ -126,10 +155,13 @@ const AdminProfile = () => {
                     offset={[-10, 10]}
                   >
                     <Avatar
-                      size={120}
+                      size={180}
                       src={user.avatar}
                       icon={<UserOutlined />}
-                      className="profile-avatar"
+                      style={{
+                        border: "4px solid #fff",
+                        boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
+                      }}
                     />
                   </Badge>
 
@@ -144,20 +176,29 @@ const AdminProfile = () => {
                     <input type="file" style={{ display: "none" }} />
                   </Upload>
 
-                  <div className="avatar-info">
-                    <Title level={4} className="user-name">
+                  <div style={{ textAlign: "center", marginTop: 8 }}>
+                    <Title level={4} style={{ marginBottom: 8 }}>
                       {user.name || "Chưa có tên"}
                     </Title>
                     <Text type="secondary">{user.email}</Text>
                     <br />
-                    <Text type="secondary" className="user-role">
+                    <Text
+                      type="secondary"
+                      style={{
+                        fontSize: 12,
+                        textTransform: "uppercase",
+                        letterSpacing: 0.5,
+                        fontWeight: 500,
+                        color: "#1890ff",
+                      }}
+                    >
                       {user.role === "ADMIN" ? "Quản trị viên" : "Nhân viên"}
                     </Text>
                   </div>
                 </div>
               </Col>
 
-              <Col xs={24} md={16} className="form-section">
+              <Col xs={24} md={16} style={{ padding: 24 }}>
                 <Form
                   form={profileForm}
                   layout="vertical"
@@ -167,7 +208,6 @@ const AdminProfile = () => {
                     email: user.email || "",
                     phone: user.phone || "",
                   }}
-                  className="profile-form"
                 >
                   <Row gutter={16}>
                     <Col xs={24} sm={12}>
@@ -198,7 +238,7 @@ const AdminProfile = () => {
                     <Input placeholder="Nhập email" disabled size="large" />
                   </Form.Item>
 
-                  <Form.Item className="form-actions">
+                  <Form.Item style={{ marginTop: 32, textAlign: "right" }}>
                     <Button
                       type="primary"
                       htmlType="submit"
@@ -225,7 +265,14 @@ const AdminProfile = () => {
           >
             <Row justify="center">
               <Col xs={24} md={12} lg={10}>
-                <div className="password-section">
+                <div
+                  style={{
+                    padding: 32,
+                    background: "#fafafa",
+                    borderRadius: 12,
+                    border: "1px solid #f0f0f0",
+                  }}
+                >
                   <Title level={4}>Thay đổi mật khẩu</Title>
                   <Text type="secondary">
                     Đảm bảo mật khẩu mới có ít nhất 6 ký tự và khác với mật khẩu
@@ -238,7 +285,6 @@ const AdminProfile = () => {
                     form={passwordForm}
                     layout="vertical"
                     onFinish={handlePasswordChange}
-                    className="password-form"
                   >
                     <Form.Item
                       label="Mật khẩu hiện tại"
@@ -277,7 +323,7 @@ const AdminProfile = () => {
                               return Promise.resolve();
                             }
                             return Promise.reject(
-                              new Error("Mật khẩu xác nhận không khớp")
+                              new Error("Mật khẩu xác nhận không khớp"),
                             );
                           },
                         }),
@@ -289,7 +335,7 @@ const AdminProfile = () => {
                       />
                     </Form.Item>
 
-                    <Form.Item className="form-actions">
+                    <Form.Item style={{ marginTop: 32, textAlign: "center" }}>
                       <Button
                         type="primary"
                         htmlType="submit"
