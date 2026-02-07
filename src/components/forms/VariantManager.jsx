@@ -24,7 +24,6 @@ import {
   InfoCircleOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-import "./VariantManager.css";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;

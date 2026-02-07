@@ -3,10 +3,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import ProtectedRoute from "./components/auth/ProtectedRouteNew";
-import AdminLogin from "./pages/login/AdminLogin";
-// import Orders from "./pages/Orders/Orders";
-import AdminProfile from "./pages/profile/AdminProfile";
-import Categories from "./pages/categories/Categories";
+import AdminLogin from "./pages/login";
+import AdminProfile from "./pages/profile";
+import Categories from "./pages/categories";
 import {
   ProductsList,
   ProductsAdd,

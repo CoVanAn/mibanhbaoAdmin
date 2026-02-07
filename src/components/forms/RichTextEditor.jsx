@@ -2,7 +2,6 @@ import PropTypes from "prop-types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import "./RichTextEditor.css";
 
 const DEFAULT_MAX_LENGTH = 2000;
 

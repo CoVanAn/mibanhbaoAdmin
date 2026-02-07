@@ -28,7 +28,6 @@ import {
 import { formatCurrency } from "../../utils";
 import { productsApi } from "../../api/products";
 import PriceManagementModal from "./PriceManagementModal";
-import "./VariantManager.css";
 
 const { Title, Text } = Typography;
 

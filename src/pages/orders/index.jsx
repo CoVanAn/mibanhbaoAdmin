@@ -19,7 +19,6 @@ import {
   PhoneOutlined,
   CalendarOutlined,
 } from "@ant-design/icons";
-import "./Orders.css";
 
 const { Title, Text } = Typography;
 const { Option } = Select;

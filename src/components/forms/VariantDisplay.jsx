@@ -27,7 +27,6 @@ import {
 } from "@ant-design/icons";
 import { useVariants } from "../../hooks";
 import PriceManagement from "./PriceManagement";
-import "./VariantDisplay.css";
 
 const { Title, Text } = Typography;
 const { Panel } = Collapse;
