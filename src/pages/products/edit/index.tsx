@@ -614,7 +614,7 @@ const ProductsEdit = () => {
               <Form.Item
                 label="Tên sản phẩm"
                 name="name"
-                rules={validationRules.required as any}
+                rules={[validationRules.required as any]}
               >
                 <Input
                   placeholder={

@@ -184,7 +184,7 @@ const ProductsAdd = () => {
               <Form.Item
                 label="Tên sản phẩm"
                 name="name"
-                rules={validationRules.required as any}
+                rules={[validationRules.required as any]}
               >
                 <Input placeholder="Nhập tên sản phẩm" size="large" />
               </Form.Item>
@@ -233,7 +233,7 @@ const ProductsAdd = () => {
                           label="Giá sản phẩm (VNĐ)"
                           name="price"
                           rules={[
-                            ...(validationRules.required as any),
+                            validationRules.required as any,
                             {
                               pattern: /^\d+(\.\d{1,2})?$/,
                               message: "Giá phải là số hợp lệ",

@@ -11,6 +11,7 @@ import {
   Popconfirm,
   Tag,
 } from "antd";
+import type { ColumnsType } from "antd/es/table";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import {
   useCategoriesQuery,
@@ -23,9 +24,20 @@ import { validationRules } from "../../utils";
 
 const { Option } = Select;
 
+type Category = {
+  id: number;
+  name: string;
+  slug: string;
+  position: number;
+  isActive: boolean;
+  parentId?: number | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+};
+
 const Categories = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [form] = Form.useForm();
 
   // TanStack Query hooks
@@ -37,22 +49,19 @@ const Categories = () => {
   const { getCategoryDisplayName, getParentOptions } = useCategoryHelpers();
 
   // Handle create/update category
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values: any) => {
     try {
       // Clean and prepare data
-      const categoryData = {
+      const categoryData: any = {
         name: values.name?.trim(),
         position:
           typeof values.position === "number"
             ? values.position
             : parseInt(values.position, 10) || 0,
         isActive: values.isActive ?? true,
+        // Always include parentId to allow removing parent (set to null)
+        parentId: values.parentId ? Number(values.parentId) : null,
       };
-
-      // Only include parentId if it has a valid value (not null, undefined, or empty)
-      if (values.parentId) {
-        categoryData.parentId = Number(values.parentId);
-      }
 
       if (editingCategory) {
         await updateCategoryMutation.mutateAsync({
@@ -72,7 +81,7 @@ const Categories = () => {
   };
 
   // Handle delete category
-  const handleDelete = async (categoryId) => {
+  const handleDelete = async (categoryId: number) => {
     try {
       await deleteCategoryMutation.mutateAsync(categoryId);
     } catch (error) {
@@ -81,7 +90,7 @@ const Categories = () => {
   };
 
   // Open modal for create/edit
-  const openModal = (category = null) => {
+  const openModal = (category: Category | null = null) => {
     setEditingCategory(category);
     setModalVisible(true);
 
@@ -97,7 +106,7 @@ const Categories = () => {
     }
   };
 
-  const columns = [
+  const columns: ColumnsType<Category> = [
     {
       title: "ID",
       dataIndex: "id",
@@ -108,7 +117,7 @@ const Categories = () => {
       title: "Tên Category",
       dataIndex: "name",
       key: "name",
-      render: (text, record) => (
+      render: (text: string, record: Category) => (
         <div>
           <strong>{text}</strong>
           {record.parentId && (
@@ -123,13 +132,13 @@ const Categories = () => {
       title: "Slug",
       dataIndex: "slug",
       key: "slug",
-      render: (text) => <code style={{ fontFamily: "Monaco, Menlo, Ubuntu Mono, monospace", backgroundColor: "#f5f5f5", padding: "2px 6px", borderRadius: 4, fontSize: 12 }}>{text}</code>,
+      render: (text: string) => <code style={{ fontFamily: "Monaco, Menlo, Ubuntu Mono, monospace", backgroundColor: "#f5f5f5", padding: "2px 6px", borderRadius: 4, fontSize: 12 }}>{text}</code>,
     },
     {
       title: "Parent",
       dataIndex: "parentId",
       key: "parentId",
-      render: (parentId) => {
+      render: (parentId: number | null | undefined) => {
         if (!parentId) return <Tag color="blue">Root</Tag>;
         const parent = categories.find((cat) => cat.id === parentId);
         return parent ? (
@@ -144,13 +153,13 @@ const Categories = () => {
       dataIndex: "position",
       key: "position",
       width: 80,
-      align: "center",
+      align: "center" as const,
     },
     {
       title: "Trạng thái",
       dataIndex: "isActive",
       key: "isActive",
-      render: (isActive) => (
+      render: (isActive: boolean) => (
         <Tag color={isActive ? "green" : "red"}>
           {isActive ? "Hoạt động" : "Tạm ngừng"}
         </Tag>
@@ -160,13 +169,13 @@ const Categories = () => {
       title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (date) => new Date(date).toLocaleDateString("vi-VN"),
+      render: (date: string) => new Date(date).toLocaleDateString("vi-VN"),
     },
     {
       title: "Thao tác",
       key: "actions",
       width: 150,
-      render: (_, record) => (
+      render: (_: any, record: Category) => (
         <Space>
           <Button
             type="primary"
@@ -250,7 +259,7 @@ const Categories = () => {
           <Form.Item
             label="Tên Category"
             name="name"
-            rules={validationRules.name}
+            rules={validationRules.name as any}
           >
             <Input placeholder="Nhập tên category" />
           </Form.Item>
@@ -264,8 +273,8 @@ const Categories = () => {
               placeholder="Chọn category cha"
               allowClear
               showSearch
-              filterOption={(input, option) =>
-                option.children.toLowerCase().includes(input.toLowerCase())
+              filterOption={(input, option: any) =>
+                option?.children?.toLowerCase?.().includes(input.toLowerCase())
               }
             >
               <Option key="none" value={null}>
