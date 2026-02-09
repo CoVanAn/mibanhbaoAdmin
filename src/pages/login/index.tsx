@@ -1,7 +1,6 @@
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuthQuery";
-import { toast } from "react-toastify";
-import { Form, Input, Button, Card, Typography, Spin, Alert } from "antd";
+import { Form, Input, Button, Card, Typography, Spin } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
@@ -49,7 +48,7 @@ const AdminLogin = () => {
     return <Navigate to={from} replace />;
   }
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values: { email: string; password: string }) => {
     try {
       await loginAsync({ email: values.email, password: values.password });
       // Success toast already handled in mutation

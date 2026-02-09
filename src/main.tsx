@@ -1,4 +1,3 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import "./index.css";
@@ -10,7 +9,7 @@ import "./styles/globals.css";
 import "./styles/components.css";
 import { QueryProvider } from "./lib/providers.jsx";
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <QueryProvider>
     <BrowserRouter>
       <App />

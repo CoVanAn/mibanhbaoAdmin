@@ -51,13 +51,13 @@ const AdminProfile = () => {
   }
 
   // Handle avatar upload
-  const handleAvatarUpload = async (file) => {
+  const handleAvatarUpload = async (file: File) => {
     setUploading(true);
     try {
       const formData = new FormData();
       formData.append("avatar", file);
 
-      await updateProfile(formData);
+      await updateProfile(formData as any);
       message.success("Cập nhật avatar thành công!");
     } catch (error) {
       message.error("Lỗi khi upload avatar");
@@ -68,10 +68,10 @@ const AdminProfile = () => {
   };
 
   // Handle profile update
-  const handleProfileUpdate = async (values) => {
+  const handleProfileUpdate = async (values: Record<string, any>) => {
     setUpdating(true);
     try {
-      await updateProfile(values);
+      await updateProfile(values as any);
       message.success("Cập nhật thông tin thành công!");
     } catch (error) {
       message.error("Lỗi khi cập nhật thông tin");
@@ -81,7 +81,7 @@ const AdminProfile = () => {
   };
 
   // Handle password change
-  const handlePasswordChange = async (values) => {
+  const handlePasswordChange = async (values: Record<string, any>) => {
     setChangingPassword(true);
     try {
       // Call API to change password
@@ -148,7 +148,7 @@ const AdminProfile = () => {
                           boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
                         }}
                         onClick={() =>
-                          document.getElementById("avatar-upload").click()
+                          document.getElementById("avatar-upload")?.click()
                         }
                       />
                     }
@@ -214,7 +214,7 @@ const AdminProfile = () => {
                       <Form.Item
                         label="Họ và tên"
                         name="name"
-                        rules={validationRules.name}
+                        rules={validationRules.name as any}
                       >
                         <Input
                           placeholder="Nhập họ và tên"
@@ -233,7 +233,7 @@ const AdminProfile = () => {
                   <Form.Item
                     label="Email"
                     name="email"
-                    rules={validationRules.email}
+                    rules={validationRules.email as any}
                   >
                     <Input placeholder="Nhập email" disabled size="large" />
                   </Form.Item>
@@ -289,7 +289,7 @@ const AdminProfile = () => {
                     <Form.Item
                       label="Mật khẩu hiện tại"
                       name="currentPassword"
-                      rules={validationRules.password}
+                      rules={validationRules.password as any}
                     >
                       <Input.Password
                         placeholder="Nhập mật khẩu hiện tại"
@@ -300,7 +300,7 @@ const AdminProfile = () => {
                     <Form.Item
                       label="Mật khẩu mới"
                       name="newPassword"
-                      rules={validationRules.password}
+                      rules={validationRules.password as any}
                     >
                       <Input.Password
                         placeholder="Nhập mật khẩu mới"
@@ -313,7 +313,7 @@ const AdminProfile = () => {
                       name="confirmPassword"
                       dependencies={["newPassword"]}
                       rules={[
-                        validationRules.required,
+                        validationRules.required as any,
                         ({ getFieldValue }) => ({
                           validator: (_, value) => {
                             if (

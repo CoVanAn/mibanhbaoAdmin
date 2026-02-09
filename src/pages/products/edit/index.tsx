@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import {
   Card,
   Form,
@@ -11,11 +10,9 @@ import {
   Col,
   Typography,
   Divider,
-  message,
   Space,
   Image,
   Spin,
-  Tooltip,
   Tag,
   Table,
 } from "antd";
@@ -23,420 +20,54 @@ import {
   InboxOutlined,
   SaveOutlined,
   ArrowLeftOutlined,
-  DeleteOutlined,
-  DragOutlined,
-  EyeOutlined,
 } from "@ant-design/icons";
+import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
   SortableContext,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
-  useSortable,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { useNavigate, useParams } from "react-router-dom";
-import {
-  useProductQuery,
-  useUpdateProductMutation,
-} from "../../../hooks/useProductQuery";
-import { useCategoriesQuery } from "../../../hooks/useCategoryQuery";
 import { PageHeader } from "../../../components/common";
 import { validationRules, formatCurrency } from "../../../utils";
 import VariantManager from "../../../components/forms/VariantManager";
 import VariantManagerAdvanced from "../../../components/forms/VariantManagerAdvanced";
 import RichTextEditor from "../../../components/forms/RichTextEditor";
+import { SortableImageItem } from "./dropImage";
+import { useProductEditLogic } from "./useProductEditLogic";
 
 const { TextArea } = Input;
 const { Option } = Select;
 const { Title } = Typography;
 const { Dragger } = Upload;
 
-// Sortable Image Item Component
-const SortableImageItem = ({ id, image, index, onRemove, onPreview }: {
-  id: any;
-  image: any;
-  index: number;
-  onRemove: (id: any) => void;
-  onPreview: (image: any) => void;
-}) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    position: "relative" as const,
-    borderRadius: 12,
-    overflow: "hidden",
-    border: "2px solid",
-    borderColor: isDragging ? "#1890ff" : "#f0f0f0",
-    boxShadow: isDragging
-      ? "0 8px 16px rgba(0,0,0,0.2)"
-      : "0 2px 8px rgba(0,0,0,0.1)",
-  };
-
-  return (
-    <div ref={setNodeRef} style={style}>
-      <div>
-        <Image
-          src={image.url}
-          alt={image.alt || `Product image ${index + 1}`}
-          style={{
-            width: "100%",
-            height: 120,
-            objectFit: "cover",
-            borderRadius: 8,
-          }}
-        />
-
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.4)",
-            opacity: 0,
-            transition: "opacity 0.2s",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0")}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              gap: 8,
-              padding: 8,
-            }}
-          >
-            <Tooltip title="Xem chi tiết">
-              <Button
-                size="small"
-                type="text"
-                icon={<EyeOutlined />}
-                onClick={() => onPreview(image)}
-                className="action-btn preview-btn"
-              />
-            </Tooltip>
-            <Tooltip title="Xóa ảnh">
-              <Button
-                size="small"
-                type="text"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => onRemove(image.id)}
-              />
-            </Tooltip>
-          </div>
-
-          <div
-            style={{
-              padding: 8,
-              cursor: "move",
-              display: "flex",
-              justifyContent: "center",
-              color: "white",
-            }}
-            {...attributes}
-            {...listeners}
-          >
-            <DragOutlined />
-          </div>
-        </div>
-
-        <div
-          style={{
-            position: "absolute",
-            top: 8,
-            left: 8,
-            background: "#1890ff",
-            color: "white",
-            borderRadius: 4,
-            padding: "2px 8px",
-            fontSize: 12,
-            fontWeight: 600,
-          }}
-        >
-          {index + 1}
-        </div>
-
-        {index === 0 && (
-          <div
-            style={{
-              position: "absolute",
-              top: 8,
-              right: 8,
-              background: "#faad14",
-              color: "white",
-              borderRadius: 4,
-              padding: "2px 8px",
-              fontSize: 11,
-              fontWeight: 600,
-            }}
-          >
-            Ảnh chính
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
 const ProductsEdit = () => {
-  const navigate = useNavigate();
-  const { id } = useParams();
-  const [form] = Form.useForm();
-
-  // TanStack Query hooks
   const {
-    data: productData,
-    isLoading: loadingProduct,
-  } = useProductQuery(id ? parseInt(id) : 0);
-  const { data: categories = [], isLoading: loadingCategories } =
-    useCategoriesQuery(true);
-  const updateProductMutation = useUpdateProductMutation();
-
-  const [product, setProduct] = useState<any>(null);
-  const [newImages, setNewImages] = useState<any[]>([]);
-  const [existingImages, setExistingImages] = useState<any[]>([]);
-  const [previewImages, setPreviewImages] = useState<any[]>([]);
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [previewImage, setPreviewImage] = useState("");
-  const [variants, setVariants] = useState<any[]>([]);
-  const [useVariants, setUseVariants] = useState(false);
-
-  // Drag and drop sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
-  // Process product data when it loads
-  useEffect(() => {
-    if (productData) {
-      const data = productData;
-      console.log("Product data loaded:", data);
-
-      setProduct(data);
-
-      // Set existing images with proper structure
-      const imageItems = data.images || [];
-      console.log("Image items from backend:", imageItems);
-
-      if (imageItems.length === 0) {
-        console.warn(
-          "No images found in product data. Product structure:",
-          Object.keys(productData),
-        );
-      }
-
-      const processedImages = imageItems.map((item: any, index: number) => ({
-        id: item.id || `existing-${index}`,
-        url: item.url,
-        alt: item.alt || `Product image ${index + 1}`,
-        position: item.position !== undefined ? item.position : index,
-      }));
-
-      // Sort by position to ensure correct order
-      processedImages.sort((a: any, b: any) => a.position - b.position);
-
-      console.log("Processed images:", processedImages);
-      setExistingImages(processedImages);
-
-      // Process variants data
-      const variantsData = productData.variants || [];
-      console.log("Variants from backend:", variantsData);
-
-      setVariants(variantsData);
-
-      // Determine if using variants mode
-      const hasMultipleVariants = variantsData.length > 1;
-      const hasNamedVariants = variantsData.some((v: any) => v.name !== "Default");
-      setUseVariants(hasMultipleVariants || hasNamedVariants);
-
-      // Set form values with better data mapping
-      // Helper to get display price: prefer product.price, else default variant price
-      const getDisplayPrice = () => {
-        if (productData.price) return productData.price;
-        const variants = productData.variants || [];
-        const defaultVariant = variants[0];
-        return defaultVariant?.price || defaultVariant?.currentPrice || "";
-      };
-
-      const formValues = {
-        name: productData.name || "",
-        description: productData.description || "",
-        content: productData.content || "",
-        price: getDisplayPrice(),
-        // Handle both new and old data structure for categories
-        categoryId:
-          productData.categories?.[0]?.id ||
-          "",
-        isActive:
-          productData.isActive !== undefined ? productData.isActive : true,
-        isFeatured:
-          productData.isFeatured !== undefined ? productData.isFeatured : false,
-      };
-
-      console.log("Setting form values:", formValues);
-      console.log("Product data:", data);
-
-      form.setFieldsValue(formValues);
-    }
-  }, [productData, form]);
-
-  // Handle drag end for existing images
-  const handleDragEnd = (event: any) => {
-    const { active, over } = event;
-
-    if (active.id !== over?.id) {
-      setExistingImages((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-
-        const newItems = arrayMove(items, oldIndex, newIndex);
-
-        // Update position for each item
-        return newItems.map((item, index) => ({
-          ...item,
-          position: index,
-        }));
-      });
-    }
-  };
-
-  // Remove existing image
-  const handleExistingImageRemove = (imageId: any) => {
-    setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
-  };
-
-  // Preview image
-  const handleImagePreview = (image: any) => {
-    setPreviewImage(image.url);
-    setPreviewVisible(true);
-  };
-
-  // Handle new image upload
-  const handleImageChange = ({ fileList }: any) => {
-    setNewImages(fileList);
-
-    // Create preview URLs for new images
-    const previews = fileList.map((file: any) => {
-      if (file.originFileObj) {
-        return URL.createObjectURL(file.originFileObj);
-      }
-      return file.url;
-    });
-    setPreviewImages(previews);
-  };
-
-  // Remove new image
-  const handleImageRemove = (file: any) => {
-    const newImageList = newImages.filter((img) => img.uid !== file.uid);
-    setNewImages(newImageList);
-
-    const newPreviews = previewImages.filter(
-      (_, index) => newImages[index]?.uid !== file.uid,
-    );
-    setPreviewImages(newPreviews);
-
-    return true;
-  };
-
-  // Custom upload validation
-  const beforeUpload = (file: any) => {
-    const isImage = file.type.startsWith("image/");
-    if (!isImage) {
-      message.error("Chỉ có thể upload file hình ảnh!");
-      return false;
-    }
-
-    const isLt5M = file.size / 1024 / 1024 < 5;
-    if (!isLt5M) {
-      message.error("Hình ảnh phải nhỏ hơn 5MB!");
-      return false;
-    }
-
-    return false; // Prevent auto upload
-  };
-
-  const handleSubmit = async (values: any) => {
-    try {
-      console.log("Form values:", values);
-      console.log("Existing images:", existingImages);
-      console.log("New images:", newImages);
-      console.log(
-        "New images originFileObj:",
-        newImages.map((img) => ({
-          name: img.name,
-          size: img.size,
-          type: img.type,
-          hasOriginFileObj: !!img.originFileObj,
-        })),
-      );
-      console.log("Variants data:", variants);
-
-      // Use the price from variants (simplified approach)
-      const finalPrice = variants[0]?.price || values.price || 0;
-
-      // Prepare form data
-      const productData = {
-        name: values.name,
-        description: values.description || "",
-        content: values.content || "",
-        ...(!useVariants ? { price: parseFloat(finalPrice) } : {}),
-        categoryId: values.categoryId || null,
-        isActive: values.isActive !== undefined ? values.isActive : true,
-        isFeatured: values.isFeatured !== undefined ? values.isFeatured : false,
-        // Include information about images to keep and new images to add
-        existingImageIds: existingImages.map((img) => img.id),
-        // Include image positions for reordering
-        imagePositions: existingImages.map((img, index) => ({
-          id: img.id,
-          position: index,
-        })),
-        newImages: newImages.map((img) => img.originFileObj).filter(Boolean),
-      };
-
-      console.log("Submitting product data:", productData);
-
-      await updateProductMutation.mutateAsync({ id: parseInt(id!), data: productData });
-      console.log("Update success");
-
-      // Navigate back (success message handled by mutation)
-      navigate(-1);
-    } catch (error) {
-      console.error("Update product error:", error);
-      // Error is handled by mutation's onError
-    }
-  };
-
-  const handleCancel = () => {
-    navigate(-1);
-  };
+    navigate,
+    form,
+    product,
+    categories,
+    loadingProduct,
+    loadingCategories,
+    updateProductMutation,
+    newImages,
+    existingImages,
+    previewImages,
+    previewVisible,
+    previewImage,
+    variants,
+    useVariants,
+    sensors,
+    setPreviewVisible,
+    setVariants,
+    setUseVariants,
+    handleDragEnd,
+    handleExistingImageRemove,
+    handleImagePreview,
+    handleImageChange,
+    handleImageRemove,
+    beforeUpload,
+    handleSubmit,
+    handleCancel,
+  } = useProductEditLogic();
 
   if (loadingProduct) {
     return (

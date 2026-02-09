@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError } from "axios";
-import { API_URL } from "@/src/constants/api";
+import { API_URL } from "../constants/api";
 
 // Extend Window interface for TypeScript
 declare global {

@@ -14,12 +14,7 @@ import {
   Tooltip,
   Avatar,
 } from "antd";
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  EyeOutlined,
-} from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   useProductsQuery,
@@ -53,7 +48,7 @@ const ProductsList = () => {
 
   // Update URL params when filters change
   const updateFilters = useCallback(
-    (updates) => {
+    (updates: Record<string, string | number | null>) => {
       setSearchParams((prev) => {
         const newParams = new URLSearchParams(prev);
         Object.entries(updates).forEach(([key, value]) => {
@@ -70,14 +65,14 @@ const ProductsList = () => {
   );
 
   const handleSearchChange = useCallback(
-    (value) => {
+    (value: string) => {
       updateFilters({ search: value });
     },
     [updateFilters],
   );
 
   const handleCategoryChange = useCallback(
-    (value) => {
+    (value: number | null) => {
       updateFilters({ categoryId: value });
     },
     [updateFilters],
@@ -106,7 +101,7 @@ const ProductsList = () => {
     return filtered;
   }, [products, searchTerm, selectedCategory]);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     try {
       await deleteProductMutation.mutateAsync(id);
     } catch (error) {
@@ -114,11 +109,11 @@ const ProductsList = () => {
     }
   };
 
-  const handleEdit = (product) => {
+  const handleEdit = (product: any) => {
     navigate(`/products/edit/${product.id}`);
   };
 
-  const handleView = (product) => {
+  const handleView = (product: any) => {
     navigate(`/products/view/${product.id}`);
   };
 
@@ -128,7 +123,7 @@ const ProductsList = () => {
       dataIndex: "image",
       key: "image",
       width: 100,
-      render: (imageUrl) => {
+      render: (imageUrl: string) => {
         return imageUrl ? (
           <Avatar
             size={64}
@@ -158,7 +153,7 @@ const ProductsList = () => {
       dataIndex: "name",
       key: "name",
       width: 460,
-      render: (text, record) => (
+      render: (text: string, record: any) => (
         <div>
           <Text strong>{text}</Text>
           {record.description && (
@@ -177,13 +172,13 @@ const ProductsList = () => {
       title: "Danh mục",
       dataIndex: "categoryIds",
       key: "categories",
-      render: (categoryIds) => (
+      render: (categoryIds: number[]) => (
         <Space direction="vertical" size={2}>
           {categoryIds && categoryIds.length > 0 ? (
             categoryIds.map((categoryId) => {
               const category = categories.find((cat) => cat.id === categoryId);
               return (
-                <Tag key={categoryId} color="blue" size="small">
+                <Tag key={categoryId} color="blue">
                   <Text>{category?.name || "Unknown"}</Text>
                 </Tag>
               );
@@ -198,7 +193,7 @@ const ProductsList = () => {
       title: "Biến thể",
       key: "variants",
       width: 200,
-      render: (_, record) => {
+      render: (_: any, record: any) => {
         const variants = Array.isArray(record.variants) ? record.variants : [];
         // 0 variant
         if (variants.length === 0) {
@@ -244,7 +239,7 @@ const ProductsList = () => {
         return (
           <Space direction="vertical" size="small">
             <div>
-              {variants.slice(0, 2).map((variant, index) => {
+              {variants.slice(0, 2).map((variant: any, index: number) => {
                 const currentPrice = variant.price || 0;
                 return (
                   <div
@@ -284,7 +279,7 @@ const ProductsList = () => {
       title: "Trạng thái",
       dataIndex: "isActive",
       key: "isActive",
-      render: (isActive) => (
+      render: (isActive: boolean) => (
         <Tag color={isActive ? "green" : "red"}>
           {isActive ? "Hoạt động" : "Không hoạt động"}
         </Tag>
@@ -294,7 +289,7 @@ const ProductsList = () => {
       title: "Nổi bật",
       dataIndex: "isFeatured",
       key: "isFeatured",
-      render: (isFeatured) => (
+      render: (isFeatured: boolean) => (
         <Tag color={isFeatured ? "gold" : "default"}>
           {isFeatured ? "Nổi bật" : "Thường"}
         </Tag>
@@ -305,7 +300,7 @@ const ProductsList = () => {
       title: "Hành động",
       key: "actions",
       width: 150,
-      render: (_, record) => (
+      render: (_: any, record: any) => (
         <Space>
           <Tooltip title="Xem chi tiết">
             <Button
