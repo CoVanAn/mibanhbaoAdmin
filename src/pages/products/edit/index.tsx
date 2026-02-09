@@ -32,7 +32,7 @@ import VariantManager from "../../../components/forms/VariantManager";
 import VariantManagerAdvanced from "../../../components/forms/VariantManagerAdvanced";
 import RichTextEditor from "../../../components/forms/RichTextEditor";
 import { SortableImageItem } from "./dropImage";
-import { useProductEditLogic } from "./useProductEditLogic";
+import { useProductEditLogic } from "./useEdit";
 
 const { TextArea } = Input;
 const { Option } = Select;
