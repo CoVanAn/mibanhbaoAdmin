@@ -6,6 +6,8 @@ import ProtectedRoute from "./components/auth/ProtectedRouteNew";
 import AdminLogin from "./pages/login";
 import AdminProfile from "./pages/profile";
 import Categories from "./pages/categories";
+import Orders from "./pages/orders";
+import OrderView from "./pages/orders/view";
 import {
   ProductsList,
   ProductsAdd,
@@ -49,9 +51,12 @@ const App = () => {
           <Route path="products/edit/:id" element={<ProductsEdit />} />
           <Route path="products/view/:id" element={<ProductsView />} />
 
+          {/* Order Routes */}
+          <Route path="orders" element={<Orders />} />
+          <Route path="orders/:id" element={<OrderView />} />
+
           {/* Other Routes */}
           <Route path="categories" element={<Categories />} />
-          {/* <Route path="orders" element={<Orders />} /> */}
           <Route path="profile" element={<AdminProfile />} />
         </Route>
       </Routes>

@@ -7,8 +7,8 @@ import {
   // UserOutlined,
   AppstoreAddOutlined,
   UnorderedListOutlined,
-  ShoppingCartOutlined,
   AppstoreOutlined,
+  DribbbleOutlined,
 } from "@ant-design/icons";
 import {
   // Breadcrumb,
@@ -18,15 +18,16 @@ import {
   Dropdown,
   Avatar,
   Space,
+  Typography,
 } from "antd";
 import { Outlet, Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuthQuery";
 import "./AdminLayout.css";
 // import { assets } from "../../assets/assets";
 
-const { Header, Content, Footer, Sider } = Layout;
+const { Header, Content, Sider } = Layout;
 
-function getItem(label, key, icon, children) {
+function getItem(label: any, key: string, icon: any, children: any = null) {
   return {
     key,
     icon,
@@ -37,33 +38,20 @@ function getItem(label, key, icon, children) {
 
 const items = [
   getItem(<Link to="/dashboard">Dashboard</Link>, "1", <PieChartOutlined />),
-  getItem("Sản phẩm", "sub1", <ShoppingCartOutlined />, [
+  getItem("Sản phẩm", "sub1", <DribbbleOutlined />, [
     getItem(
       <Link to="/products">Danh sách</Link>,
       "products-list",
-      <UnorderedListOutlined />
+      <UnorderedListOutlined />,
     ),
     getItem(
       <Link to="/products/add">Thêm mới</Link>,
       "products-add",
-      <AppstoreAddOutlined />
+      <AppstoreAddOutlined />,
     ),
   ]),
   getItem(<Link to="/categories">Phân loại</Link>, "5", <AppstoreOutlined />),
   getItem(<Link to="/orders">Đơn hàng</Link>, "6", <FileOutlined />),
-  // Legacy menu items (to be removed later)
-  getItem("Legacy Products", "sub2", <ShoppingCartOutlined />, [
-    getItem(
-      <Link to="/add">Add Product (Old)</Link>,
-      "3",
-      <AppstoreAddOutlined />
-    ),
-    getItem(
-      <Link to="/list">Product List (Old)</Link>,
-      "4",
-      <UnorderedListOutlined />
-    ),
-  ]),
 ];
 
 const AdminLayout = () => {
@@ -81,9 +69,14 @@ const AdminLayout = () => {
     {
       key: "logout",
       label: "Đăng xuất",
-      onClick: logout,
     },
   ];
+
+  const handleMenuClick = ({ key }: { key: string }) => {
+    if (key === "logout") {
+      logout();
+    }
+  };
 
   return (
     <Layout
@@ -125,7 +118,10 @@ const AdminLayout = () => {
             right: 0,
           }}
         >
-          <Dropdown menu={{ items: userMenuItems }} trigger={["click"]}>
+          <Dropdown
+            menu={{ items: userMenuItems, onClick: handleMenuClick }}
+            trigger={["click"]}
+          >
             <a onClick={(e) => e.preventDefault()}>
               <Space>
                 <Avatar
@@ -134,7 +130,9 @@ const AdminLayout = () => {
                     `https://api.dicebear.com/7.x/miniavs/svg?seed=${user?.id}`
                   }
                 />
-                {user?.name}
+                <Typography.Text strong style={{ fontSize: "16px" }}>
+                  {user?.name}
+                </Typography.Text>
               </Space>
             </a>
           </Dropdown>
@@ -161,18 +159,6 @@ const AdminLayout = () => {
             <Outlet />
           </div>
         </Content>
-        <Footer
-          style={{
-            textAlign: "center",
-            position: "absolute",
-            left: collapsed ? 80 : 200,
-            bottom: 0,
-            right: 0,
-            background: colorBgContainer,
-          }}
-        >
-          Mi Banh Bao Admin Panel ©{new Date().getFullYear()} Created by CoVanAn
-        </Footer>
       </Layout>
     </Layout>
   );

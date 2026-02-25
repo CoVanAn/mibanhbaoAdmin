@@ -1,24 +1,91 @@
 import apiClient from "./client";
 
+export interface OrderListParams {
+  page?: number;
+  limit?: number;
+  status?: string;
+  method?: string;
+  userId?: number;
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+}
+
+export interface UpdateStatusPayload {
+  status: string;
+  reason?: string;
+}
+
+export interface UpdateNotePayload {
+  customerNote?: string;
+  internalNote?: string;
+}
+
+export interface CancelOrderPayload {
+  reason: string;
+}
+
 export const ordersApi = {
-  getAll: async (params = {}) => {
+  /**
+   * Get all orders with filters and pagination
+   */
+  getAll: async (params: OrderListParams = {}) => {
     const response = await apiClient.get("/api/order/list", { params });
     return response.data;
   },
 
-  getById: async (id) => {
+  /**
+   * Get single order by ID with full details
+   */
+  getById: async (id: number) => {
     const response = await apiClient.get(`/api/order/${id}`);
     return response.data;
   },
 
-  updateStatus: async (id, status) => {
-    const response = await apiClient.patch(`/api/order/${id}/status`, {
-      status,
-    });
+  /**
+   * Update order status
+   */
+  updateStatus: async (id: number, payload: UpdateStatusPayload) => {
+    const response = await apiClient.patch(`/api/order/${id}/status`, payload);
     return response.data;
   },
 
-  delete: async (id) => {
+  /**
+   * Update order notes (customer note or internal note)
+   */
+  updateNote: async (id: number, payload: UpdateNotePayload) => {
+    const response = await apiClient.patch(`/api/order/${id}/note`, payload);
+    return response.data;
+  },
+
+  /**
+   * Get order status history
+   */
+  getStatusHistory: async (id: number) => {
+    const response = await apiClient.get(`/api/order/${id}/history`);
+    return response.data;
+  },
+
+  /**
+   * Get order payments
+   */
+  getPayments: async (id: number) => {
+    const response = await apiClient.get(`/api/order/${id}/payments`);
+    return response.data;
+  },
+
+  /**
+   * Cancel order with reason
+   */
+  cancelOrder: async (id: number, payload: CancelOrderPayload) => {
+    const response = await apiClient.post(`/api/order/${id}/cancel`, payload);
+    return response.data;
+  },
+
+  /**
+   * Delete order (Admin only)
+   */
+  delete: async (id: number) => {
     const response = await apiClient.delete(`/api/order/${id}`);
     return response.data;
   },
