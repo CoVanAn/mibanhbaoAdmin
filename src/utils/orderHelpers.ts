@@ -178,11 +178,12 @@ export function getCustomerPhone(order: any): string {
  */
 export function getFullAddress(address: any): string {
   if (!address) return "N/A";
-  const parts = [
-    address.street,
-    address.ward,
-    address.district,
-    address.province,
-  ].filter(Boolean);
-  return parts.join(", ");
+
+  const main = [address.company, address.addressLine].filter(Boolean).join(" - ");
+  const rest = [address.ward, address.district, address.province]
+    .filter(Boolean)
+    .join(", ");
+
+  if (main && rest) return `${main} - ${rest}`;
+  return main || rest || "N/A";
 }

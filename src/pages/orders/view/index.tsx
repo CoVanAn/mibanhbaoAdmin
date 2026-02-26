@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   Descriptions,
@@ -9,16 +9,11 @@ import {
   Typography,
   Row,
   Col,
-  Timeline,
   Input,
-  Divider,
   Alert,
+  Timeline,
 } from "antd";
 import {
-  UserOutlined,
-  PhoneOutlined,
-  MailOutlined,
-  EnvironmentOutlined,
   CalendarOutlined,
   SaveOutlined,
   PrinterOutlined,
@@ -65,11 +60,11 @@ const OrderView = () => {
   const updateNoteMutation = useUpdateOrderNoteMutation();
 
   // Initialize internal note when order loads
-  useState(() => {
-    if (order?.internalNote) {
-      setInternalNote(order.internalNote);
+  useEffect(() => {
+    if (order?.internalNote !== undefined) {
+      setInternalNote(order.internalNote || "");
     }
-  });
+  }, [order]);
 
   // Handlers
   const handleBack = () => {
@@ -141,87 +136,49 @@ const OrderView = () => {
         {/* Left Column */}
         <Col span={16}>
           {/* Customer Information */}
-          <Card title="Thông tin khách hàng" style={{ marginBottom: 24 }}>
-            <Descriptions column={2}>
-              <Descriptions.Item
-                label={
-                  <>
-                    <UserOutlined />
-                  </>
-                }
-                span={2}
-              >
+          <Card size="small" title="Khách hàng" style={{ marginBottom: 16 }}>
+            <Descriptions column={2} size="small">
+              <Descriptions.Item label="Tên">
                 <Text strong>{getCustomerName(order)}</Text>
               </Descriptions.Item>
+              <Descriptions.Item label="Điện thoại">
+                {getCustomerPhone(order)}
+              </Descriptions.Item>
               {order.user?.email && (
-                <Descriptions.Item
-                  label={
-                    <>
-                      <MailOutlined />
-                    </>
-                  }
-                >
+                <Descriptions.Item label="Email" span={2}>
                   {order.user.email}
                 </Descriptions.Item>
               )}
-              <Descriptions.Item
-                label={
-                  <>
-                    <PhoneOutlined />
-                  </>
-                }
-              >
-                {getCustomerPhone(order)}
-              </Descriptions.Item>
             </Descriptions>
           </Card>
 
           {/* Order Items */}
-          <Card title="Sản phẩm đã đặt" style={{ marginBottom: 24 }}>
+          <Card size="small">
             <Table
               columns={itemColumns}
               dataSource={order.items || []}
               rowKey="id"
               pagination={false}
-              footer={() => (
-                <div>
-                  <Row justify="end" style={{ marginTop: 16 }}>
-                    <Col span={8}>
-                      <Space direction="vertical" style={{ width: "100%" }}>
-                        <Row justify="space-between">
-                          <Text>Tạm tính:</Text>
-                          <Text>{formatCurrencyVND(order.itemsSubtotal)}</Text>
-                        </Row>
-                        <Row justify="space-between">
-                          <Text>Phí vận chuyển:</Text>
-                          <Text>{formatCurrencyVND(order.shippingFee)}</Text>
-                        </Row>
-                        {order.discount > 0 && (
-                          <Row justify="space-between">
-                            <Text>Giảm giá:</Text>
-                            <Text type="danger">
-                              -{formatCurrencyVND(order.discount)}
-                            </Text>
-                          </Row>
-                        )}
-                        <Divider style={{ margin: "8px 0" }} />
-                        <Row justify="space-between">
-                          <Text strong style={{ fontSize: "16px" }}>
-                            Tổng cộng:
-                          </Text>
-                          <Text
-                            strong
-                            style={{ fontSize: "16px", color: "#cf1322" }}
-                          >
-                            {formatCurrencyVND(order.total)}
-                          </Text>
-                        </Row>
-                      </Space>
-                    </Col>
-                  </Row>
-                </div>
-              )}
             />
+
+            <div style={{ marginTop: 12, textAlign: "right" }}>
+              <Space direction="vertical" size={0}>
+                <Text type="secondary">
+                  Tạm tính: {formatCurrencyVND(order.itemsSubtotal)}
+                </Text>
+                <Text type="secondary">
+                  Phí ship: {formatCurrencyVND(order.shippingFee)}
+                </Text>
+                {order.discount > 0 && (
+                  <Text type="danger">
+                    Giảm giá: -{formatCurrencyVND(order.discount)}
+                  </Text>
+                )}
+                <Text strong style={{ fontSize: 16 }}>
+                  Tổng: {formatCurrencyVND(order.total)}
+                </Text>
+              </Space>
+            </div>
           </Card>
 
           {/* Delivery/Pickup Information */}
@@ -231,23 +188,17 @@ const OrderView = () => {
                 ? "Thông tin giao hàng"
                 : "Thông tin nhận hàng"
             }
-            style={{ marginBottom: 24 }}
+            style={{ marginBottom: 24, marginTop: 16 }}
           >
             <Space direction="vertical" style={{ width: "100%" }}>
               <div>
                 <Text strong>Phương thức: </Text>
-                <Tag color={FULFILLMENT_METHOD_CONFIG[order.method].color}>
-                  {FULFILLMENT_METHOD_CONFIG[order.method].icon}{" "}
-                  {FULFILLMENT_METHOD_CONFIG[order.method].label}
-                </Tag>
+                {FULFILLMENT_METHOD_CONFIG[order.method].label}
               </div>
 
               {order.method === "DELIVERY" && order.address && (
                 <div>
-                  <Text strong>
-                    <EnvironmentOutlined /> Địa chỉ giao hàng:
-                  </Text>
-                  <br />
+                  <Text strong>Địa chỉ giao hàng: </Text>
                   <Text>{getFullAddress(order.address)}</Text>
                 </div>
               )}
@@ -349,7 +300,7 @@ const OrderView = () => {
         {/* Right Column */}
         <Col span={8}>
           {/* Status Timeline */}
-          <Card title="Lịch sử trạng thái" style={{ marginBottom: 24 }}>
+          {/* <Card title="Lịch sử trạng thái" style={{ marginBottom: 24 }}>
             <Timeline>
               {statusHistory?.map((history: any) => (
                 <Timeline.Item
@@ -384,7 +335,7 @@ const OrderView = () => {
                 </Timeline.Item>
               ))}
             </Timeline>
-          </Card>
+          </Card> */}
 
           {/* Payment Information */}
           {order.payments && order.payments.length > 0 && (
@@ -446,6 +397,42 @@ const OrderView = () => {
 
           {/* Actions */}
           <OrderActions orderId={orderId} status={order.status} />
+          <Card title="Lịch sử trạng thái" style={{ marginBottom: 24 }}>
+            <Timeline>
+              {statusHistory?.map((history: any) => (
+                <Timeline.Item
+                  key={history.id}
+                  color={getOrderStatusColor(history.toStatus)}
+                >
+                  <div>
+                    <Tag color={getOrderStatusColor(history.toStatus)}>
+                      {getOrderStatusLabel(history.toStatus)}
+                    </Tag>
+                    <div style={{ marginTop: 4 }}>
+                      <Text type="secondary" style={{ fontSize: "12px" }}>
+                        {formatDateTime(history.createdAt)}
+                      </Text>
+                    </div>
+                    {history.changedBy && (
+                      <div>
+                        <Text type="secondary" style={{ fontSize: "11px" }}>
+                          Bởi:{" "}
+                          {history.changedBy.name || history.changedBy.email}
+                        </Text>
+                      </div>
+                    )}
+                    {history.reason && (
+                      <div>
+                        <Text style={{ fontSize: "12px" }}>
+                          Lý do: {history.reason}
+                        </Text>
+                      </div>
+                    )}
+                  </div>
+                </Timeline.Item>
+              ))}
+            </Timeline>
+          </Card>
         </Col>
       </Row>
     </div>
