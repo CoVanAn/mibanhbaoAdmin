@@ -10,11 +10,8 @@ import {
   Row,
   Col,
   Timeline,
-  Select,
-  Modal,
   Input,
   Divider,
-  Avatar,
   Alert,
 } from "antd";
 import {
@@ -23,9 +20,7 @@ import {
   MailOutlined,
   EnvironmentOutlined,
   CalendarOutlined,
-  DollarOutlined,
   SaveOutlined,
-  StopOutlined,
   PrinterOutlined,
   ArrowLeftOutlined,
 } from "@ant-design/icons";
@@ -33,9 +28,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   useOrderQuery,
   useOrderStatusHistoryQuery,
-  useUpdateOrderStatusMutation,
   useUpdateOrderNoteMutation,
-  useCancelOrderMutation,
 } from "../../../hooks/useOrderQuery";
 import { PageHeader, Loading } from "../../../components/common";
 import {
@@ -46,17 +39,14 @@ import {
   getCustomerName,
   getCustomerPhone,
   getFullAddress,
-  getAvailableStatuses,
   getOrderStatusColor,
   getOrderStatusLabel,
-  canCancelOrder,
-  canRefundOrder,
 } from "../../../utils/orderHelpers";
-import type { OrderItem } from "../../../schema/order.schema";
+import { OrderActions } from "./components";
+import { getItemColumns } from "./utils";
 
 const { Text } = Typography;
 const { TextArea } = Input;
-const { Option } = Select;
 
 const OrderView = () => {
   const navigate = useNavigate();
@@ -66,17 +56,13 @@ const OrderView = () => {
   // State
   const [internalNote, setInternalNote] = useState("");
   const [isEditingNote, setIsEditingNote] = useState(false);
-  const [cancelModalVisible, setCancelModalVisible] = useState(false);
-  const [cancelReason, setCancelReason] = useState("");
 
   // Queries
   const { data: order, isLoading, error, isError } = useOrderQuery(orderId);
   const { data: statusHistory } = useOrderStatusHistoryQuery(orderId);
 
   // Mutations
-  const updateStatusMutation = useUpdateOrderStatusMutation();
   const updateNoteMutation = useUpdateOrderNoteMutation();
-  const cancelOrderMutation = useCancelOrderMutation();
 
   // Initialize internal note when order loads
   useState(() => {
@@ -88,23 +74,6 @@ const OrderView = () => {
   // Handlers
   const handleBack = () => {
     navigate("/orders");
-  };
-
-  const handleCancelOrder = () => {
-    if (!cancelReason.trim()) return;
-
-    cancelOrderMutation.mutate(
-      {
-        id: orderId,
-        payload: { reason: cancelReason },
-      },
-      {
-        onSuccess: () => {
-          setCancelModalVisible(false);
-          setCancelReason("");
-        },
-      },
-    );
   };
 
   const handleSaveNote = () => {
@@ -150,60 +119,7 @@ const OrderView = () => {
     );
   }
 
-  const availableStatuses = getAvailableStatuses(order.status);
-  const canCancel = canCancelOrder(order.status);
-  const canRefund = canRefundOrder(order.status);
-
-  // Table columns for order items
-  const itemColumns = [
-    {
-      title: "Sản phẩm",
-      key: "product",
-      width: "40%",
-      render: (_: any, item: OrderItem) => (
-        <Space>
-          {item.image && <Avatar src={item.image} size={50} shape="square" />}
-          <div>
-            <Text strong>{item.name}</Text>
-            {item.variant && (
-              <div>
-                <Text type="secondary" style={{ fontSize: "12px" }}>
-                  {item.variant}
-                </Text>
-              </div>
-            )}
-            {item.sku && (
-              <div>
-                <Text type="secondary" style={{ fontSize: "11px" }}>
-                  SKU: {item.sku}
-                </Text>
-              </div>
-            )}
-          </div>
-        </Space>
-      ),
-    },
-    {
-      title: "Đơn giá",
-      dataIndex: "unitPrice",
-      key: "unitPrice",
-      align: "right" as const,
-      render: (price: number) => formatCurrencyVND(price),
-    },
-    {
-      title: "Số lượng",
-      dataIndex: "quantity",
-      key: "quantity",
-      align: "center" as const,
-    },
-    {
-      title: "Thành tiền",
-      dataIndex: "lineTotal",
-      key: "lineTotal",
-      align: "right" as const,
-      render: (total: number) => <Text strong>{formatCurrencyVND(total)}</Text>,
-    },
-  ];
+  const itemColumns = getItemColumns();
 
   return (
     <div>
@@ -257,11 +173,6 @@ const OrderView = () => {
               >
                 {getCustomerPhone(order)}
               </Descriptions.Item>
-              {/* {order.user?.id && (
-                <Descriptions.Item label="User ID" span={2}>
-                  <Tag color="blue">#{order.user.id}</Tag>
-                </Descriptions.Item>
-              )} */}
             </Descriptions>
           </Card>
 
@@ -534,104 +445,9 @@ const OrderView = () => {
           )}
 
           {/* Actions */}
-          <Card title="Thao tác" style={{ marginBottom: 24 }}>
-            <Space direction="vertical" style={{ width: "100%" }}>
-              {/* Status Change */}
-              {availableStatuses.length > 0 && (
-                <div>
-                  <Text strong style={{ marginBottom: 8, display: "block" }}>
-                    Thay đổi trạng thái:
-                  </Text>
-                  <Select
-                    style={{ width: "100%", fontSize: "24px" }}
-                    placeholder="Chọn trạng thái mới"
-                    onChange={(value) => {
-                      if (value === "CANCELED") {
-                        setCancelModalVisible(true);
-                      } else {
-                        updateStatusMutation.mutate({
-                          id: orderId,
-                          payload: {
-                            status: value,
-                          },
-                        });
-                      }
-                    }}
-                  >
-                    {availableStatuses.map((status) => (
-                      <Option key={status} value={status}>
-                        <Tag
-                          color={getOrderStatusColor(status)}
-                          style={{ fontSize: "16px" }}
-                        >
-                          {getOrderStatusLabel(status)}
-                        </Tag>
-                      </Option>
-                    ))}
-                  </Select>
-                </div>
-              )}
-
-              {/* Cancel Order */}
-              {canCancel && (
-                <Button
-                  danger
-                  block
-                  icon={<StopOutlined />}
-                  onClick={() => setCancelModalVisible(true)}
-                >
-                  Hủy đơn hàng
-                </Button>
-              )}
-
-              {/* Refund (Future) */}
-              {canRefund && (
-                <Button
-                  block
-                  icon={<DollarOutlined />}
-                  onClick={() => {
-                    // TODO: Implement refund
-                  }}
-                >
-                  Hoàn tiền
-                </Button>
-              )}
-            </Space>
-          </Card>
+          <OrderActions orderId={orderId} status={order.status} />
         </Col>
       </Row>
-
-      {/* Cancel Order Modal */}
-      <Modal
-        title="Xác nhận hủy đơn hàng"
-        open={cancelModalVisible}
-        onOk={handleCancelOrder}
-        onCancel={() => {
-          setCancelModalVisible(false);
-          setCancelReason("");
-        }}
-        okText="Xác nhận hủy"
-        cancelText="Đóng"
-        okButtonProps={{ danger: true }}
-        confirmLoading={cancelOrderMutation.isPending}
-      >
-        <Space direction="vertical" style={{ width: "100%" }}>
-          <Text type="danger">
-            Bạn có chắc chắn muốn hủy đơn hàng này không?
-          </Text>
-          <div>
-            <Text strong>Lý do hủy (bắt buộc):</Text>
-            <TextArea
-              rows={4}
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="Nhập lý do hủy đơn hàng..."
-              maxLength={500}
-              required
-            />
-          </div>
-        </Space>
-      </Modal>
     </div>
   );
 };

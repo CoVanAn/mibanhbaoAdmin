@@ -6,7 +6,7 @@ import ProtectedRoute from "./components/auth/ProtectedRouteNew";
 import AdminLogin from "./pages/login";
 import AdminProfile from "./pages/profile";
 import Categories from "./pages/categories";
-import Orders from "./pages/orders";
+import Orders from "./pages/orders/over";
 import OrderView from "./pages/orders/view";
 import {
   ProductsList,

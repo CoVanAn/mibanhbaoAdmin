@@ -61,7 +61,7 @@ export async function updateOrderNote(id: number, payload: UpdateNotePayload) {
  */
 export async function fetchOrderStatusHistory(id: number) {
   const response = await ordersApi.getStatusHistory(id);
-  return response.data || [];
+  return response.history || [];
 }
 
 /**
@@ -69,7 +69,7 @@ export async function fetchOrderStatusHistory(id: number) {
  */
 export async function fetchOrderPayments(id: number) {
   const response = await ordersApi.getPayments(id);
-  return response.data || [];
+  return response.payments || [];
 }
 
 /**
