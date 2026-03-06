@@ -3,4 +3,6 @@ export { authApi } from "./auth";
 export { categoriesApi } from "./categories";
 export { productsApi } from "./products";
 export { ordersApi } from "./orders";
+export { promotionsApi } from "./promotions";
+export { couponsApi } from "./coupons";
 export { default as apiClient } from "./client";

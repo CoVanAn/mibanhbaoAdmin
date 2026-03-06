@@ -1,14 +1,14 @@
 import { useState } from "react";
 import {
-  // DesktopOutlined,
   FileOutlined,
   PieChartOutlined,
-  // TeamOutlined,
-  // UserOutlined,
+  TeamOutlined,
   AppstoreAddOutlined,
   UnorderedListOutlined,
   AppstoreOutlined,
   DribbbleOutlined,
+  TagOutlined,
+  ContainerOutlined,
 } from "@ant-design/icons";
 import {
   // Breadcrumb,
@@ -51,7 +51,9 @@ const items = [
     ),
   ]),
   getItem(<Link to="/categories">Phân loại</Link>, "5", <AppstoreOutlined />),
-  getItem(<Link to="/orders">Đơn hàng</Link>, "6", <FileOutlined />),
+  getItem(<Link to="/orders">Đơn hàng</Link>, "6", <ContainerOutlined />),
+  getItem(<Link to="/promotions">Ưu đãi</Link>, "7", <TagOutlined />),
+  getItem(<Link to="/profile">Nhân sự</Link>, "8", <TeamOutlined />),
 ];
 
 const AdminLayout = () => {
@@ -94,10 +96,7 @@ const AdminLayout = () => {
           height: "100vh",
         }}
       >
-        <div className="demo-logo-vertical">
-          {/* <img src={assets.logo} alt="Logo" /> */}
-          MI BÁNH BAO
-        </div>
+        <div className="demo-logo-vertical">MI</div>
         <Menu
           theme="dark"
           defaultSelectedKeys={["1"]}
@@ -148,16 +147,7 @@ const AdminLayout = () => {
             overflow: "auto",
           }}
         >
-          <div
-            style={{
-              padding: 24,
-              minHeight: 360,
-              background: colorBgContainer,
-              borderRadius: borderRadiusLG,
-            }}
-          >
-            <Outlet />
-          </div>
+          <Outlet />
         </Content>
       </Layout>
     </Layout>

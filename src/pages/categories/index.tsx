@@ -132,7 +132,19 @@ const Categories = () => {
       title: "Slug",
       dataIndex: "slug",
       key: "slug",
-      render: (text: string) => <code style={{ fontFamily: "Monaco, Menlo, Ubuntu Mono, monospace", backgroundColor: "#f5f5f5", padding: "2px 6px", borderRadius: 4, fontSize: 12 }}>{text}</code>,
+      render: (text: string) => (
+        <code
+          style={{
+            fontFamily: "Monaco, Menlo, Ubuntu Mono, monospace",
+            backgroundColor: "#f5f5f5",
+            padding: "2px 6px",
+            borderRadius: 4,
+            fontSize: 12,
+          }}
+        >
+          {text}
+        </code>
+      ),
     },
     {
       title: "Parent",
@@ -210,8 +222,19 @@ const Categories = () => {
 
   return (
     <div style={{ padding: 24 }}>
-      <div style={{ marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ margin: 0, color: "#1f2937", fontSize: 24, fontWeight: 600 }}>Quản lý Categories</h2>
+      <div
+        style={{
+          marginBottom: 16,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h2
+          style={{ margin: 0, color: "#1f2937", fontSize: 24, fontWeight: 600 }}
+        >
+          Danh mục sản phẩm
+        </h2>
         <Button
           type="primary"
           icon={<PlusOutlined />}

@@ -15,6 +15,7 @@ import {
   ProductsView,
 } from "./pages/products";
 import AdminLayout from "./components/Layout/AdminLayout";
+import PromotionsPage from "./pages/deals";
 
 const App = () => {
   return (
@@ -57,6 +58,7 @@ const App = () => {
 
           {/* Other Routes */}
           <Route path="categories" element={<Categories />} />
+          <Route path="promotions" element={<PromotionsPage />} />
           <Route path="profile" element={<AdminProfile />} />
         </Route>
       </Routes>

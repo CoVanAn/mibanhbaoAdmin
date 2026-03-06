@@ -350,20 +350,11 @@ const ProductsList = () => {
 
   return (
     <div style={{ padding: 24 }}>
-      <PageHeader
+      {/* <PageHeader
         title="Quản lý sản phẩm"
         subtitle="Danh sách tất cả sản phẩm trong hệ thống"
-        // extra={
-        //   <Button
-        //     type="primary"
-        //     icon={<PlusOutlined />}
-        //     size="large"
-        //     onClick={() => navigate("/products/add")}
-        //   >
-        //     Thêm sản phẩm
-        //   </Button>
-        // }
-      />
+       
+      /> */}
 
       <Card>
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
