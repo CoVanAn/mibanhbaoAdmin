@@ -103,7 +103,7 @@ const ProductsEdit = () => {
   }
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: 16 }}>
       <PageHeader
         title={`Chỉnh sửa: ${product.name}`}
         subtitle="Cập nhật thông tin sản phẩm"

@@ -58,7 +58,7 @@ const App = () => {
 
           {/* Other Routes */}
           <Route path="categories" element={<Categories />} />
-          <Route path="promotions" element={<PromotionsPage />} />
+          <Route path="deals" element={<PromotionsPage />} />
           <Route path="profile" element={<AdminProfile />} />
         </Route>
       </Routes>

@@ -221,7 +221,7 @@ const Categories = () => {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: 16 }}>
       <div
         style={{
           marginBottom: 16,

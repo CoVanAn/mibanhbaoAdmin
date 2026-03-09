@@ -52,7 +52,7 @@ const items = [
   ]),
   getItem(<Link to="/categories">Phân loại</Link>, "5", <AppstoreOutlined />),
   getItem(<Link to="/orders">Đơn hàng</Link>, "6", <ContainerOutlined />),
-  getItem(<Link to="/promotions">Ưu đãi</Link>, "7", <TagOutlined />),
+  getItem(<Link to="/deals">Ưu đãi</Link>, "7", <TagOutlined />),
   getItem(<Link to="/profile">Nhân sự</Link>, "8", <TeamOutlined />),
 ];
 

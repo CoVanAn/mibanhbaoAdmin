@@ -5,15 +5,6 @@ import CouponList from "./coupon/CouponList";
 
 const items = [
   {
-    key: "promotions",
-    label: (
-      <span>
-        <ShakeOutlined /> Ưu đãi sản phẩm
-      </span>
-    ),
-    children: <PromotionList />,
-  },
-  {
     key: "coupons",
     label: (
       <span>
@@ -21,6 +12,15 @@ const items = [
       </span>
     ),
     children: <CouponList />,
+  },
+  {
+    key: "promotions",
+    label: (
+      <span>
+        <ShakeOutlined /> Ưu đãi sản phẩm
+      </span>
+    ),
+    children: <PromotionList />,
   },
 ];
 
@@ -30,11 +30,7 @@ export default function PromotionsPage() {
       {/* <div style={{ marginBottom: 16 }}>
         <h2 style={{ margin: 0 }}>Quản lý ưu đãi &amp; coupon</h2>
       </div> */}
-      <Tabs
-        defaultActiveKey="promotions"
-        items={items}
-        destroyInactiveTabPane
-      />
+      <Tabs defaultActiveKey="coupons" items={items} destroyInactiveTabPane />
     </div>
   );
 }

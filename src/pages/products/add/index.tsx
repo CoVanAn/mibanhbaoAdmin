@@ -50,7 +50,7 @@ const ProductsAdd = () => {
   } = useProductAddLogic();
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: 16 }}>
       <PageHeader
         title="Thêm sản phẩm mới"
         subtitle="Tạo sản phẩm mới trong hệ thống"

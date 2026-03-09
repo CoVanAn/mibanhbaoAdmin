@@ -349,7 +349,7 @@ const ProductsList = () => {
   }
 
   return (
-    <div style={{ padding: 24 }}>
+    <div>
       {/* <PageHeader
         title="Quản lý sản phẩm"
         subtitle="Danh sách tất cả sản phẩm trong hệ thống"

@@ -117,7 +117,7 @@ const OrderView = () => {
   const itemColumns = getItemColumns();
 
   return (
-    <div>
+    <div style={{ padding: 16 }}>
       <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
         Quay lại
       </Button>
@@ -133,9 +133,7 @@ const OrderView = () => {
       />
 
       <Row gutter={24}>
-        {/* Left Column */}
         <Col span={16}>
-          {/* Customer Information */}
           <Card size="small" title="Khách hàng" style={{ marginBottom: 16 }}>
             <Descriptions column={2} size="small">
               <Descriptions.Item label="Tên">
@@ -152,7 +150,6 @@ const OrderView = () => {
             </Descriptions>
           </Card>
 
-          {/* Order Items */}
           <Card size="small">
             <Table
               columns={itemColumns}
@@ -296,48 +293,7 @@ const OrderView = () => {
             </Space>
           </Card>
         </Col>
-
-        {/* Right Column */}
         <Col span={8}>
-          {/* Status Timeline */}
-          {/* <Card title="Lịch sử trạng thái" style={{ marginBottom: 24 }}>
-            <Timeline>
-              {statusHistory?.map((history: any) => (
-                <Timeline.Item
-                  key={history.id}
-                  color={getOrderStatusColor(history.toStatus)}
-                >
-                  <div>
-                    <Tag color={getOrderStatusColor(history.toStatus)}>
-                      {getOrderStatusLabel(history.toStatus)}
-                    </Tag>
-                    <div style={{ marginTop: 4 }}>
-                      <Text type="secondary" style={{ fontSize: "12px" }}>
-                        {formatDateTime(history.createdAt)}
-                      </Text>
-                    </div>
-                    {history.changedBy && (
-                      <div>
-                        <Text type="secondary" style={{ fontSize: "11px" }}>
-                          Bởi:{" "}
-                          {history.changedBy.name || history.changedBy.email}
-                        </Text>
-                      </div>
-                    )}
-                    {history.reason && (
-                      <div>
-                        <Text style={{ fontSize: "12px" }}>
-                          Lý do: {history.reason}
-                        </Text>
-                      </div>
-                    )}
-                  </div>
-                </Timeline.Item>
-              ))}
-            </Timeline>
-          </Card> */}
-
-          {/* Payment Information */}
           {order.payments && order.payments.length > 0 && (
             <Card title="Thông tin thanh toán" style={{ marginBottom: 24 }}>
               {order.payments.map((payment) => (
@@ -371,7 +327,6 @@ const OrderView = () => {
             </Card>
           )}
 
-          {/* Coupon Information */}
           {order.coupon && (
             <Card title="Mã giảm giá" style={{ marginBottom: 24 }}>
               <Space direction="vertical" style={{ width: "100%" }}>

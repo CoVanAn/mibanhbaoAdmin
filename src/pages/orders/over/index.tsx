@@ -150,15 +150,24 @@ const OrdersList = () => {
   }
 
   return (
-    <div>
-      <PageHeader
-        title="Quản lý đơn hàng"
-        extra={
-          <Button icon={<ReloadOutlined />} onClick={() => refetch()}>
-            Làm mới
-          </Button>
-        }
-      />
+    <div style={{ padding: 16 }}>
+      <div
+        style={{
+          marginBottom: 16,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h2
+          style={{ margin: 0, color: "#1f2937", fontSize: 24, fontWeight: 600 }}
+        >
+          Quản lý đơn hàng
+        </h2>
+        <Button icon={<ReloadOutlined />} onClick={() => refetch()}>
+          Làm mới
+        </Button>
+      </div>
 
       <Stats stats={stats} />
 
