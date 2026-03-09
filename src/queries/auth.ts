@@ -9,7 +9,7 @@ export async function login(email: string, password: string) {
   const response = await apiClient.post("/api/user/login", {
     email,
     password,
-  });
+  }, { headers: { "x-client-type": "admin" } });
 
   if (response.data.success && response.data.accessToken) {
     setAccessToken(response.data.accessToken);
@@ -23,7 +23,7 @@ export async function login(email: string, password: string) {
  */
 export async function logout() {
   try {
-    const response = await apiClient.post("/api/user/logout", {});
+    const response = await apiClient.post("/api/user/logout", {}, { headers: { "x-client-type": "admin" } });
     return response.data;
   } finally {
     clearAccessToken();
@@ -38,7 +38,7 @@ export async function refreshToken() {
   const response = await axios.post(
     `${API_URL}/api/user/refresh-token`,
     {},
-    { withCredentials: true },
+    { withCredentials: true, headers: { "x-client-type": "admin" } },
   );
 
   if (response.data.success && response.data.accessToken) {

@@ -72,7 +72,7 @@ const refreshAccessToken = async (): Promise<string | null> => {
     const response = await axios.post(
       `${API_URL}/api/user/refresh-token`,
       {},
-      { withCredentials: true },
+      { withCredentials: true, headers: { "x-client-type": "admin" } },
     );
 
     if (response.data.success) {
