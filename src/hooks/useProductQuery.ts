@@ -28,6 +28,7 @@ export const productKeys = {
 /**
  * Hook to fetch all products
  */
+
 export function useProductsQuery(params = {}) {
   return useQuery({
     queryKey: productKeys.list(params),

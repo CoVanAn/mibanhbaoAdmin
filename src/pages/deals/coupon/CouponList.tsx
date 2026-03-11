@@ -23,7 +23,7 @@ import {
   useCreateCouponMutation,
   useUpdateCouponMutation,
   useDeleteCouponMutation,
-} from "../../../hooks/usePromotionQuery";
+} from "../../../hooks/useCouponQuery";
 import type { Coupon } from "../../../schema/coupon.schema";
 import CouponFormModal from "./CouponFormModal";
 import CouponRedemptionDrawer from "./CouponRedemptionDrawer";

@@ -1,6 +1,6 @@
 import { Drawer, Table, Tag, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { useCouponRedemptionsQuery } from "../../../hooks/usePromotionQuery";
+import { useCouponRedemptionsQuery } from "../../../hooks/useCouponQuery";
 import type { Coupon, CouponRedemption } from "../../../schema/coupon.schema";
 import dayjs from "dayjs";
 

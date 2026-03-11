@@ -25,13 +25,17 @@ import {
   SettingOutlined,
   InfoCircleOutlined,
 } from "@ant-design/icons";
-import { useVariants } from "../../hooks";
+import { useVariants } from "../../hooks/useVariants";
 import PriceManagement from "./PriceManagement";
 
 const { Title, Text } = Typography;
 const { Panel } = Collapse;
 
-const VariantDisplay = ({ productId, variants: initialVariants = [], onVariantsChange }) => {
+const VariantDisplay = ({
+  productId,
+  variants: initialVariants = [],
+  onVariantsChange,
+}) => {
   const [variants, setVariants] = useState(initialVariants);
   const [editingVariant, setEditingVariant] = useState(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -39,7 +43,7 @@ const VariantDisplay = ({ productId, variants: initialVariants = [], onVariantsC
   const [priceModalVisible, setPriceModalVisible] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [form] = Form.useForm();
-  
+
   // Use variants hook
   const {
     loading,
@@ -87,20 +91,25 @@ const VariantDisplay = ({ productId, variants: initialVariants = [], onVariantsC
           const now = new Date();
           const validPrices = record.prices.filter((price) => {
             if (!price.isActive) return false;
-            
-            const afterStart = !price.startsAt || new Date(price.startsAt) <= now;
+
+            const afterStart =
+              !price.startsAt || new Date(price.startsAt) <= now;
             const beforeEnd = !price.endsAt || new Date(price.endsAt) >= now;
-            
+
             return afterStart && beforeEnd;
           });
 
           if (validPrices.length === 0) return 0;
 
           // Ưu tiên giá có date range, sau đó giá permanent
-          const dateRangePrice = validPrices.find(p => p.startsAt && p.endsAt);
+          const dateRangePrice = validPrices.find(
+            (p) => p.startsAt && p.endsAt,
+          );
           if (dateRangePrice) return Number(dateRangePrice.amount);
 
-          const permanentPrice = validPrices.find(p => !p.startsAt && !p.endsAt);
+          const permanentPrice = validPrices.find(
+            (p) => !p.startsAt && !p.endsAt,
+          );
           if (permanentPrice) return Number(permanentPrice.amount);
 
           return Number(validPrices[0].amount);
@@ -155,11 +164,7 @@ const VariantDisplay = ({ productId, variants: initialVariants = [], onVariantsC
               okText="Xóa"
               cancelText="Hủy"
             >
-              <Button
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-              >
+              <Button size="small" danger icon={<DeleteOutlined />}>
                 Xóa
               </Button>
             </Popconfirm>
@@ -190,24 +195,24 @@ const VariantDisplay = ({ productId, variants: initialVariants = [], onVariantsC
       if (editingVariant) {
         // Update existing variant
         await updateVariant(productId, editingVariant.id, values);
-        
+
         const updatedVariants = variants.map((v) =>
-          v.id === editingVariant.id ? { ...v, ...values } : v
+          v.id === editingVariant.id ? { ...v, ...values } : v,
         );
         setVariants(updatedVariants);
         onVariantsChange?.(updatedVariants);
-        
+
         setEditModalVisible(false);
       } else {
         // Create new variant
         await createVariant(productId, values);
-        
+
         // Reload variants để có data đầy đủ - sử dụng API trực tiếp
-        const { productsApi } = await import('../../api/products');
+        const { productsApi } = await import("../../api/products");
         const variantsResponse = await productsApi.getVariants(productId);
         setVariants(variantsResponse);
         onVariantsChange?.(variantsResponse);
-        
+
         setAddModalVisible(false);
       }
     } catch (error) {
@@ -218,7 +223,7 @@ const VariantDisplay = ({ productId, variants: initialVariants = [], onVariantsC
   const handleDeleteVariant = async (variantId) => {
     try {
       await deleteVariant(productId, variantId);
-      
+
       const updatedVariants = variants.filter((v) => v.id !== variantId);
       setVariants(updatedVariants);
       onVariantsChange?.(updatedVariants);
@@ -249,7 +254,7 @@ const VariantDisplay = ({ productId, variants: initialVariants = [], onVariantsC
   };
 
   return (
-    <Card 
+    <Card
       title={
         <Space>
           <SettingOutlined />
@@ -303,11 +308,7 @@ const VariantDisplay = ({ productId, variants: initialVariants = [], onVariantsC
         onCancel={() => setAddModalVisible(false)}
         footer={null}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSaveVariant}
-        >
+        <Form form={form} layout="vertical" onFinish={handleSaveVariant}>
           <Form.Item
             name="name"
             label="Tên Variant"
@@ -316,10 +317,7 @@ const VariantDisplay = ({ productId, variants: initialVariants = [], onVariantsC
             <Input placeholder="Ví dụ: Size M, Màu đỏ, ..." />
           </Form.Item>
 
-          <Form.Item
-            name="sku"
-            label="SKU (tùy chọn)"
-          >
+          <Form.Item name="sku" label="SKU (tùy chọn)">
             <Input placeholder="Mã SKU riêng cho variant này" />
           </Form.Item>
 
@@ -333,9 +331,7 @@ const VariantDisplay = ({ productId, variants: initialVariants = [], onVariantsC
           </Form.Item>
 
           <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-            <Button onClick={() => setAddModalVisible(false)}>
-              Hủy
-            </Button>
+            <Button onClick={() => setAddModalVisible(false)}>Hủy</Button>
             <Button type="primary" htmlType="submit" loading={loading}>
               Thêm
             </Button>
@@ -350,11 +346,7 @@ const VariantDisplay = ({ productId, variants: initialVariants = [], onVariantsC
         onCancel={() => setEditModalVisible(false)}
         footer={null}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSaveVariant}
-        >
+        <Form form={form} layout="vertical" onFinish={handleSaveVariant}>
           <Form.Item
             name="name"
             label="Tên Variant"
@@ -363,25 +355,16 @@ const VariantDisplay = ({ productId, variants: initialVariants = [], onVariantsC
             <Input />
           </Form.Item>
 
-          <Form.Item
-            name="sku"
-            label="SKU"
-          >
+          <Form.Item name="sku" label="SKU">
             <Input />
           </Form.Item>
 
-          <Form.Item
-            name="isActive"
-            label="Kích hoạt"
-            valuePropName="checked"
-          >
+          <Form.Item name="isActive" label="Kích hoạt" valuePropName="checked">
             <Switch />
           </Form.Item>
 
           <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-            <Button onClick={() => setEditModalVisible(false)}>
-              Hủy
-            </Button>
+            <Button onClick={() => setEditModalVisible(false)}>Hủy</Button>
             <Button type="primary" htmlType="submit" loading={loading}>
               Lưu
             </Button>

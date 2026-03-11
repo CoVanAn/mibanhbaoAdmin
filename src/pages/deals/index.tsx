@@ -1,6 +1,5 @@
 import { Tabs } from "antd";
-import { ShakeOutlined, TagsOutlined } from "@ant-design/icons";
-import PromotionList from "./promotion/PromotionList";
+import { TagsOutlined } from "@ant-design/icons";
 import CouponList from "./coupon/CouponList";
 
 const items = [
@@ -13,18 +12,9 @@ const items = [
     ),
     children: <CouponList />,
   },
-  {
-    key: "promotions",
-    label: (
-      <span>
-        <ShakeOutlined /> Ưu đãi sản phẩm
-      </span>
-    ),
-    children: <PromotionList />,
-  },
 ];
 
-export default function PromotionsPage() {
+export default function DealsPage() {
   return (
     <div style={{ padding: "0 4px" }}>
       {/* <div style={{ marginBottom: 16 }}>

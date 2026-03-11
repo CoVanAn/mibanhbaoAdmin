@@ -8,7 +8,6 @@ import {
   InputNumber,
   DatePicker,
   Switch,
-  message,
   Popconfirm,
   Tag,
   Typography,
@@ -20,7 +19,7 @@ import {
   DeleteOutlined,
   DollarOutlined,
 } from "@ant-design/icons";
-import { useVariants } from "../../hooks";
+import { useVariants } from "../../hooks/useVariants";
 import dayjs from "dayjs";
 
 const { Text } = Typography;
@@ -71,20 +70,20 @@ const PriceManagement = ({
     const now = new Date();
     const validPrices = prices.filter((price) => {
       if (!price.isActive) return false;
-      
+
       const afterStart = !price.startsAt || new Date(price.startsAt) <= now;
       const beforeEnd = !price.endsAt || new Date(price.endsAt) >= now;
-      
+
       return afterStart && beforeEnd;
     });
 
     if (validPrices.length === 0) return 0;
 
     // Ưu tiên giá có date range, sau đó giá permanent
-    const dateRangePrice = validPrices.find(p => p.startsAt && p.endsAt);
+    const dateRangePrice = validPrices.find((p) => p.startsAt && p.endsAt);
     if (dateRangePrice) return Number(dateRangePrice.amount);
 
-    const permanentPrice = validPrices.find(p => !p.startsAt && !p.endsAt);
+    const permanentPrice = validPrices.find((p) => !p.startsAt && !p.endsAt);
     if (permanentPrice) return Number(permanentPrice.amount);
 
     return Number(validPrices[0].amount);
@@ -101,9 +100,10 @@ const PriceManagement = ({
     form.setFieldsValue({
       amount: price.amount,
       isActive: price.isActive,
-      dateRange: price.startsAt && price.endsAt 
-        ? [dayjs(price.startsAt), dayjs(price.endsAt)]
-        : null,
+      dateRange:
+        price.startsAt && price.endsAt
+          ? [dayjs(price.startsAt), dayjs(price.endsAt)]
+          : null,
     });
     setEditModalVisible(true);
   };
@@ -164,7 +164,7 @@ const PriceManagement = ({
         if (!record.startsAt && !record.endsAt) {
           return <Tag color="green">Vĩnh viễn</Tag>;
         }
-        
+
         return (
           <Space direction="vertical" size="small">
             {record.startsAt && (
@@ -186,7 +186,8 @@ const PriceManagement = ({
       key: "status",
       render: (_, record) => {
         const now = new Date();
-        const isCurrentlyActive = record.isActive && 
+        const isCurrentlyActive =
+          record.isActive &&
           (!record.startsAt || new Date(record.startsAt) <= now) &&
           (!record.endsAt || new Date(record.endsAt) >= now);
 
@@ -199,7 +200,7 @@ const PriceManagement = ({
         } else if (record.endsAt && new Date(record.endsAt) < now) {
           return <Tag color="gray">Đã hết hạn</Tag>;
         }
-        
+
         return <Tag color="orange">Không xác định</Tag>;
       },
     },
@@ -221,11 +222,7 @@ const PriceManagement = ({
             okText="Xóa"
             cancelText="Hủy"
           >
-            <Button
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-            >
+            <Button size="small" danger icon={<DeleteOutlined />}>
               Xóa
             </Button>
           </Popconfirm>
@@ -335,18 +332,12 @@ const PriceManagement = ({
             />
           </Form.Item>
 
-          <Form.Item
-            name="isActive"
-            label="Kích hoạt"
-            valuePropName="checked"
-          >
+          <Form.Item name="isActive" label="Kích hoạt" valuePropName="checked">
             <Switch />
           </Form.Item>
 
           <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-            <Button onClick={() => setAddModalVisible(false)}>
-              Hủy
-            </Button>
+            <Button onClick={() => setAddModalVisible(false)}>Hủy</Button>
             <Button type="primary" htmlType="submit" loading={loading}>
               Thêm
             </Button>
@@ -360,11 +351,7 @@ const PriceManagement = ({
         onCancel={() => setEditModalVisible(false)}
         footer={null}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSavePrice}
-        >
+        <Form form={form} layout="vertical" onFinish={handleSavePrice}>
           <Form.Item
             name="amount"
             label="Giá"
@@ -397,18 +384,12 @@ const PriceManagement = ({
             />
           </Form.Item>
 
-          <Form.Item
-            name="isActive"
-            label="Kích hoạt"
-            valuePropName="checked"
-          >
+          <Form.Item name="isActive" label="Kích hoạt" valuePropName="checked">
             <Switch />
           </Form.Item>
 
           <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-            <Button onClick={() => setEditModalVisible(false)}>
-              Hủy
-            </Button>
+            <Button onClick={() => setEditModalVisible(false)}>Hủy</Button>
             <Button type="primary" htmlType="submit" loading={loading}>
               Lưu
             </Button>

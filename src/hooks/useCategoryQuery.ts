@@ -9,6 +9,7 @@ import {
 import { toast } from "react-toastify";
 
 // Query Keys
+
 export const categoryKeys = {
   all: ["categories"],
   lists: () => [...categoryKeys.all, "list"],
