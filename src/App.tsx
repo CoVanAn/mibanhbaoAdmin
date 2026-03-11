@@ -16,6 +16,8 @@ import {
 } from "./pages/products";
 import AdminLayout from "./components/Layout/AdminLayout";
 import DealsPage from "./pages/deals";
+import CustomersList from "./pages/customers/list";
+import CustomerView from "./pages/customers/view";
 
 const App = () => {
   return (
@@ -55,6 +57,10 @@ const App = () => {
           {/* Order Routes */}
           <Route path="orders" element={<Orders />} />
           <Route path="orders/:id" element={<OrderView />} />
+
+          {/* Customer Routes */}
+          <Route path="customers" element={<CustomersList />} />
+          <Route path="customers/:id" element={<CustomerView />} />
 
           {/* Other Routes */}
           <Route path="categories" element={<Categories />} />
