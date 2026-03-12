@@ -1,3 +1,4 @@
+import { useEffect, useState, useRef } from "react";
 import {
   Card,
   Row,
@@ -53,6 +54,13 @@ const FilterBar = ({
   onDateRangeChange,
   onReset,
 }: FilterBarProps) => {
+  const [localValue, setLocalValue] = useState(searchTerm);
+  const isComposing = useRef(false);
+
+  useEffect(() => {
+    setLocalValue(searchTerm);
+  }, [searchTerm]);
+
   return (
     <Affix offsetTop={0}>
       <Card
@@ -68,8 +76,21 @@ const FilterBar = ({
                 placeholder="Tìm theo mã đơn, tên, SĐT..."
                 allowClear
                 enterButton={<SearchOutlined />}
-                value={searchTerm}
-                onChange={(e) => onSearchTermChange(e.target.value)}
+                value={localValue}
+                onChange={(e) => {
+                  setLocalValue(e.target.value);
+                  if (!isComposing.current) {
+                    onSearchTermChange(e.target.value);
+                  }
+                }}
+                onCompositionStart={() => {
+                  isComposing.current = true;
+                }}
+                onCompositionEnd={(e) => {
+                  isComposing.current = false;
+                  // Sau khi compose xong mới propagate giá trị hoàn chỉnh
+                  onSearchTermChange((e.target as HTMLInputElement).value);
+                }}
                 onSearch={onSearch}
                 disabled={isFetching}
               />

@@ -52,9 +52,9 @@ const FilterBar = ({
               onChange={(e) => {
                 const val = e.target.value;
                 setLocalValue(val);
-                // Chỉ propagate khi KHÔNG đang compose (không bị trigger giữa "oo"→"ô")
+                const trimmedValue = val;
                 if (!isComposing.current) {
-                  onSearchChange(val);
+                  onSearchChange(trimmedValue);
                 }
               }}
               onCompositionStart={() => {

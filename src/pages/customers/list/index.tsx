@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Card, Table, Alert, Button } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -11,34 +11,55 @@ const CustomersList = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [searchTerm, setSearchTerm] = useState(
-    searchParams.get("search") || "",
-  );
-  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
-  const [isActiveFilter, setIsActiveFilter] = useState<string | undefined>(
-    searchParams.get("isActive") || undefined,
+  // Read filter state from URL params
+  const searchTerm = searchParams.get("search") || "";
+  const isActiveFilter = searchParams.get("isActive") || undefined;
+
+  // Update URL params when filters change
+  const updateFilters = useCallback(
+    (updates: Record<string, string | undefined>) => {
+      setSearchParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        Object.entries(updates).forEach(([key, value]) => {
+          if (value === undefined || value === "") {
+            newParams.delete(key);
+          } else {
+            newParams.set(key, value);
+          }
+        });
+        return newParams;
+      });
+    },
+    [setSearchParams],
   );
 
-  // Debounce search: chỉ trigger sau 500ms dừng nhập
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      updateUrl({ search: searchTerm, page: "1" });
-    }, 500);
-    return () => clearTimeout(timer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm]);
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      updateFilters({ search: value });
+    },
+    [updateFilters],
+  );
 
-  // Build query params — dùng debouncedSearch để tránh gọi API mỗi lần gõ
+  const handleIsActiveChange = useCallback(
+    (value?: string) => {
+      updateFilters({ isActive: value });
+    },
+    [updateFilters],
+  );
+
+  const handleReset = () => {
+    updateFilters({ search: undefined, isActive: undefined });
+  };
+
   const queryParams = useMemo(() => {
     const params: any = {
       page: parseInt(searchParams.get("page") || "1", 10),
       limit: parseInt(searchParams.get("limit") || "20", 10),
     };
-    if (debouncedSearch) params.search = debouncedSearch;
-    if (isActiveFilter !== undefined) params.isActive = isActiveFilter;
+    if (searchTerm) params.search = searchTerm.trim().replace(/\s+/g, " ");
+    if (isActiveFilter) params.isActive = isActiveFilter;
     return params;
-  }, [searchParams, debouncedSearch, isActiveFilter]);
+  }, [searchParams, searchTerm, isActiveFilter]);
 
   const { data, isLoading, isFetching, isError, error, refetch } =
     useCustomersQuery(queryParams);
@@ -47,46 +68,6 @@ const CustomersList = () => {
     () => getCustomerColumns((id) => navigate(`/customers/${id}`)),
     [navigate],
   );
-
-  // URL sync helper
-  const updateUrl = (updates: Record<string, string | undefined>) => {
-    const current = Object.fromEntries(searchParams.entries());
-    const next: Record<string, string> = { ...current };
-    for (const [k, v] of Object.entries(updates)) {
-      if (v === undefined || v === "") {
-        delete next[k];
-      } else {
-        next[k] = v;
-      }
-    }
-    setSearchParams(next);
-  };
-
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    // Khi nhấn Enter / nút search thì apply ngay, không chờ debounce
-    setDebouncedSearch(value);
-    updateUrl({ search: value, page: "1" });
-  };
-
-  const handleIsActiveChange = (value?: string) => {
-    setIsActiveFilter(value);
-    updateUrl({ isActive: value, page: "1" });
-  };
-
-  const handleReset = () => {
-    setSearchTerm("");
-    setDebouncedSearch("");
-    setIsActiveFilter(undefined);
-    setSearchParams({});
-  };
-
-  const handleTableChange = (pagination: any) => {
-    updateUrl({
-      page: String(pagination.current),
-      limit: String(pagination.pageSize),
-    });
-  };
 
   if (isLoading) return <Loading />;
 
@@ -112,8 +93,8 @@ const CustomersList = () => {
         searchTerm={searchTerm}
         isActiveFilter={isActiveFilter}
         isFetching={isFetching}
-        onSearchChange={setSearchTerm}
-        onSearch={handleSearch}
+        onSearch={handleSearchChange}
+        onSearchChange={handleSearchChange}
         onIsActiveChange={handleIsActiveChange}
         onReset={handleReset}
       />
@@ -142,7 +123,12 @@ const CustomersList = () => {
             showTotal: (total) => `Tổng ${total} khách hàng`,
             pageSizeOptions: ["10", "20", "50"],
           }}
-          onChange={handleTableChange}
+          onChange={(pagination) =>
+            updateFilters({
+              page: String(pagination.current),
+              limit: String(pagination.pageSize),
+            })
+          }
           onRow={(record) => ({
             style: { cursor: "pointer" },
             onClick: () => navigate(`/customers/${record.id}`),

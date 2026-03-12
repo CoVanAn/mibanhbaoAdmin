@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, Table, Button, Alert } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
 import { ReloadOutlined } from "@ant-design/icons";
@@ -17,9 +17,22 @@ const OrdersList = () => {
   const [searchTerm, setSearchTerm] = useState(
     searchParams.get("search") || "",
   );
+
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+
   const [statusFilter, setStatusFilter] = useState<string | undefined>(
     searchParams.get("status") || undefined,
   );
+
+   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      updateUrl({ search: searchTerm, page: "1" });
+    }, 500);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
+
   const [methodFilter, setMethodFilter] = useState<string | undefined>(
     searchParams.get("method") || undefined,
   );
@@ -40,7 +53,7 @@ const OrdersList = () => {
       page: parseInt(searchParams.get("page") || "1", 10),
       limit: parseInt(searchParams.get("limit") || "20", 10),
     };
-    if (searchTerm) params.search = searchTerm;
+    if (debouncedSearch) params.search = debouncedSearch;
     if (statusFilter) params.status = statusFilter;
     if (methodFilter) params.method = methodFilter;
     if (dateRange && dateRange[0] && dateRange[1]) {
@@ -49,7 +62,7 @@ const OrdersList = () => {
       params.endDate = dateRange[1].add(1, "day").format("YYYY-MM-DD");
     }
     return params;
-  }, [searchParams, searchTerm, statusFilter, methodFilter, dateRange]);
+  }, [searchParams, debouncedSearch, statusFilter, methodFilter, dateRange]);
 
   // Data fetching
   const { data, isLoading, isFetching, error, isError, refetch } =
@@ -70,6 +83,7 @@ const OrdersList = () => {
   // Handlers
   const handleSearch = (value: string) => {
     setSearchTerm(value);
+    setDebouncedSearch(value);
     updateUrl({ search: value, page: "1" });
   };
 
@@ -100,6 +114,7 @@ const OrdersList = () => {
 
   const handleResetFilters = () => {
     setSearchTerm("");
+    setDebouncedSearch("");
     setStatusFilter(undefined);
     setMethodFilter(undefined);
     setDateRange(null);
