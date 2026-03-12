@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Card, Table, Button, Alert } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
 import { ReloadOutlined } from "@ant-design/icons";
@@ -13,59 +13,96 @@ const OrdersList = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // State for filters
-  const [searchTerm, setSearchTerm] = useState(
-    searchParams.get("search") || "",
-  );
-
-  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
-
-  const [statusFilter, setStatusFilter] = useState<string | undefined>(
-    searchParams.get("status") || undefined,
-  );
-
-   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      updateUrl({ search: searchTerm, page: "1" });
-    }, 500);
-    return () => clearTimeout(timer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm]);
-
-  const [methodFilter, setMethodFilter] = useState<string | undefined>(
-    searchParams.get("method") || undefined,
-  );
-  const [dateRange, setDateRange] = useState<
-    [Dayjs | null, Dayjs | null] | null
-  >(() => {
+  // Read filter state from URL params
+  const searchTerm = searchParams.get("search") || "";
+  const statusFilter = searchParams.get("status") || undefined;
+  const methodFilter = searchParams.get("method") || undefined;
+  const dateRange = useMemo(() => {
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
-    if (startDate && endDate) {
-      return [dayjs(startDate), dayjs(endDate)];
-    }
-    return null;
-  });
+    return startDate && endDate ? [dayjs(startDate), dayjs(endDate)] : null;
+  }, [searchParams]);
 
-  // Build query params
+  // Update URL params when filters change
+  const updateFilters = useCallback(
+    (updates: Record<string, string | undefined>) => {
+      setSearchParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        Object.entries(updates).forEach(([key, value]) => {
+          if (value === undefined || value === "") {
+            newParams.delete(key);
+          } else {
+            newParams.set(key, value);
+          }
+        });
+        return newParams;
+      });
+    },
+    [setSearchParams],
+  );
+
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      updateFilters({ search: value });
+    },
+    [updateFilters],
+  );
+
+  const handleStatusFilter = useCallback(
+    (value: string | undefined) => {
+      updateFilters({ status: value });
+    },
+    [updateFilters],
+  );
+
+  const handleMethodFilter = useCallback(
+    (value: string | undefined) => {
+      updateFilters({ method: value });
+    },
+    [updateFilters],
+  );
+
+  const handleDateRangeChange = useCallback(
+    (dates: [Dayjs | null, Dayjs | null] | null) => {
+      if (dates && dates[0] && dates[1]) {
+        updateFilters({
+          startDate: dates[0].format("YYYY-MM-DD"),
+          endDate: dates[1].format("YYYY-MM-DD"),
+        });
+      } else {
+        updateFilters({ startDate: undefined, endDate: undefined });
+      }
+    },
+    [updateFilters],
+  );
+
+  const handleResetFilters = () => {
+    updateFilters({
+      search: undefined,
+      status: undefined,
+      method: undefined,
+      startDate: undefined,
+      endDate: undefined,
+    });
+  };
+
   const queryParams = useMemo(() => {
     const params: any = {
       page: parseInt(searchParams.get("page") || "1", 10),
       limit: parseInt(searchParams.get("limit") || "20", 10),
     };
-    if (debouncedSearch) params.search = debouncedSearch;
+    if (searchTerm) params.search = searchTerm.trim().replace(/\s+/g, " ");
     if (statusFilter) params.status = statusFilter;
     if (methodFilter) params.method = methodFilter;
     if (dateRange && dateRange[0] && dateRange[1]) {
       params.startDate = dateRange[0].format("YYYY-MM-DD");
-      // Add 1 day to endDate to include all orders on the selected end date
-      params.endDate = dateRange[1].add(1, "day").format("YYYY-MM-DD");
+      params.endDate = dateRange[1].format("YYYY-MM-DD");
     }
     return params;
-  }, [searchParams, debouncedSearch, statusFilter, methodFilter, dateRange]);
+  }, [searchParams, searchTerm, statusFilter, methodFilter, dateRange]);
 
   // Data fetching
-  const { data, isLoading, isFetching, error, isError, refetch } =
+  const { data, isLoading, isFetching, isError, error, refetch } =
     useOrdersQuery(queryParams);
 
   // Stats calculation
@@ -79,65 +116,6 @@ const OrdersList = () => {
     () => getOrderColumns((id) => navigate(`/orders/${id}`)),
     [navigate],
   );
-
-  // Handlers
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    setDebouncedSearch(value);
-    updateUrl({ search: value, page: "1" });
-  };
-
-  const handleStatusFilter = (value: string | undefined) => {
-    setStatusFilter(value);
-    updateUrl({ status: value, page: "1" });
-  };
-
-  const handleMethodFilter = (value: string | undefined) => {
-    setMethodFilter(value);
-    updateUrl({ method: value, page: "1" });
-  };
-
-  const handleDateRangeChange = (
-    dates: [Dayjs | null, Dayjs | null] | null,
-  ) => {
-    setDateRange(dates);
-    if (dates && dates[0] && dates[1]) {
-      updateUrl({
-        startDate: dates[0].format("YYYY-MM-DD"),
-        endDate: dates[1].format("YYYY-MM-DD"),
-        page: "1",
-      });
-    } else {
-      updateUrl({ startDate: undefined, endDate: undefined, page: "1" });
-    }
-  };
-
-  const handleResetFilters = () => {
-    setSearchTerm("");
-    setDebouncedSearch("");
-    setStatusFilter(undefined);
-    setMethodFilter(undefined);
-    setDateRange(null);
-    setSearchParams({});
-  };
-
-  const handlePageChange = (page: number, pageSize: number) => {
-    updateUrl({ page: page.toString(), limit: pageSize.toString() });
-  };
-
-  const updateUrl = (updates: Record<string, string | undefined>) => {
-    setSearchParams((prev) => {
-      const newParams = new URLSearchParams(prev);
-      Object.entries(updates).forEach(([key, value]) => {
-        if (value === undefined || value === "") {
-          newParams.delete(key);
-        } else {
-          newParams.set(key, value);
-        }
-      });
-      return newParams;
-    });
-  };
 
   if (isLoading) return <Loading />;
 
@@ -175,7 +153,12 @@ const OrdersList = () => {
         }}
       >
         <h2
-          style={{ margin: 0, color: "#1f2937", fontSize: 24, fontWeight: 600 }}
+          style={{
+            margin: 0,
+            color: "#1f2937",
+            fontSize: 24,
+            fontWeight: 600,
+          }}
         >
           Quản lý đơn hàng
         </h2>
@@ -190,10 +173,10 @@ const OrdersList = () => {
         searchTerm={searchTerm}
         statusFilter={statusFilter}
         methodFilter={methodFilter}
-        dateRange={dateRange}
+        dateRange={dateRange as [Dayjs | null, Dayjs | null] | null}
         isFetching={isFetching}
-        onSearchTermChange={setSearchTerm}
-        onSearch={handleSearch}
+        onSearch={handleSearchChange}
+        onSearchTermChange={handleSearchChange}
         onStatusChange={handleStatusFilter}
         onMethodChange={handleMethodFilter}
         onDateRangeChange={handleDateRangeChange}
@@ -205,17 +188,20 @@ const OrdersList = () => {
           columns={columns}
           dataSource={data?.orders || []}
           rowKey="id"
-          loading={isLoading}
+          loading={isFetching}
           scroll={{ x: 1400 }}
           pagination={{
-            current: data?.pagination?.page || 1,
-            pageSize: data?.pagination?.limit || 20,
+            current: queryParams.page,
+            pageSize: queryParams.limit,
             total: data?.pagination?.total || 0,
             showSizeChanger: true,
             showTotal: (total) => `Tổng ${total} đơn hàng`,
-            onChange: handlePageChange,
+            onChange: (page, pageSize) =>
+              updateFilters({
+                page: page.toString(),
+                limit: pageSize.toString(),
+              }),
             pageSizeOptions: ["10", "20", "50", "100"],
-            disabled: isFetching,
           }}
         />
       </Card>
