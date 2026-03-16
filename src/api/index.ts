@@ -4,4 +4,5 @@ export { categoriesApi } from "./categories";
 export { productsApi } from "./products";
 export { ordersApi } from "./orders";
 export { couponsApi } from "./coupons";
+export { employeesApi } from "./employees";
 export { default as apiClient } from "./client";

@@ -5,7 +5,7 @@ export interface User {
   id: string | number;
   email: string;
   name: string;
-  role: "ADMIN" | "STAFF" | "USER";
+  role: "ADMIN" | "STAFF" | "CUSTOMER";
   avatar?: string;
   phone?: string;
   createdAt?: string;

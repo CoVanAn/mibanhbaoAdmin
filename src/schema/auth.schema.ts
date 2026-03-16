@@ -41,7 +41,9 @@ export const UserSchema = z.object({
   email: z.string().trim().email(),
   phone: z.string().nullable().optional(),
   avatar: z.string().nullable().optional(),
-  role: z.enum(["ADMIN", "USER", "STAFF", "admin", "user", "staff"]).optional(),
+  role: z
+    .enum(["ADMIN", "STAFF", "CUSTOMER", "admin", "staff", "customer"])
+    .optional(),
   createdAt: z.string().optional(),
 });
 

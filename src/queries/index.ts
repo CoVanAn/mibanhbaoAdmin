@@ -4,3 +4,4 @@ export * from "./category";
 export * from "./auth";
 export * from "./order";
 export * from "./coupon";
+export * from "./employee";

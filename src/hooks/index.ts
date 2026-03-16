@@ -4,3 +4,4 @@ export * from "./useCategoryQuery";
 export * from "./useOrderQuery";
 export * from "./useAuthQuery";
 export * from "./useCouponQuery";
+export * from "./useEmployeeQuery";

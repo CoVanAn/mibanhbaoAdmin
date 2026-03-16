@@ -18,6 +18,7 @@ import AdminLayout from "./components/Layout/AdminLayout";
 import DealsPage from "./pages/deals";
 import CustomersList from "./pages/customers/list";
 import CustomerView from "./pages/customers/view";
+import { EmployeesList, EmployeeView } from "./pages/employees";
 
 const App = () => {
   return (
@@ -61,6 +62,10 @@ const App = () => {
           {/* Customer Routes */}
           <Route path="customers" element={<CustomersList />} />
           <Route path="customers/:id" element={<CustomerView />} />
+
+          {/* Employee Routes */}
+          <Route path="employees" element={<EmployeesList />} />
+          <Route path="employees/:id" element={<EmployeeView />} />
 
           {/* Other Routes */}
           <Route path="categories" element={<Categories />} />

@@ -59,7 +59,7 @@ const items = [
     "customers",
     <UserOutlined />,
   ),
-  getItem(<Link to="/profile">Nhân sự</Link>, "8", <TeamOutlined />),
+  getItem(<Link to="/employees">Nhân sự</Link>, "8", <TeamOutlined />),
 ];
 
 const AdminLayout = () => {
