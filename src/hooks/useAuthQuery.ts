@@ -9,6 +9,7 @@ import {
   refreshToken as refreshTokenApi,
   fetchProfile,
   updateProfile as updateProfileApi,
+  uploadAvatar as uploadAvatarApi,
   changePassword as changePasswordApi,
 } from "../queries/auth";
 import { setAccessToken, clearAccessToken } from "../lib/api";
@@ -132,6 +133,26 @@ export function useChangePasswordMutation() {
 }
 
 /**
+ * Hook to upload avatar
+ */
+export function useUploadAvatarMutation() {
+  const queryClient = useQueryClient();
+  const setUser = useStore((state) => state.setUser);
+
+  return useMutation({
+    mutationFn: uploadAvatarApi,
+    onSuccess: (user: any) => {
+      setUser(user);
+      queryClient.invalidateQueries({ queryKey: authKeys.profile() });
+      toast.success("Cập nhật avatar thành công!");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Cập nhật avatar thất bại");
+    },
+  });
+}
+
+/**
  * Main auth hook - combines all auth functionality
  * Replaces legacy useAuth.ts with modern TanStack Query pattern
  */
@@ -196,6 +217,7 @@ export function useAuth() {
   const logoutMutation = useLogoutMutation();
   const updateProfileMutation = useUpdateProfileMutation();
   const changePasswordMutation = useChangePasswordMutation();
+  const uploadAvatarMutation = useUploadAvatarMutation();
 
   return {
     // State
@@ -214,10 +236,13 @@ export function useAuth() {
     logout: logoutMutation.mutate,
     isLoggingOut: logoutMutation.isPending,
 
-    updateProfile: updateProfileMutation.mutate,
+    updateProfile: updateProfileMutation.mutateAsync,
     isUpdatingProfile: updateProfileMutation.isPending,
 
-    changePassword: changePasswordMutation.mutate,
+    changePassword: changePasswordMutation.mutateAsync,
     isChangingPassword: changePasswordMutation.isPending,
+
+    uploadAvatar: uploadAvatarMutation.mutateAsync,
+    isUploadingAvatar: uploadAvatarMutation.isPending,
   };
 }

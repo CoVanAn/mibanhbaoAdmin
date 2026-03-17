@@ -86,6 +86,28 @@ export async function updateProfile(profileData: {
 }
 
 /**
+ * Upload user avatar
+ */
+export async function uploadAvatar(file: File) {
+  const formData = new FormData();
+  formData.append("avatar", file);
+
+  const response = await apiClient.post("/api/user/avatar", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  const payload = response.data;
+
+  if (!payload.user) {
+    throw new Error(payload.message || "Khong the cap nhat avatar");
+  }
+
+  return parseUser(payload.user);
+}
+
+/**
  * Change password
  */
 export async function changePassword(currentPassword: string, newPassword: string) {

@@ -18,9 +18,7 @@ export interface EmployeeListItem {
   avatar: string | null;
   role: "ADMIN" | "STAFF";
   isActive: boolean;
-  hasPassword: boolean;
   createdAt: string;
-  ordersHandledCount: number;
 }
 
 export interface EmployeeDetail {
@@ -31,16 +29,30 @@ export interface EmployeeDetail {
   avatar: string | null;
   role: "ADMIN" | "STAFF";
   isActive: boolean;
-  hasPassword: boolean;
   createdAt: string;
   updatedAt: string;
-  linkedProviders: string[];
-  ordersHandledCount: number;
-  addressesCount: number;
 }
 
 export interface ToggleEmployeeStatusPayload {
   isActive: boolean;
+}
+
+export interface CreateEmployeePayload {
+  name: string;
+  email: string;
+  phone?: string;
+  role: "ADMIN" | "STAFF";
+  password: string;
+}
+
+export interface UpdateEmployeePayload {
+  name?: string;
+  phone?: string;
+  role?: "ADMIN" | "STAFF";
+}
+
+export interface ResetEmployeePasswordPayload {
+  newPassword: string;
 }
 
 export const employeesApi = {
@@ -57,6 +69,27 @@ export const employeesApi = {
   toggleStatus: async (id: number, payload: ToggleEmployeeStatusPayload) => {
     const response = await apiClient.patch(
       `/api/admin/employees/${id}/status`,
+      payload,
+    );
+    return response.data;
+  },
+
+  create: async (payload: CreateEmployeePayload) => {
+    const response = await apiClient.post("/api/admin/employees", payload);
+    return response.data;
+  },
+
+  update: async (id: number, payload: UpdateEmployeePayload) => {
+    const response = await apiClient.patch(`/api/admin/employees/${id}`, payload);
+    return response.data;
+  },
+
+  resetPassword: async (
+    id: number,
+    payload: ResetEmployeePasswordPayload,
+  ) => {
+    const response = await apiClient.patch(
+      `/api/admin/employees/${id}/reset-password`,
       payload,
     );
     return response.data;

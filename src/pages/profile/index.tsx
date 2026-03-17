@@ -28,7 +28,7 @@ const { TabPane } = Tabs;
 const { Title, Text } = Typography;
 
 const AdminProfile = () => {
-  const { user, updateProfile, changePassword } = useAuth();
+  const { user, updateProfile, changePassword, uploadAvatar } = useAuth();
   const [profileForm] = Form.useForm();
   const [passwordForm] = Form.useForm();
   const [uploading, setUploading] = useState(false);
@@ -54,10 +54,7 @@ const AdminProfile = () => {
   const handleAvatarUpload = async (file: File) => {
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("avatar", file);
-
-      await updateProfile(formData as any);
+      await uploadAvatar(file);
       message.success("Cập nhật avatar thành công!");
     } catch (error) {
       message.error("Lỗi khi upload avatar");

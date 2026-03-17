@@ -10,9 +10,7 @@ export const EmployeeListItemSchema = z.object({
   avatar: z.string().nullable(),
   role: EmployeeRoleSchema,
   isActive: z.boolean(),
-  hasPassword: z.boolean(),
   createdAt: z.string(),
-  ordersHandledCount: z.number(),
 });
 
 export const EmployeeDetailSchema = z.object({
@@ -23,12 +21,8 @@ export const EmployeeDetailSchema = z.object({
   avatar: z.string().nullable(),
   role: EmployeeRoleSchema,
   isActive: z.boolean(),
-  hasPassword: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
-  linkedProviders: z.array(z.string()),
-  ordersHandledCount: z.number(),
-  addressesCount: z.number(),
 });
 
 export const EmployeeListResponseSchema = z.object({

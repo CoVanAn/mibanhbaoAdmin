@@ -1,9 +1,26 @@
-import { useCallback, useMemo } from "react";
-import { Alert, Button, Card, Space, Table, Tag, Typography } from "antd";
-import { ReloadOutlined, EyeOutlined } from "@ant-design/icons";
+import { useCallback, useMemo, useState } from "react";
+import {
+  Alert,
+  Button,
+  Card,
+  Form,
+  Input,
+  Modal,
+  Select,
+  Space,
+  Table,
+  Tag,
+  Typography,
+} from "antd";
+import { ReloadOutlined, EyeOutlined, PlusOutlined } from "@ant-design/icons";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PageHeader, Loading } from "../../../components/common";
-import { useEmployeesQuery } from "../../../hooks/useEmployeeQuery";
+import { EmployeeViewContent } from "../view/index";
+import {
+  useCreateEmployeeMutation,
+  useEmployeesQuery,
+} from "../../../hooks/useEmployeeQuery";
+import { useAuth } from "../../../hooks/useAuthQuery";
 import type { EmployeeListItem } from "../../../schema/employee.schema";
 import { formatDate } from "../../../utils/helpers";
 
@@ -11,7 +28,15 @@ const { Text } = Typography;
 
 const EmployeesList = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [createOpen, setCreateOpen] = useState(false);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(
+    null,
+  );
+  const [createForm] = Form.useForm();
+  const createMutation = useCreateEmployeeMutation();
 
   const searchTerm = searchParams.get("search") || "";
   const roleFilter = searchParams.get("role") || undefined;
@@ -50,6 +75,31 @@ const EmployeesList = () => {
   const { data, isLoading, isFetching, isError, error, refetch } =
     useEmployeesQuery(queryParams);
 
+  const canManage = user?.role === "ADMIN";
+
+  const handleOpenView = (employeeId: number) => {
+    setSelectedEmployeeId(employeeId);
+    setViewOpen(true);
+  };
+
+  const handleCloseView = () => {
+    setViewOpen(false);
+    setSelectedEmployeeId(null);
+  };
+
+  const handleCreateEmployee = async () => {
+    const values = await createForm.validateFields();
+    await createMutation.mutateAsync({
+      name: values.name,
+      email: values.email,
+      phone: values.phone,
+      role: values.role,
+      password: values.password,
+    });
+    createForm.resetFields();
+    setCreateOpen(false);
+  };
+
   const columns = useMemo(
     () => [
       {
@@ -82,14 +132,6 @@ const EmployeesList = () => {
           phone || <Text type="secondary">—</Text>,
       },
       {
-        title: "Đơn đã xử lý",
-        dataIndex: "ordersHandledCount",
-        key: "ordersHandledCount",
-        width: 120,
-        align: "center" as const,
-        render: (count: number) => <Text strong>{count}</Text>,
-      },
-      {
         title: "Ngày tạo",
         dataIndex: "createdAt",
         key: "createdAt",
@@ -105,7 +147,11 @@ const EmployeesList = () => {
         width: 120,
         align: "center" as const,
         render: (isActive: boolean) =>
-          isActive ? <Tag color="success">Hoạt động</Tag> : <Tag color="error">Vô hiệu</Tag>,
+          isActive ? (
+            <Tag color="success">Hoạt động</Tag>
+          ) : (
+            <Tag color="error">Vô hiệu</Tag>
+          ),
       },
       {
         title: "Hành động",
@@ -117,7 +163,10 @@ const EmployeesList = () => {
           <Button
             type="link"
             icon={<EyeOutlined />}
-            onClick={() => navigate(`/employees/${e.id}`)}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleOpenView(e.id);
+            }}
             size="small"
           >
             Xem
@@ -134,16 +183,31 @@ const EmployeesList = () => {
     <div>
       <PageHeader
         title="Nhân viên"
-        subtitle={data?.pagination ? `${data.pagination.total} nhân sự` : undefined}
-        extra={
+        subtitle={
+          data?.pagination ? `${data.pagination.total} nhân sự` : undefined
+        }
+        extra={[
           <Button
+            key="refresh"
             icon={<ReloadOutlined />}
             onClick={() => refetch()}
             loading={isFetching}
           >
             Làm mới
-          </Button>
-        }
+          </Button>,
+          ...(canManage
+            ? [
+                <Button
+                  key="create"
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => setCreateOpen(true)}
+                >
+                  Thêm nhân sự
+                </Button>,
+              ]
+            : []),
+        ]}
       />
 
       {isError && (
@@ -157,11 +221,52 @@ const EmployeesList = () => {
 
       <Card style={{ marginBottom: 16 }}>
         <Space wrap>
-          <Button onClick={() => updateFilters({ role: undefined })}>Tất cả vai trò</Button>
-          <Button onClick={() => updateFilters({ role: "ADMIN" })}>ADMIN</Button>
-          <Button onClick={() => updateFilters({ role: "STAFF" })}>STAFF</Button>
-          <Button onClick={() => updateFilters({ isActive: "true" })}>Đang hoạt động</Button>
-          <Button onClick={() => updateFilters({ isActive: "false" })}>Đang vô hiệu</Button>
+          <Input.Search
+            allowClear
+            placeholder="Tìm theo tên, email, SĐT"
+            defaultValue={searchTerm}
+            style={{ width: 280 }}
+            onSearch={(value) =>
+              updateFilters({ search: value || undefined, page: undefined })
+            }
+          />
+          <Select
+            style={{ width: 160 }}
+            value={roleFilter}
+            onChange={(value) =>
+              updateFilters({ role: value || undefined, page: undefined })
+            }
+          >
+            <Select.Option value="">Tất cả vai trò</Select.Option>
+            <Select.Option value="ADMIN">ADMIN</Select.Option>
+            <Select.Option value="STAFF">STAFF</Select.Option>
+          </Select>
+          <Select
+            style={{ width: 160 }}
+            value={isActiveFilter}
+            onChange={(value) =>
+              updateFilters({ isActive: value || undefined, page: undefined })
+            }
+          >
+            <Select.Option value="">Tất cả trạng thái</Select.Option>
+            <Select.Option value="true">Đang hoạt động</Select.Option>
+            <Select.Option value="false">Đang vô hiệu</Select.Option>
+          </Select>
+          {/* <Button onClick={() => updateFilters({ role: undefined })}>
+            Tất cả vai trò
+          </Button>
+          <Button onClick={() => updateFilters({ role: "ADMIN" })}>
+            ADMIN
+          </Button>
+          <Button onClick={() => updateFilters({ role: "STAFF" })}>
+            STAFF
+          </Button>
+          <Button onClick={() => updateFilters({ isActive: "true" })}>
+            Đang hoạt động
+          </Button>
+          <Button onClick={() => updateFilters({ isActive: "false" })}>
+            Đang vô hiệu
+          </Button> */}
           <Button
             onClick={() =>
               updateFilters({
@@ -200,10 +305,88 @@ const EmployeesList = () => {
           }
           onRow={(record) => ({
             style: { cursor: "pointer" },
-            onClick: () => navigate(`/employees/${record.id}`),
+            onClick: () => handleOpenView(record.id),
           })}
         />
       </Card>
+
+      <Modal
+        title={null}
+        open={viewOpen}
+        footer={null}
+        onCancel={handleCloseView}
+        width={980}
+        centered
+        destroyOnClose
+      >
+        {selectedEmployeeId ? (
+          <EmployeeViewContent
+            employeeId={selectedEmployeeId}
+            isModal
+            onClose={handleCloseView}
+          />
+        ) : null}
+      </Modal>
+
+      <Modal
+        title="Thêm nhân sự"
+        open={createOpen}
+        onCancel={() => setCreateOpen(false)}
+        onOk={handleCreateEmployee}
+        okText="Tạo tài khoản"
+        cancelText="Huỷ"
+        okButtonProps={{ loading: createMutation.isPending }}
+      >
+        <Form form={createForm} layout="vertical" requiredMark={false}>
+          <Form.Item
+            label="Họ tên"
+            name="name"
+            rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+          >
+            <Input placeholder="Nguyễn Văn A" />
+          </Form.Item>
+
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[
+              { required: true, message: "Vui lòng nhập email" },
+              { type: "email", message: "Email không hợp lệ" },
+            ]}
+          >
+            <Input placeholder="staff@example.com" />
+          </Form.Item>
+
+          <Form.Item label="Số điện thoại" name="phone">
+            <Input placeholder="098xxxxxxx" />
+          </Form.Item>
+
+          <Form.Item
+            label="Vai trò"
+            name="role"
+            initialValue="STAFF"
+            rules={[{ required: true, message: "Vui lòng chọn vai trò" }]}
+          >
+            <Select
+              options={[
+                { value: "STAFF", label: "STAFF" },
+                { value: "ADMIN", label: "ADMIN" },
+              ]}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Mật khẩu tạm"
+            name="password"
+            rules={[
+              { required: true, message: "Vui lòng nhập mật khẩu" },
+              { min: 6, message: "Mật khẩu tối thiểu 6 ký tự" },
+            ]}
+          >
+            <Input.Password placeholder="******" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

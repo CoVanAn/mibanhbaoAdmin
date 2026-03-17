@@ -1,22 +1,60 @@
-import { Alert, Button, Card, Col, Descriptions, Popconfirm, Row, Space, Tag, Typography } from "antd";
-import { MailOutlined, PhoneOutlined, UserOutlined } from "@ant-design/icons";
-import { Avatar } from "antd";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Alert,
+  Avatar,
+  Button,
+  Card,
+  Col,
+  Form,
+  Input,
+  Modal,
+  Popconfirm,
+  Row,
+  Select,
+  Space,
+  Tag,
+  Typography,
+} from "antd";
+import {
+  CalendarOutlined,
+  CheckCircleFilled,
+  EditOutlined,
+  KeyOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  SafetyCertificateOutlined,
+  StopFilled,
+  UserOutlined,
+} from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router-dom";
 import { PageHeader, Loading } from "../../../components/common";
 import {
   useEmployeeQuery,
+  useResetEmployeePasswordMutation,
   useToggleEmployeeStatusMutation,
+  useUpdateEmployeeMutation,
 } from "../../../hooks/useEmployeeQuery";
 import { useAuth } from "../../../hooks/useAuthQuery";
 import { formatDate } from "../../../utils/helpers";
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
-const EmployeeView = () => {
-  const navigate = useNavigate();
+interface EmployeeViewContentProps {
+  employeeId: number;
+  isModal?: boolean;
+  onClose?: () => void;
+}
+
+export const EmployeeViewContent = ({
+  employeeId,
+  isModal = false,
+  onClose,
+}: EmployeeViewContentProps) => {
   const { user } = useAuth();
-  const { id } = useParams<{ id: string }>();
-  const employeeId = parseInt(id || "0", 10);
+  const [editOpen, setEditOpen] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [editForm] = Form.useForm();
+  const [resetForm] = Form.useForm();
 
   const {
     data: employee,
@@ -25,6 +63,46 @@ const EmployeeView = () => {
     error,
   } = useEmployeeQuery(employeeId);
   const toggleStatus = useToggleEmployeeStatusMutation();
+  const updateEmployee = useUpdateEmployeeMutation();
+  const resetPassword = useResetEmployeePasswordMutation();
+
+  useEffect(() => {
+    if (!employee) return;
+    editForm.setFieldsValue({
+      name: employee.name,
+      phone: employee.phone || "",
+      role: employee.role,
+    });
+  }, [employee, editForm]);
+
+  const canToggle = user?.role === "ADMIN" && Number(user?.id) !== employee?.id;
+  const canManage = user?.role === "ADMIN";
+
+  const roleTag = useMemo(() => {
+    if (!employee) return null;
+    return employee.role === "ADMIN" ? (
+      <Tag color="gold" icon={<SafetyCertificateOutlined />}>
+        ADMIN
+      </Tag>
+    ) : (
+      <Tag color="blue" icon={<UserOutlined />}>
+        STAFF
+      </Tag>
+    );
+  }, [employee]);
+
+  const statusTag = useMemo(() => {
+    if (!employee) return null;
+    return employee.isActive ? (
+      <Tag color="success" icon={<CheckCircleFilled />}>
+        Hoạt động
+      </Tag>
+    ) : (
+      <Tag color="error" icon={<StopFilled />}>
+        Vô hiệu
+      </Tag>
+    );
+  }, [employee]);
 
   if (isLoading) return <Loading />;
 
@@ -32,43 +110,250 @@ const EmployeeView = () => {
     return (
       <Alert
         type="error"
-        message="Không tìm thấy nhân viên"
+        message="Khong tim thay nhan vien"
         description={(error as any)?.message}
-        action={<Button onClick={() => navigate("/employees")}>Quay lại</Button>}
+        action={onClose ? <Button onClick={onClose}>Dong</Button> : undefined}
       />
     );
   }
-
-  const canToggle = user?.role === "ADMIN" && Number(user?.id) !== employee.id;
 
   const handleToggleStatus = () => {
     toggleStatus.mutate({ id: employee.id, isActive: !employee.isActive });
   };
 
-  const statusAction = canToggle ? (
-    <Popconfirm
-      title={
-        employee.isActive
-          ? "Vô hiệu hoá tài khoản này?"
-          : "Kích hoạt lại tài khoản này?"
-      }
-      onConfirm={handleToggleStatus}
-      okText="Xác nhận"
-      cancelText="Huỷ"
-      okButtonProps={{
-        danger: employee.isActive,
-        loading: toggleStatus.isPending,
-      }}
-    >
-      <Button
-        danger={employee.isActive}
-        type={employee.isActive ? "default" : "primary"}
-        loading={toggleStatus.isPending}
+  const handleUpdateEmployee = async () => {
+    const values = await editForm.validateFields();
+    await updateEmployee.mutateAsync({
+      id: employee.id,
+      payload: {
+        name: values.name,
+        phone: values.phone,
+        role: values.role,
+      },
+    });
+    setEditOpen(false);
+  };
+
+  const handleResetPassword = async () => {
+    const values = await resetForm.validateFields();
+    await resetPassword.mutateAsync({
+      id: employee.id,
+      newPassword: values.newPassword,
+    });
+    resetForm.resetFields();
+    setResetOpen(false);
+  };
+
+  const actionButtons = (
+    <Space wrap>
+      {canManage && (
+        <>
+          <Button icon={<EditOutlined />} onClick={() => setEditOpen(true)}>
+            Cập nhật thông tin
+          </Button>
+          <Button icon={<KeyOutlined />} onClick={() => setResetOpen(true)}>
+            Đặt lại mật khẩu
+          </Button>
+        </>
+      )}
+      {canToggle && (
+        <Popconfirm
+          title={
+            employee.isActive
+              ? "Vô hiệu hóa tài khoản này?"
+              : "Kích hoạt lại tài khoản này?"
+          }
+          onConfirm={handleToggleStatus}
+          okText="Xác nhận"
+          cancelText="Hủy"
+          okButtonProps={{
+            danger: employee.isActive,
+            loading: toggleStatus.isPending,
+          }}
+        >
+          <Button
+            danger={employee.isActive}
+            type={employee.isActive ? "default" : "primary"}
+            loading={toggleStatus.isPending}
+          >
+            {employee.isActive ? "Vô hiệu hóa" : "Kích hoạt"}
+          </Button>
+        </Popconfirm>
+      )}
+    </Space>
+  );
+
+  const content = (
+    <>
+      <Space direction="vertical" size={16} style={{ width: "100%" }}>
+        <Card
+          bordered={false}
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(22,119,255,0.12) 0%, rgba(19,194,194,0.08) 100%)",
+          }}
+        >
+          <Row gutter={[16, 16]} align="middle">
+            <Col>
+              <Avatar
+                size={80}
+                src={employee.avatar}
+                icon={<UserOutlined />}
+                style={{ backgroundColor: "#1677ff" }}
+              />
+            </Col>
+            <Col flex="auto">
+              <Space direction="vertical" size={6}>
+                <Title level={4} style={{ margin: 0 }}>
+                  {employee.name}
+                </Title>
+                <Text type="secondary">Nhan su noi bo</Text>
+                <Space size={8} wrap>
+                  {roleTag}
+                  {statusTag}
+                </Space>
+              </Space>
+            </Col>
+            {!isModal && <Col>{actionButtons}</Col>}
+          </Row>
+        </Card>
+
+        {isModal && <Card bordered={false}>{actionButtons}</Card>}
+
+        <Row gutter={[16, 16]}>
+          <Col xs={24} md={8}>
+            <Card
+              size="small"
+              bordered={false}
+              style={{ background: "#fafafa" }}
+            >
+              <Space direction="vertical" size={4}>
+                <Text type="secondary">
+                  <MailOutlined /> Email
+                </Text>
+                <Text strong>{employee.email}</Text>
+              </Space>
+            </Card>
+          </Col>
+
+          <Col xs={24} md={8}>
+            <Card
+              size="small"
+              bordered={false}
+              style={{ background: "#fafafa" }}
+            >
+              <Space direction="vertical" size={4}>
+                <Text type="secondary">
+                  <PhoneOutlined /> So dien thoai
+                </Text>
+                <Text strong>{employee.phone || "Chưa cập nhât"}</Text>
+              </Space>
+            </Card>
+          </Col>
+
+          <Col xs={24} md={8}>
+            <Card
+              size="small"
+              bordered={false}
+              style={{ background: "#fafafa" }}
+            >
+              <Space direction="vertical" size={4}>
+                <Text type="secondary">
+                  <CalendarOutlined /> Ngày tạo
+                </Text>
+                <Text strong>{formatDate(employee.createdAt)}</Text>
+              </Space>
+            </Card>
+          </Col>
+        </Row>
+      </Space>
+
+      <Modal
+        title="Cập nhật nhân viên"
+        open={editOpen}
+        onCancel={() => setEditOpen(false)}
+        onOk={handleUpdateEmployee}
+        okText="Lưu"
+        cancelText="Hủy"
+        okButtonProps={{ loading: updateEmployee.isPending }}
       >
-        {employee.isActive ? "Vô hiệu hoá" : "Kích hoạt"}
-      </Button>
-    </Popconfirm>
-  ) : null;
+        <Form form={editForm} layout="vertical" requiredMark={false}>
+          <Form.Item
+            label="Họ tên"
+            name="name"
+            rules={[{ required: true, message: "Nhập họ tên" }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item label="Số điện thoại" name="phone">
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            label="Vai trò"
+            name="role"
+            rules={[{ required: true, message: "Chọn vai trò" }]}
+          >
+            <Select
+              options={[
+                { value: "STAFF", label: "STAFF" },
+                { value: "ADMIN", label: "ADMIN" },
+              ]}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Đặt lại mật khẩu"
+        open={resetOpen}
+        onCancel={() => setResetOpen(false)}
+        onOk={handleResetPassword}
+        okText="Cập nhật"
+        cancelText="ủy"
+        okButtonProps={{ loading: resetPassword.isPending }}
+      >
+        <Form form={resetForm} layout="vertical" requiredMark={false}>
+          <Form.Item
+            label="Mật khẩu mới"
+            name="newPassword"
+            rules={[
+              { required: true, message: "Nhập mật khẩu mới" },
+              { min: 6, message: "Mật khẩu tối thiểu 6 ký tự" },
+            ]}
+          >
+            <Input.Password />
+          </Form.Item>
+
+          <Form.Item
+            label="Xác nhận mật khẩu"
+            name="confirmPassword"
+            dependencies={["newPassword"]}
+            rules={[
+              { required: true, message: "Vui lòng xác nhận mật khẩu" },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue("newPassword") === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(
+                    new Error("Mật khẩu xác nhận không khớp"),
+                  );
+                },
+              }),
+            ]}
+          >
+            <Input.Password />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </>
+  );
+
+  if (isModal) {
+    return content;
+  }
 
   return (
     <div>
@@ -76,78 +361,23 @@ const EmployeeView = () => {
         title={employee.name}
         subtitle={employee.email}
         showBack
-        onBack={() => navigate("/employees")}
-        extra={statusAction}
+        onBack={onClose}
       />
-
-      <Card>
-        <Row gutter={24} align="top">
-          <Col>
-            <Avatar
-              size={72}
-              src={employee.avatar}
-              icon={<UserOutlined />}
-              style={{ backgroundColor: "#1677ff" }}
-            />
-          </Col>
-
-          <Col flex={1}>
-            <Space direction="vertical" size={8} style={{ width: "100%" }}>
-              <Space>
-                <Tag color={employee.role === "ADMIN" ? "gold" : "default"}>
-                  {employee.role}
-                </Tag>
-                <Tag color={employee.isActive ? "success" : "error"}>
-                  {employee.isActive ? "Hoạt động" : "Vô hiệu"}
-                </Tag>
-                {employee.linkedProviders.map((provider) => (
-                  <Tag key={provider} color="blue">
-                    {provider}
-                  </Tag>
-                ))}
-              </Space>
-
-              <Descriptions
-                size="small"
-                column={{ xs: 1, sm: 2, md: 3 }}
-                style={{ marginTop: 8 }}
-              >
-                <Descriptions.Item
-                  label={
-                    <Space size={4}>
-                      <MailOutlined /> Email
-                    </Space>
-                  }
-                >
-                  {employee.email}
-                </Descriptions.Item>
-                <Descriptions.Item
-                  label={
-                    <Space size={4}>
-                      <PhoneOutlined /> SĐT
-                    </Space>
-                  }
-                >
-                  {employee.phone || <Text type="secondary">—</Text>}
-                </Descriptions.Item>
-                <Descriptions.Item label="Ngày tạo">
-                  {formatDate(employee.createdAt)}
-                </Descriptions.Item>
-                <Descriptions.Item label="Số đơn liên quan">
-                  <Text strong>{employee.ordersHandledCount}</Text>
-                </Descriptions.Item>
-                <Descriptions.Item label="Số địa chỉ">
-                  <Text strong>{employee.addressesCount}</Text>
-                </Descriptions.Item>
-                <Descriptions.Item label="Mật khẩu">
-                  {employee.hasPassword ? "Đã đặt" : "Chưa đặt"}
-                </Descriptions.Item>
-              </Descriptions>
-            </Space>
-          </Col>
-        </Row>
-      </Card>
+      {content}
     </div>
+  );
+};
+
+const EmployeeView = () => {
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const employeeId = parseInt(id || "0", 10);
+
+  return (
+    <EmployeeViewContent
+      employeeId={employeeId}
+      onClose={() => navigate("/employees")}
+    />
   );
 };
 

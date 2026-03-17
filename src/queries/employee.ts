@@ -1,7 +1,9 @@
 import {
   employeesApi,
+  CreateEmployeePayload,
   EmployeeListParams,
   ToggleEmployeeStatusPayload,
+  UpdateEmployeePayload,
 } from "../api/employees";
 import { parseEmployeeList, parseEmployeeDetail } from "../schema/employee.schema";
 
@@ -23,5 +25,20 @@ export async function toggleEmployeeStatus(
   payload: ToggleEmployeeStatusPayload,
 ) {
   const response = await employeesApi.toggleStatus(id, payload);
+  return response;
+}
+
+export async function createEmployee(payload: CreateEmployeePayload) {
+  const response = await employeesApi.create(payload);
+  return response;
+}
+
+export async function updateEmployee(id: number, payload: UpdateEmployeePayload) {
+  const response = await employeesApi.update(id, payload);
+  return response;
+}
+
+export async function resetEmployeePassword(id: number, newPassword: string) {
+  const response = await employeesApi.resetPassword(id, { newPassword });
   return response;
 }
