@@ -5,3 +5,4 @@ export * from "./useOrderQuery";
 export * from "./useAuthQuery";
 export * from "./useCouponQuery";
 export * from "./useEmployeeQuery";
+export * from "./useDashboardQuery";

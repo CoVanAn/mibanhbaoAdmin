@@ -19,6 +19,7 @@ import DealsPage from "./pages/deals";
 import CustomersList from "./pages/customers/list";
 import CustomerView from "./pages/customers/view";
 import { EmployeesList, EmployeeView } from "./pages/employees";
+import DashboardPage from "./pages/dashboard";
 
 const App = () => {
   return (
@@ -46,8 +47,9 @@ const App = () => {
             </ProtectedRoute>
           }
         >
-          {/* Default route to a dashboard or list */}
-          <Route index element={<ProductsList />} />
+          {/* Default route */}
+          <Route index element={<DashboardPage />} />
+          <Route path="dashboard" element={<DashboardPage />} />
 
           {/* Product Routes */}
           <Route path="products" element={<ProductsList />} />
