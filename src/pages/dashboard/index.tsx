@@ -4,14 +4,23 @@ import {
   Card,
   Col,
   DatePicker,
-  Progress,
   Row,
   Select,
   Space,
   Statistic,
+  Tag,
   Table,
   Typography,
 } from "antd";
+import { Line } from "@ant-design/charts";
+import {
+  BarChartOutlined,
+  DollarCircleOutlined,
+  ShoppingCartOutlined,
+  TrophyOutlined,
+  WarningOutlined,
+  WalletOutlined,
+} from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
 import {
   useDashboardDailyQuery,
@@ -25,13 +34,12 @@ import {
 } from "../../api/dashboard";
 
 const { RangePicker } = DatePicker;
-const { Title, Text } = Typography;
 
 const quarterOptions = [
-  { value: 1, label: "Quy 1" },
-  { value: 2, label: "Quy 2" },
-  { value: 3, label: "Quy 3" },
-  { value: 4, label: "Quy 4" },
+  { value: 1, label: "Quý 1" },
+  { value: 2, label: "Quý 2" },
+  { value: 3, label: "Quý 3" },
+  { value: 4, label: "Quý 4" },
 ];
 
 const yearOptions = [2024, 2025, 2026, 2027].map((value) => ({
@@ -41,6 +49,19 @@ const yearOptions = [2024, 2025, 2026, 2027].map((value) => ({
 
 const formatCurrency = (value: number) =>
   `${Math.round(value).toLocaleString("vi-VN")} đ`;
+const LOW_STOCK_THRESHOLD = 15;
+
+const getCancelRateColor = (cancelRate: number) => {
+  if (cancelRate >= 20) return "#cf1322";
+  if (cancelRate >= 10) return "#d46b08";
+  return "#389e0d";
+};
+
+const getLowStockTagColor = (quantity: number) => {
+  if (quantity <= 5) return "red";
+  if (quantity <= 10) return "orange";
+  return "gold";
+};
 
 const DashboardPage = () => {
   const today = dayjs();
@@ -82,13 +103,18 @@ const DashboardPage = () => {
     dailyQuery.isLoading ||
     topProductsQuery.isLoading ||
     lowStockQuery.isLoading;
-
   const metrics = overviewQuery.data?.metrics;
   const daily = dailyQuery.data?.daily || [];
-  const topProducts =
-    (topProductsQuery.data?.topProducts || []) as DashboardTopProduct[];
-  const lowStock = (lowStockQuery.data?.lowStock || []) as DashboardLowStockItem[];
-
+  const topProducts = (topProductsQuery.data?.topProducts ||
+    []) as DashboardTopProduct[];
+  const lowStock = (lowStockQuery.data?.lowStock ||
+    []) as DashboardLowStockItem[];
+  const config = {
+    data: daily,
+    xField: "date",
+    yField: "revenue",
+    smooth: true,
+  };
   return (
     <div style={{ padding: 16 }}>
       <Space
@@ -96,10 +122,6 @@ const DashboardPage = () => {
         size={16}
         style={{ width: "100%", marginBottom: 16 }}
       >
-        <Title level={3} style={{ margin: 0 }}>
-          Dashboard
-        </Title>
-
         <Card>
           <Space wrap>
             <Select
@@ -130,91 +152,162 @@ const DashboardPage = () => {
           <Alert
             type="error"
             showIcon
-            message="Khong the tai du lieu dashboard"
-            description="Vui long kiem tra API server va quyen ADMIN/STAFF."
+            message="Không thể tải dữ liệu dashboard"
+            description="Vui lòng kiểm tra API server và quyền ADMIN/STAFF."
           />
         ) : null}
 
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={8} lg={5}>
-            <Card loading={loading}>
+            <Card
+              loading={loading}
+              style={{ borderTop: "3px solid #1677ff" }}
+              title={
+                <Space>
+                  <DollarCircleOutlined style={{ color: "#1677ff" }} />
+                  Doanh thu
+                </Space>
+              }
+            >
               <Statistic
-                title="Doanh thu"
                 value={metrics ? formatCurrency(metrics.totalRevenue) : "0 đ"}
+                valueStyle={{ color: "#1677ff", fontWeight: 700 }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} md={8} lg={5}>
-            <Card loading={loading}>
+            <Card
+              loading={loading}
+              style={{ borderTop: "3px solid #13c2c2" }}
+              title={
+                <Space>
+                  <WalletOutlined style={{ color: "#13c2c2" }} />
+                  Tiền thu
+                </Space>
+              }
+            >
               <Statistic
-                title="Tien thu"
-                value={
-                  metrics ? formatCurrency(metrics.totalCollected) : "0 đ"
-                }
+                value={metrics ? formatCurrency(metrics.totalCollected) : "0 đ"}
+                valueStyle={{ color: "#08979c", fontWeight: 700 }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} md={8} lg={4}>
-            <Card loading={loading}>
-              <Statistic title="Don hang" value={metrics?.totalOrders || 0} />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={5}>
-            <Card loading={loading}>
+            <Card
+              loading={loading}
+              style={{ borderTop: "3px solid #722ed1" }}
+              title={
+                <Space>
+                  <ShoppingCartOutlined style={{ color: "#722ed1" }} />
+                  Đơn hàng
+                </Space>
+              }
+            >
               <Statistic
-                title="AOV"
-                value={
-                  metrics ? formatCurrency(metrics.averageOrderValue) : "0 đ"
-                }
+                value={metrics?.totalOrders || 0}
+                valueStyle={{ color: "#531dab", fontWeight: 700 }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} md={8} lg={5}>
-            <Card loading={loading}>
+            <Card
+              loading={loading}
+              style={{ borderTop: "3px solid #2f54eb" }}
+              title={
+                <Space>
+                  <BarChartOutlined style={{ color: "#2f54eb" }} />
+                  AOV
+                </Space>
+              }
+            >
               <Statistic
-                title="Ty le huy"
+                value={
+                  metrics ? formatCurrency(metrics.averageOrderValue) : "0 đ"
+                }
+                valueStyle={{ color: "#1d39c4", fontWeight: 700 }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={5}>
+            <Card
+              loading={loading}
+              style={{ borderTop: "3px solid #fa8c16" }}
+              title={
+                <Space>
+                  <WarningOutlined style={{ color: "#fa8c16" }} />
+                  Tỷ lệ hủy
+                </Space>
+              }
+            >
+              <Statistic
                 value={`${Number(metrics?.cancelRate || 0).toFixed(1)}%`}
+                valueStyle={{
+                  color: getCancelRateColor(Number(metrics?.cancelRate || 0)),
+                  fontWeight: 700,
+                }}
               />
             </Card>
           </Col>
         </Row>
-
+        <Card title="Doanh thu theo ngày">
+          <Line {...config} />
+        </Card>
+        <Card>
+          <Table
+            size="small"
+            dataSource={daily}
+            rowKey="date"
+            pagination={{ pageSize: 7 }}
+            columns={[
+              { title: "Ngày", dataIndex: "date" },
+              { title: "Số đơn", dataIndex: "orders" },
+              {
+                title: "Doanh thu",
+                dataIndex: "revenue",
+                render: (value: number) => formatCurrency(value),
+              },
+              {
+                title: "Tiền thu",
+                dataIndex: "collected",
+                render: (value: number) => formatCurrency(value),
+              },
+            ]}
+          />
+        </Card>
         <Row gutter={[16, 16]}>
-          <Col xs={24} lg={14}>
-            <Card title="Theo ngay">
-              <Table
-                size="small"
-                dataSource={daily}
-                rowKey="date"
-                pagination={{ pageSize: 7 }}
-                columns={[
-                  { title: "Ngay", dataIndex: "date" },
-                  {
-                    title: "Doanh thu",
-                    dataIndex: "revenue",
-                    render: (value: number) => formatCurrency(value),
-                  },
-                  {
-                    title: "Tien thu",
-                    dataIndex: "collected",
-                    render: (value: number) => formatCurrency(value),
-                  },
-                  { title: "So don", dataIndex: "orders" },
-                ]}
-              />
-            </Card>
-          </Col>
-
-          <Col xs={24} lg={10}>
-            <Card title="Top 5 san pham">
+          <Col xs={24} lg={12}>
+            <Card
+              title={
+                <Space>
+                  <TrophyOutlined style={{ color: "#faad14" }} />
+                  Top 5 sản phẩm bán chạy
+                </Space>
+              }
+            >
               <Table
                 size="small"
                 dataSource={topProducts}
                 rowKey={(row) => String(row.productId || row.name)}
                 pagination={false}
                 columns={[
-                  { title: "San pham", dataIndex: "name" },
-                  { title: "Da ban", dataIndex: "sold" },
+                  { title: "Sản phẩm", dataIndex: "name" },
+                  {
+                    title: "Đã bán",
+                    dataIndex: "sold",
+                    render: (value: number) => (
+                      <Tag
+                        color={
+                          value > 100
+                            ? "green"
+                            : value > 50
+                              ? "blue"
+                              : "default"
+                        }
+                      >
+                        {value}
+                      </Tag>
+                    ),
+                  },
                   {
                     title: "Doanh thu",
                     dataIndex: "revenue",
@@ -224,43 +317,30 @@ const DashboardPage = () => {
               />
             </Card>
           </Col>
+          <Col xs={24} lg={12}>
+            <Card
+              title={
+                <Space>
+                  <WarningOutlined style={{ color: "#cf1322" }} />
+                  Số lượng / Tồn kho thấp
+                </Space>
+              }
+            >
+              <Table
+                size="small"
+                dataSource={lowStock}
+                rowKey={(row) => String(row.variantId || row.productId)}
+                pagination={false}
+                columns={[
+                  { title: "Sản phẩm", dataIndex: "productName" },
+                  { title: "Loại ", dataIndex: "variantName" },
+                  { title: "Số lượng (<15)", dataIndex: "quantity" },
+                  { title: "Tồn kho", dataIndex: "safetyStock" },
+                ]}
+              />
+            </Card>
+          </Col>
         </Row>
-
-        <Card title="Ton kho thap">
-          <Row gutter={[16, 16]}>
-            {lowStock.length === 0 ? (
-              <Col span={24}>
-                <Text type="secondary">Khong co san pham duoi nguong ton.</Text>
-              </Col>
-            ) : (
-              lowStock.map((item) => {
-                const percent =
-                  item.safetyStock > 0
-                    ? Math.min(100, (item.quantity / item.safetyStock) * 100)
-                    : item.quantity > 0
-                      ? 100
-                      : 0;
-
-                return (
-                  <Col xs={24} md={12} key={`${item.variantId}-${item.productId}`}>
-                    <div>
-                      <Text strong>{item.productName}</Text>
-                      <br />
-                      <Text type="secondary">
-                        {item.variantName || "Variant mac dinh"} - ton {item.quantity} /
-                        nguong {item.safetyStock}
-                      </Text>
-                      <Progress
-                        percent={Number(percent.toFixed(0))}
-                        status={item.quantity <= item.safetyStock ? "exception" : "normal"}
-                      />
-                    </div>
-                  </Col>
-                );
-              })
-            )}
-          </Row>
-        </Card>
       </Space>
     </div>
   );

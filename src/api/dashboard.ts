@@ -70,6 +70,7 @@ export interface DashboardLowStockItem {
 
 export interface DashboardLowStockResponse {
   success: boolean;
+  lowStockThreshold?: number;
   lowStock: DashboardLowStockItem[];
 }
 
