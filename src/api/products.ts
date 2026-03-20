@@ -9,12 +9,12 @@ export const productsApi = {
     return response.data;
   },
 
-  getById: async (id) => {
+  getById: async (id: string) => {
     const response = await apiClient.get(`/api/product/${id}`);
     return response.data;
   },
 
-  create: async (productData) => {
+  create: async (productData: any) => {
     const formData = new FormData();
 
     // Add basic fields
@@ -26,14 +26,14 @@ export const productsApi = {
 
     // Add images
     if (productData.images) {
-      productData.images.forEach((image) => {
+      productData.images.forEach((image: File) => {
         formData.append("images", image);
       });
     }
 
     // Add categories
     if (productData.categories) {
-      productData.categories.forEach((categoryId) => {
+      productData.categories.forEach((categoryId: string) => {
         formData.append("categories[]", categoryId);
       });
     }
@@ -47,7 +47,7 @@ export const productsApi = {
     return response.data;
   },
 
-  update: async (id, productData) => {
+  update: async (id: string, productData: any) => {
     console.log("=== PRODUCTS API UPDATE DEBUG ===");
     console.log("Product ID:", id);
     console.log("Product data:", productData);
@@ -78,7 +78,7 @@ export const productsApi = {
       // Add new images
       if (productData.newImages) {
         console.log("Adding newImages files:", productData.newImages.length);
-        productData.newImages.forEach((image, index) => {
+        productData.newImages.forEach((image: File, index: number) => {
           formData.append("newImages", image);
           console.log(`Added newImages[${index}]:`, {
             name: image.name,
@@ -122,13 +122,13 @@ export const productsApi = {
     }
   },
 
-  delete: async (id) => {
+  delete: async (id: string) => {
     const response = await apiClient.delete(`/api/product/${id}`);
     return response.data;
   },
 
   // Category management
-  setCategories: async (productId, categoryIds) => {
+  setCategories: async (productId: string, categoryIds: string[]) => {
     const response = await apiClient.put(
       `/api/product/${productId}/categories`,
       {
@@ -138,14 +138,14 @@ export const productsApi = {
     return response.data;
   },
 
-  addCategory: async (productId, categoryId) => {
+  addCategory: async (productId: string, categoryId: string) => {
     const response = await apiClient.post(
       `/api/product/${productId}/categories/${categoryId}`,
     );
     return response.data;
   },
 
-  removeCategory: async (productId, categoryId) => {
+  removeCategory: async (productId: string, categoryId: string) => {
     const response = await apiClient.delete(
       `/api/product/${productId}/categories/${categoryId}`,
     );
@@ -153,9 +153,9 @@ export const productsApi = {
   },
 
   // Media management
-  addMedia: async (productId, files) => {
+  addMedia: async (productId: string, files: File[]) => {
     const formData = new FormData();
-    files.forEach((file) => {
+    files.forEach((file: File) => {
       formData.append("media", file);
     });
 
@@ -171,14 +171,14 @@ export const productsApi = {
     return response.data;
   },
 
-  deleteMedia: async (productId, mediaId) => {
+  deleteMedia: async (productId: string, mediaId: string) => {
     const response = await apiClient.delete(
       `/api/product/${productId}/media/${mediaId}`,
     );
     return response.data;
   },
 
-  reorderMedia: async (productId, mediaOrder) => {
+  reorderMedia: async (productId: string, mediaOrder: string[]) => {
     const response = await apiClient.patch(
       `/api/product/${productId}/media/reorder`,
       { mediaOrder },
@@ -187,19 +187,19 @@ export const productsApi = {
   },
 
   // Variant Management
-  getVariants: async (productId) => {
+  getVariants: async (productId: string) => {
     const response = await apiClient.get(`/api/product/${productId}/variants`);
     return response.data;
   },
 
-  getVariant: async (productId, variantId) => {
+  getVariant: async (productId: string, variantId: string) => {
     const response = await apiClient.get(
       `/api/product/${productId}/variants/${variantId}`,
     );
     return response.data;
   },
 
-  createVariant: async (productId, variantData) => {
+  createVariant: async (productId: string, variantData: any) => {
     const response = await apiClient.post(
       `/api/product/${productId}/variants`,
       variantData,
@@ -207,7 +207,7 @@ export const productsApi = {
     return response.data;
   },
 
-  updateVariant: async (productId, variantId, variantData) => {
+  updateVariant: async (productId: string, variantId: string, variantData: any) => {
     const response = await apiClient.patch(
       `/api/product/${productId}/variants/${variantId}`,
       variantData,
@@ -215,7 +215,7 @@ export const productsApi = {
     return response.data;
   },
 
-  deleteVariant: async (productId, variantId) => {
+  deleteVariant: async (productId: string, variantId: string) => {
     const response = await apiClient.delete(
       `/api/product/${productId}/variants/${variantId}`,
     );
@@ -223,7 +223,7 @@ export const productsApi = {
   },
 
   // Price Management
-  setVariantPrice: async (productId, variantId, priceData) => {
+  setVariantPrice: async (productId: string, variantId: string, priceData: any) => {
     console.log("setVariantPrice called:", { productId, variantId, priceData });
     const response = await apiClient.post(
       `/api/product/${productId}/variants/${variantId}/price`,
@@ -232,7 +232,7 @@ export const productsApi = {
     return response.data;
   },
 
-  updateVariantPrice: async (productId, variantId, priceId, priceData) => {
+  updateVariantPrice: async (productId: string, variantId: string, priceId: string, priceData: any) => {
     const response = await apiClient.patch(
       `/api/product/${productId}/variants/${variantId}/price/${priceId}`,
       priceData,
@@ -240,7 +240,7 @@ export const productsApi = {
     return response.data;
   },
 
-  getVariantPrices: async (productId, variantId, options = {}) => {
+  getVariantPrices: async (productId: string, variantId: string, options = {}) => {
     const query = new URLSearchParams();
     if (options.includeInactive) {
       query.set("includeInactive", "true");
@@ -254,7 +254,7 @@ export const productsApi = {
     return response.data;
   },
 
-  deleteVariantPrice: async (productId, variantId, priceId) => {
+  deleteVariantPrice: async (productId: string, variantId: string, priceId: string) => {
     const response = await apiClient.delete(
       `/api/product/${productId}/variants/${variantId}/price/${priceId}`,
     );
@@ -262,7 +262,7 @@ export const productsApi = {
   },
 
   // Inventory Management
-  updateVariantInventory: async (productId, variantId, inventoryData) => {
+  updateVariantInventory: async (productId: string, variantId: string, inventoryData: any) => {
     const response = await apiClient.patch(
       `/api/product/${productId}/variants/${variantId}/inventory`,
       inventoryData,
@@ -271,12 +271,12 @@ export const productsApi = {
   },
 
   // Debug and Cleanup
-  debugProduct: async (productId) => {
+  debugProduct: async (productId: string) => {
     const response = await apiClient.get(`/api/product/${productId}/debug`);
     return response.data;
   },
 
-  cleanupVariants: async (productId) => {
+  cleanupVariants: async (productId: string) => {
     const response = await apiClient.post(
       `/api/product/${productId}/cleanup-variants`,
     );

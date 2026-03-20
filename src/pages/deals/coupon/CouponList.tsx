@@ -29,6 +29,7 @@ import CouponFormModal from "./CouponFormModal";
 import CouponRedemptionDrawer from "./CouponRedemptionDrawer";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
+import useStore from "../../../store/useStore";
 
 const { Search } = Input;
 const { Text } = Typography;
@@ -38,6 +39,8 @@ export default function CouponList() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<Coupon | null>(null);
   const [redemptionCoupon, setRedemptionCoupon] = useState<Coupon | null>(null);
+  const userRole = useStore((state) => state.user?.role);
+  const isStaff = userRole?.toUpperCase() === "STAFF";
 
   const { data: coupons = [], isLoading } = useCouponsQuery();
   const createMutation = useCreateCouponMutation();
@@ -179,6 +182,7 @@ export default function CouponList() {
           checked={isActive}
           size="small"
           loading={updateMutation.isPending}
+          disabled={isStaff}
           onChange={(checked) => handleToggleActive(record, checked)}
         />
       ),
@@ -187,41 +191,44 @@ export default function CouponList() {
       title: "Thao tác",
       width: 200,
 
-      render: (_: any, record) => (
-        <Space size={4}>
-          <Tooltip title="Sửa">
-            <Button
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => openEdit(record)}
-            />
-          </Tooltip>
-          <> </>
-          <Tooltip title="Lịch sử đổi">
-            <Button
-              size="small"
-              icon={<HistoryOutlined />}
-              onClick={() => openRedemptions(record)}
-            />
-          </Tooltip>
-          <> </>
-          <Popconfirm
-            title="Xóa coupon này?"
-            description="Hành động này không thể hoàn tác."
-            onConfirm={() => handleDelete(record.id)}
-            okText="Xóa"
-            cancelText="Hủy"
-            okType="danger"
-          >
-            <Button
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              loading={deleteMutation.isPending}
-            />
-          </Popconfirm>
-        </Space>
-      ),
+      render: (_: any, record) =>
+        isStaff ? (
+          <Tag>Chỉ xem</Tag>
+        ) : (
+          <Space size={4}>
+            <Tooltip title="Sửa">
+              <Button
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => openEdit(record)}
+              />
+            </Tooltip>
+            <> </>
+            <Tooltip title="Lịch sử đổi">
+              <Button
+                size="small"
+                icon={<HistoryOutlined />}
+                onClick={() => openRedemptions(record)}
+              />
+            </Tooltip>
+            <> </>
+            <Popconfirm
+              title="Xóa coupon này?"
+              description="Hành động này không thể hoàn tác."
+              onConfirm={() => handleDelete(record.id)}
+              okText="Xóa"
+              cancelText="Hủy"
+              okType="danger"
+            >
+              <Button
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+                loading={deleteMutation.isPending}
+              />
+            </Popconfirm>
+          </Space>
+        ),
     },
   ];
 

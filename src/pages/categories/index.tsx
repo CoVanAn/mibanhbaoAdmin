@@ -20,6 +20,8 @@ import {
   useDeleteCategoryMutation,
   useCategoryHelpers,
 } from "../../hooks/useCategoryQuery";
+import useStore from "../../store/useStore";
+import { toast } from "react-toastify";
 import { validationRules } from "../../utils";
 
 const { Option } = Select;
@@ -39,6 +41,8 @@ const Categories = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [form] = Form.useForm();
+  const userRole = useStore((state) => state.user?.role);
+  const isStaff = userRole?.toUpperCase() === "STAFF";
 
   // TanStack Query hooks
   const { data: categories = [], isLoading: loadingCategories } =
@@ -51,6 +55,13 @@ const Categories = () => {
   // Handle create/update category
   const handleSubmit = async (values: any) => {
     try {
+      if (isStaff && editingCategory) {
+        toast.warning(
+          "Nhân viên chỉ có quyền xem category, không thể chỉnh sửa.",
+        );
+        return;
+      }
+
       // Clean and prepare data
       const categoryData: any = {
         name: values.name?.trim(),
@@ -83,6 +94,11 @@ const Categories = () => {
   // Handle delete category
   const handleDelete = async (categoryId: number) => {
     try {
+      if (isStaff) {
+        toast.warning("Nhân viên chỉ có quyền xem category, không thể xóa.");
+        return;
+      }
+
       await deleteCategoryMutation.mutateAsync(categoryId);
     } catch (error) {
       // Error handling is done in the mutation
@@ -187,36 +203,39 @@ const Categories = () => {
       title: "Thao tác",
       key: "actions",
       width: 150,
-      render: (_: any, record: Category) => (
-        <Space>
-          <Button
-            type="primary"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => openModal(record)}
-            loading={updateCategoryMutation.isPending}
-          >
-            Sửa
-          </Button>
-          <Popconfirm
-            title="Xóa category này?"
-            description="Bạn có chắc chắn muốn xóa category này không?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Xóa"
-            cancelText="Hủy"
-          >
+      render: (_: any, record: Category) =>
+        isStaff ? (
+          <Tag>Chỉ xem</Tag>
+        ) : (
+          <Space>
             <Button
               type="primary"
-              danger
               size="small"
-              icon={<DeleteOutlined />}
-              loading={deleteCategoryMutation.isPending}
+              icon={<EditOutlined />}
+              onClick={() => openModal(record)}
+              loading={updateCategoryMutation.isPending}
             >
-              Xóa
+              Sửa
             </Button>
-          </Popconfirm>
-        </Space>
-      ),
+            <Popconfirm
+              title="Xóa category này?"
+              description="Bạn có chắc chắn muốn xóa category này không?"
+              onConfirm={() => handleDelete(record.id)}
+              okText="Xóa"
+              cancelText="Hủy"
+            >
+              <Button
+                type="primary"
+                danger
+                size="small"
+                icon={<DeleteOutlined />}
+                loading={deleteCategoryMutation.isPending}
+              >
+                Xóa
+              </Button>
+            </Popconfirm>
+          </Space>
+        ),
     },
   ];
 
