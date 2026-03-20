@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Modal,
   Table,
@@ -13,6 +13,7 @@ import {
   Popconfirm,
   Tooltip,
 } from "antd";
+import type { TableProps } from "antd";
 import {
   PlusOutlined,
   EditOutlined,
@@ -21,8 +22,24 @@ import {
   CheckCircleOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { productsApi } from "../../api/products";
+import { useVariants } from "../../hooks/useVariants";
 import { formatCurrency, formatDate } from "../../utils";
+
+type PriceRecord = {
+  id: number;
+  amount: number;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  isActive: boolean;
+};
+
+type PriceManagementModalProps = {
+  product: { id: number };
+  variant: { id: number; name?: string } | null;
+  open: boolean;
+  onClose: () => void;
+  onUpdate: () => void;
+};
 
 const PriceManagementModal = ({
   product,
@@ -30,26 +47,30 @@ const PriceManagementModal = ({
   open,
   onClose,
   onUpdate,
-}) => {
-  const [prices, setPrices] = useState([]);
+}: PriceManagementModalProps) => {
+  const [prices, setPrices] = useState<PriceRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [editingPrice, setEditingPrice] = useState(null);
+  const [editingPrice, setEditingPrice] = useState<PriceRecord | null>(null);
   const [form] = Form.useForm();
   const [activePriceId, setActivePriceId] = useState(null);
+  const {
+    getVariantPrices,
+    setVariantPrice,
+    updateVariantPrice,
+    deleteVariantPrice,
+  } = useVariants();
 
   const fetchPrices = async () => {
     if (!variant?.id) return;
     setLoading(true);
     try {
-      const response = await productsApi.getVariantPrices(
-        product.id,
-        variant.id,
-        { includeInactive: true },
-      );
+      const response = await getVariantPrices(product.id, variant.id, {
+        includeInactive: true,
+      });
       const currentPriceId = response.currentPrice?.id;
-      const normalized = (response.prices || []).slice();
-      normalized.sort((a, b) => {
+      const normalized = ((response?.prices || []) as PriceRecord[]).slice();
+      normalized.sort((a: PriceRecord, b: PriceRecord) => {
         if (currentPriceId) {
           if (a.id === currentPriceId) return -1;
           if (b.id === currentPriceId) return 1;
@@ -70,7 +91,7 @@ const PriceManagementModal = ({
       });
       setPrices(normalized);
       setActivePriceId(currentPriceId || null);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to fetch prices:", error);
       message.error("Không thể tải danh sách giá.");
     } finally {
@@ -84,7 +105,7 @@ const PriceManagementModal = ({
     }
   }, [open, variant]);
 
-  const handleOpenEditModal = (price = null) => {
+  const handleOpenEditModal = (price: PriceRecord | null = null) => {
     setEditingPrice(price);
     if (price) {
       form.setFieldsValue({
@@ -108,8 +129,10 @@ const PriceManagementModal = ({
     form.resetFields();
   };
 
-  const handleFormSubmit = async (values) => {
-    const priceData = {
+  const handleFormSubmit = async (values: any) => {
+    if (!variant?.id) return;
+
+    const priceData: any = {
       amount: Number(values.amount),
       isActive: values.isActive !== false,
     };
@@ -123,22 +146,20 @@ const PriceManagementModal = ({
     try {
       if (editingPrice) {
         // Update existing price
-        await productsApi.updateVariantPrice(
+        await updateVariantPrice(
           product.id,
           variant.id,
           editingPrice.id,
           priceData,
         );
-        message.success("Cập nhật giá thành công!");
       } else {
         // Create new price
-        await productsApi.setVariantPrice(product.id, variant.id, priceData);
-        message.success("Thêm giá mới thành công!");
+        await setVariantPrice(product.id, variant.id, priceData);
       }
       handleCloseEditModal();
       fetchPrices(); // Refresh price list
       onUpdate(); // Refresh variants list in parent
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to save price:", error);
       const errorMessage =
         error.response?.data?.message || "Thao tác thất bại.";
@@ -146,13 +167,14 @@ const PriceManagementModal = ({
     }
   };
 
-  const handleDeletePrice = async (priceId) => {
+  const handleDeletePrice = async (priceId: number) => {
+    if (!variant?.id) return;
+
     try {
-      await productsApi.deleteVariantPrice(product.id, variant.id, priceId);
-      message.success("Xóa giá thành công!");
+      await deleteVariantPrice(product.id, variant.id, priceId);
       fetchPrices();
       onUpdate();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to delete price:", error);
       const errorMessage =
         error.response?.data?.message || "Không thể xóa giá.";
@@ -160,17 +182,17 @@ const PriceManagementModal = ({
     }
   };
 
-  const columns = [
+  const columns: TableProps<PriceRecord>["columns"] = [
     {
       title: "Mức giá",
       dataIndex: "amount",
       key: "amount",
-      render: (amount) => <strong>{formatCurrency(amount)}</strong>,
+      render: (amount: number) => <strong>{formatCurrency(amount)}</strong>,
     },
     {
       title: "Loại giá",
       key: "type",
-      render: (_, record) =>
+      render: (_, record: PriceRecord) =>
         record.startsAt ? (
           <Tag icon={<ClockCircleOutlined />} color="blue">
             Theo lịch
@@ -184,7 +206,7 @@ const PriceManagementModal = ({
     {
       title: "Trạng thái áp dụng",
       key: "current",
-      render: (_, record) =>
+      render: (_, record: PriceRecord) =>
         record.id === activePriceId ? (
           <Tag color="success">Đang áp dụng</Tag>
         ) : (
@@ -194,7 +216,7 @@ const PriceManagementModal = ({
     {
       title: "Thời gian áp dụng",
       key: "period",
-      render: (_, record) =>
+      render: (_, record: PriceRecord) =>
         record.startsAt && record.endsAt
           ? `${formatDate(record.startsAt)} - ${formatDate(record.endsAt)}`
           : "Luôn áp dụng",
@@ -203,7 +225,7 @@ const PriceManagementModal = ({
       title: "Trạng thái",
       dataIndex: "isActive",
       key: "isActive",
-      render: (isActive) =>
+      render: (isActive: boolean) =>
         isActive ? (
           <Tag color="success">Hoạt động</Tag>
         ) : (
@@ -213,7 +235,7 @@ const PriceManagementModal = ({
     {
       title: "Thao tác",
       key: "action",
-      render: (_, record) => (
+      render: (_, record: PriceRecord) => (
         <Space>
           <Tooltip title="Chỉnh sửa">
             <Button
@@ -288,7 +310,10 @@ const PriceManagementModal = ({
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
-              parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+              parser={
+                ((value: string | undefined) =>
+                  Number((value ?? "").replace(/\$\s?|(,*)/g, ""))) as any
+              }
               min={0}
             />
           </Form.Item>

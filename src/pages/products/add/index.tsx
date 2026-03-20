@@ -29,6 +29,15 @@ const { Option } = Select;
 const { Title } = Typography;
 const { Dragger } = Upload;
 
+type ProductVariant = {
+  id: number | null;
+  name: string;
+  sku?: string;
+  price?: number;
+  isActive?: boolean;
+  isDefault?: boolean;
+};
+
 const ProductsAdd = () => {
   const {
     navigate,
@@ -48,6 +57,17 @@ const ProductsAdd = () => {
     handleSubmit,
     handleCancel,
   } = useProductAddLogic();
+
+  const variantsForAdvanced: ProductVariant[] = (variants as any[]).map(
+    (v) => ({
+      id: v?.id ?? null,
+      name: v?.name ?? "Default",
+      sku: v?.sku,
+      price: v?.price,
+      isActive: v?.isActive,
+      isDefault: v?.isDefault,
+    }),
+  );
 
   return (
     <div style={{ padding: 16 }}>
@@ -103,7 +123,10 @@ const ProductsAdd = () => {
               </Form.Item>
 
               <Form.Item label="Nội dung chi tiết" name="content">
-                <RichTextEditor placeholder="Nội dung chi tiết (hỗ trợ đậm/ nghiêng/ danh sách)" />
+                <RichTextEditor
+                  placeholder="Nội dung chi tiết (hỗ trợ đậm/ nghiêng/ danh sách)"
+                  maxLength={5000}
+                />
               </Form.Item>
 
               <Divider orientation="left">💰 Giá & Variants</Divider>
@@ -223,9 +246,9 @@ const ProductsAdd = () => {
                     </Row>
 
                     <VariantManagerAdvanced
-                      variants={variants as never[]}
+                      variants={variantsForAdvanced}
                       onVariantsChange={setVariants}
-                      product={{ slug: form.getFieldValue("name") }}
+                      product={{}}
                       mode="advanced"
                     />
                   </div>

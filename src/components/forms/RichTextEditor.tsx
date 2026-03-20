@@ -35,7 +35,7 @@ const formats = [
   "link",
 ];
 
-const RichTextEditor = ({ value, onChange, placeholder, maxLength }) => {
+const RichTextEditor = ({ value, onChange, placeholder, maxLength } : { value?: string; onChange?: (value: string) => void; placeholder?: string; maxLength: number }) => {
   const limit = useMemo(
     () => (Number.isFinite(maxLength) && maxLength > 0 ? maxLength : DEFAULT_MAX_LENGTH),
     [maxLength]
@@ -50,9 +50,9 @@ const RichTextEditor = ({ value, onChange, placeholder, maxLength }) => {
 
   const [count, setCount] = useState(initialCount);
   const lastHtmlRef = useRef(value || "");
-  const quillRef = useRef(null);
+  const quillRef = useRef<InstanceType<typeof ReactQuill> | null>(null);
 
-  const handleChange = (content, _delta, _source, editor) => {
+  const handleChange = (content: string, _delta: any, _source: any, editor: any) => {
     const html = editor?.root?.innerHTML ?? content ?? "";
     lastHtmlRef.current = html;
     onChange?.(html);
@@ -61,7 +61,7 @@ const RichTextEditor = ({ value, onChange, placeholder, maxLength }) => {
   useEffect(() => {
     const quill = quillRef.current?.getEditor?.();
     if (!quill) return;
-    const onTextChange = (_delta, _old, source) => {
+    const onTextChange = (_delta: any, _old: any, source: any) => {
       if (source !== "user") return;
       const text = quill.getText() || "";
       let len = Math.max(0, text.length - 1);

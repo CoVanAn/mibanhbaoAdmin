@@ -1,8 +1,44 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, message } from "antd";
+import type { UploadFile } from "antd/es/upload/interface";
 import { useCreateProductMutation } from "../../../hooks/useProductQuery";
 import { useCategoriesQuery } from "../../../hooks/useCategoryQuery";
+
+type ProductVariant = {
+  id: number | null;
+  name: string;
+  sku?: string;
+  price?: number;
+  isActive?: boolean;
+  isDefault?: boolean;
+};
+
+type ProductAddFormValues = {
+  name: string;
+  description?: string;
+  content?: string;
+  categoryId?: number;
+  isActive?: boolean;
+  isFeatured?: boolean;
+  price?: number;
+  quantity?: number | string;
+  safetyStock?: number | string;
+};
+
+type ProductCreatePayload = {
+  name: string;
+  description?: string;
+  content?: string;
+  categoryId?: number;
+  isActive: boolean;
+  isFeatured: boolean;
+  images: File[];
+  price?: number;
+  variants?: ProductVariant[];
+  quantity?: number;
+  safetyStock?: number;
+};
 
 export const useProductAddLogic = () => {
   const navigate = useNavigate();
@@ -14,27 +50,27 @@ export const useProductAddLogic = () => {
     useCategoriesQuery(true);
 
   // State
-  const [images, setImages] = useState<any[]>([]);
-  const [previewImages, setPreviewImages] = useState<any[]>([]);
-  const [variants, setVariants] = useState<any[]>([]);
+  const [images, setImages] = useState<UploadFile[]>([]);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [useVariants, setUseVariants] = useState(false);
 
   // Handle image upload
-  const handleImageChange = ({ fileList }: any) => {
+  const handleImageChange = ({ fileList }: { fileList: UploadFile[] }) => {
     setImages(fileList);
 
     // Create preview URLs
-    const previews = fileList.map((file: any) => {
+    const previews = fileList.map((file) => {
       if (file.originFileObj) {
         return URL.createObjectURL(file.originFileObj);
       }
-      return file.url;
+      return file.url || "";
     });
     setPreviewImages(previews);
   };
 
   // Remove image
-  const handleImageRemove = (file: any) => {
+  const handleImageRemove = (file: UploadFile) => {
     const newImages = images.filter((img) => img.uid !== file.uid);
     setImages(newImages);
 
@@ -47,7 +83,7 @@ export const useProductAddLogic = () => {
   };
 
   // Custom upload validation
-  const beforeUpload = (file: any) => {
+  const beforeUpload = (file: File) => {
     const isImage = file.type.startsWith("image/");
     if (!isImage) {
       message.error("Chỉ có thể upload file hình ảnh!");
@@ -63,17 +99,19 @@ export const useProductAddLogic = () => {
     return false; // Prevent auto upload
   };
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: ProductAddFormValues) => {
     try {
       // Prepare form data
-      const productData: any = {
+      const productData: ProductCreatePayload = {
         name: values.name,
         description: values.description,
         content: values.content,
         categoryId: values.categoryId,
         isActive: values.isActive !== false,
         isFeatured: values.isFeatured || false,
-        images: images.map((img: any) => img.originFileObj).filter(Boolean),
+        images: images
+          .map((img) => img.originFileObj)
+          .filter((f): f is NonNullable<typeof f> => !!f),
       };
 
       // Handle pricing based on variant mode
@@ -101,14 +139,10 @@ export const useProductAddLogic = () => {
         }
       }
 
-      console.log("Submitting product data:", productData);
-
-      const result = await createProductMutation.mutateAsync(productData);
-      console.log("Product created:", result);
+      await createProductMutation.mutateAsync(productData);
 
       navigate("/products");
     } catch (error) {
-      console.error("Create product error:", error);
       // Error is handled by mutation's onError
     }
   };

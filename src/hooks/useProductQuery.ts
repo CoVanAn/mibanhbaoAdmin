@@ -6,9 +6,16 @@ import {
   updateProduct,
   deleteProduct,
   fetchProductVariants,
+  fetchProductVariant,
   createProductVariant,
   updateProductVariant,
   deleteProductVariant,
+  setVariantPrice,
+  updateVariantPrice,
+  fetchVariantPrices,
+  deleteVariantPrice,
+  updateVariantInventory,
+  cleanupVariants,
   addProductMedia,
   deleteProductMedia,
   reorderProductMedia,
@@ -23,6 +30,13 @@ export const productKeys = {
   details: () => [...productKeys.all, "detail"],
   detail: (id: number) => [...productKeys.details(), id],
   variants: (productId: number) => [...productKeys.all, productId, "variants"],
+  variant: (productId: number, variantId: number) =>
+    [...productKeys.all, productId, "variant", variantId],
+  prices: (
+    productId: number,
+    variantId: number,
+    options: { includeInactive?: boolean } = {},
+  ) => [...productKeys.all, productId, "variant", variantId, "prices", options],
 };
 
 /**
@@ -119,6 +133,14 @@ export function useProductVariantsQuery(productId: number) {
   });
 }
 
+export function useProductVariantQuery(productId: number, variantId: number) {
+  return useQuery({
+    queryKey: productKeys.variant(productId, variantId),
+    queryFn: () => fetchProductVariant(productId, variantId),
+    enabled: !!productId && !!variantId,
+  });
+}
+
 /**
  * Hook to create product variant
  */
@@ -175,7 +197,7 @@ export function useDeleteVariantMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ productId, variantId }: { productId: number; variantId: number   }) =>
+    mutationFn: ({ productId, variantId }: { productId: number; variantId: number }) =>
       deleteProductVariant(productId, variantId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -188,6 +210,170 @@ export function useDeleteVariantMutation() {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Xóa biến thể thất bại");
+    },
+  });
+}
+
+export function useSetVariantPriceMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      productId,
+      variantId,
+      data,
+    }: {
+      productId: number;
+      variantId: number;
+      data: any;
+    }) => setVariantPrice(productId, variantId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: productKeys.prices(variables.productId, variables.variantId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: productKeys.variants(variables.productId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: productKeys.detail(variables.productId),
+      });
+      toast.success("Thêm giá biến thể thành công!");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Thêm giá biến thể thất bại");
+    },
+  });
+}
+
+export function useUpdateVariantPriceMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      productId,
+      variantId,
+      priceId,
+      data,
+    }: {
+      productId: number;
+      variantId: number;
+      priceId: number;
+      data: any;
+    }) => updateVariantPrice(productId, variantId, priceId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: productKeys.prices(variables.productId, variables.variantId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: productKeys.variants(variables.productId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: productKeys.detail(variables.productId),
+      });
+      toast.success("Cập nhật giá biến thể thành công!");
+    },
+    onError: (error: any) => {
+      toast.error(
+        error.response?.data?.message || "Cập nhật giá biến thể thất bại",
+      );
+    },
+  });
+}
+
+export function useVariantPricesQuery(
+  productId: number,
+  variantId: number,
+  options: { includeInactive?: boolean } = {},
+) {
+  return useQuery({
+    queryKey: productKeys.prices(productId, variantId, options),
+    queryFn: () =>
+      fetchVariantPrices(productId, variantId, {
+        includeInactive: !!options.includeInactive,
+      }),
+    enabled: !!productId && !!variantId,
+  });
+}
+
+export function useDeleteVariantPriceMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      productId,
+      variantId,
+      priceId,
+    }: {
+      productId: number;
+      variantId: number;
+      priceId: number;
+    }) => deleteVariantPrice(productId, variantId, priceId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: productKeys.prices(variables.productId, variables.variantId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: productKeys.variants(variables.productId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: productKeys.detail(variables.productId),
+      });
+      toast.success("Xóa giá biến thể thành công!");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Xóa giá biến thể thất bại");
+    },
+  });
+}
+
+export function useUpdateVariantInventoryMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      productId,
+      variantId,
+      data,
+    }: {
+      productId: number;
+      variantId: number;
+      data: any;
+    }) => updateVariantInventory(productId, variantId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: productKeys.variants(variables.productId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: productKeys.detail(variables.productId),
+      });
+      toast.success("Cập nhật tồn kho biến thể thành công!");
+    },
+    onError: (error: any) => {
+      toast.error(
+        error.response?.data?.message || "Cập nhật tồn kho biến thể thất bại",
+      );
+    },
+  });
+}
+
+export function useCleanupVariantsMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ productId }: { productId: number }) => cleanupVariants(productId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: productKeys.variants(variables.productId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: productKeys.detail(variables.productId),
+      });
+      toast.success("Dọn dẹp biến thể trùng thành công!");
+    },
+    onError: (error: any) => {
+      toast.error(
+        error.response?.data?.message || "Dọn dẹp biến thể trùng thất bại",
+      );
     },
   });
 }

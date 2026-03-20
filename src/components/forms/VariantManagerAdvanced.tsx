@@ -8,7 +8,6 @@ import {
   Space,
   Switch,
   Typography,
-  Divider,
   Tag,
   message,
   Popconfirm,
@@ -18,6 +17,7 @@ import {
   Row,
   Col,
 } from "antd";
+import type { TableProps } from "antd";
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -26,25 +26,79 @@ import {
   DatabaseOutlined,
 } from "@ant-design/icons";
 import { formatCurrency } from "../../utils";
-import { productsApi } from "../../api/products";
+import { useVariants } from "../../hooks/useVariants";
 import PriceManagementModal from "./PriceManagementModal";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
+
+type ProductLike = {
+  id?: number;
+  price?: number;
+};
+
+type VariantItem = {
+  id: number | null;
+  name: string;
+  sku?: string;
+  price?: number;
+  isActive?: boolean;
+  isDefault?: boolean;
+  stock?: number;
+  quantity?: number;
+  safetyStock?: number;
+  currentPrice?: number | { amount?: number };
+  prices?: Array<{ amount?: number }>;
+  inventory?: { quantity?: number; safetyStock?: number };
+  inventories?: Array<{ quantity?: number; safetyStock?: number }>;
+};
+
+type VariantFormValues = {
+  name: string;
+  sku?: string;
+  isActive?: boolean;
+  price?: number;
+  initialStock?: number;
+  safetyStock?: number;
+};
+
+type InventoryFormValues = {
+  quantity: number;
+  safetyStock: number;
+};
+
+type VariantManagerAdvancedProps = {
+  variants?: VariantItem[];
+  onVariantsChange?: (variants: VariantItem[]) => void;
+  product?: ProductLike;
+  mode?: "advanced" | "simple";
+};
 
 const VariantManagerAdvanced = ({
   variants = [],
   onVariantsChange,
-  product = {},
+  product = {} as ProductLike,
   mode = "advanced",
-}) => {
-  const [localVariants, setLocalVariants] = useState(variants);
+}: VariantManagerAdvancedProps) => {
+  const [localVariants, setLocalVariants] = useState<VariantItem[]>(variants);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingVariant, setEditingVariant] = useState(null);
-  const [inventoryVariant, setInventoryVariant] = useState(null); // State for inventory modal
-  const [priceVariant, setPriceVariant] = useState(null); // State for price management
+  const [editingVariant, setEditingVariant] = useState<VariantItem | null>(
+    null,
+  );
+  const [inventoryVariant, setInventoryVariant] = useState<VariantItem | null>(
+    null,
+  ); // State for inventory modal
+  const [priceVariant, setPriceVariant] = useState<VariantItem | null>(null); // State for price management
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const [inventoryForm] = Form.useForm();
+  const {
+    getVariants,
+    createVariant,
+    updateVariant,
+    deleteVariant,
+    setVariantPrice,
+    updateVariantInventory,
+  } = useVariants();
 
   // Load variants from API
   const loadVariants = async () => {
@@ -52,36 +106,40 @@ const VariantManagerAdvanced = ({
 
     setLoading(true);
     try {
-      const response = await productsApi.getVariants(product.id);
-      const variantsData = response.variants || [];
+      const response = await getVariants(product.id);
+      const variantsData = response?.variants || response || [];
 
       // The getVariants endpoint now returns everything we need (including currentPrice and inventory)
       // No need for extra API calls per variant.
-      const processedVariants = variantsData.map((variant) => {
-        const currentPrice = variant.currentPrice;
-        let priceValue = 0;
+      const processedVariants = (variantsData as VariantItem[]).map(
+        (variant) => {
+          const currentPrice = variant.currentPrice;
+          let priceValue = 0;
 
-        if (typeof currentPrice === "number") {
-          priceValue = currentPrice;
-        } else if (currentPrice?.amount !== undefined) {
-          priceValue = Number(currentPrice.amount || 0);
-        } else if (variant.prices?.length) {
-          priceValue = Number(variant.prices[0]?.amount || 0);
-        }
+          if (typeof currentPrice === "number") {
+            priceValue = currentPrice;
+          } else if (currentPrice?.amount !== undefined) {
+            priceValue = Number(currentPrice.amount || 0);
+          } else if (variant.prices?.length) {
+            priceValue = Number(variant.prices[0]?.amount || 0);
+          }
 
-        return {
-          ...variant,
-          price: priceValue,
-          inventory: variant.inventory || { quantity: 0, safetyStock: 0 },
-        };
-      });
+          return {
+            ...variant,
+            price: priceValue,
+            inventory: variant.inventory || { quantity: 0, safetyStock: 0 },
+          };
+        },
+      );
 
       // Keep default first, then others by name for stable display
-      const orderedVariants = processedVariants.sort((a, b) => {
-        if (a.isDefault && !b.isDefault) return -1;
-        if (!a.isDefault && b.isDefault) return 1;
-        return (a.name || "").localeCompare(b.name || "");
-      });
+      const orderedVariants = processedVariants.sort(
+        (a: VariantItem, b: VariantItem) => {
+          if (a.isDefault && !b.isDefault) return -1;
+          if (!a.isDefault && b.isDefault) return 1;
+          return (a.name || "").localeCompare(b.name || "");
+        },
+      );
 
       setLocalVariants(orderedVariants);
       onVariantsChange?.(orderedVariants);
@@ -112,7 +170,7 @@ const VariantManagerAdvanced = ({
     }
   }, [product?.id]);
 
-  const handleAddVariant = async (values) => {
+  const handleAddVariant = async (values: VariantFormValues) => {
     if (!product?.id) {
       message.error("Cần lưu sản phẩm trước khi thêm variant");
       return;
@@ -120,7 +178,7 @@ const VariantManagerAdvanced = ({
 
     try {
       // Build variant data - let server handle SKU generation if not provided
-      const newVariantData = {
+      const newVariantData: any = {
         name: values.name,
         isActive: values.isActive !== false,
         initialStock: values.initialStock || 0,
@@ -139,10 +197,7 @@ const VariantManagerAdvanced = ({
 
       console.log("Creating variant with data:", newVariantData);
 
-      const response = await productsApi.createVariant(
-        product.id,
-        newVariantData,
-      );
+      const response = await createVariant(product.id, newVariantData);
 
       console.log("Create variant response:", response);
 
@@ -152,7 +207,7 @@ const VariantManagerAdvanced = ({
         // Add price for the new variant
         if (values.price && Number(values.price) > 0) {
           try {
-            await productsApi.setVariantPrice(product.id, variantId, {
+            await setVariantPrice(product.id, variantId, {
               amount: Number(values.price),
             });
           } catch (priceError) {
@@ -169,11 +224,10 @@ const VariantManagerAdvanced = ({
 
         setShowAddModal(false);
         form.resetFields();
-        message.success("Thêm variant thành công!");
       } else {
         message.error("Không thể tạo variant");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding variant:", error);
       // Show more detailed error if available
       const errorMsg =
@@ -184,7 +238,7 @@ const VariantManagerAdvanced = ({
     }
   };
 
-  const handleEditVariant = async (values) => {
+  const handleEditVariant = async (values: VariantFormValues) => {
     if (!editingVariant?.id || !product?.id) {
       message.error("Dữ liệu không hợp lệ");
       return;
@@ -197,11 +251,7 @@ const VariantManagerAdvanced = ({
         isActive: values.isActive,
       };
 
-      await productsApi.updateVariant(
-        product.id,
-        editingVariant.id,
-        updateData,
-      );
+      await updateVariant(product.id, editingVariant.id, updateData);
 
       // Refresh variants list
       await loadVariants();
@@ -209,30 +259,28 @@ const VariantManagerAdvanced = ({
       setEditingVariant(null);
       setShowAddModal(false); // Close modal
       form.resetFields();
-      message.success("Cập nhật variant thành công!");
     } catch (error) {
       console.error("Error updating variant:", error);
       message.error("Lỗi khi cập nhật variant");
     }
   };
 
-  const handleDeleteVariant = async (variantId) => {
-    if (!product?.id) {
+  const handleDeleteVariant = async (variantId: number | null) => {
+    if (!product?.id || !variantId) {
       message.error("Dữ liệu không hợp lệ");
       return;
     }
 
     try {
-      await productsApi.deleteVariant(product.id, variantId);
+      await deleteVariant(product.id, variantId);
       await loadVariants();
-      message.success("Xóa variant thành công!");
     } catch (error) {
       console.error("Error deleting variant:", error);
       message.error("Lỗi khi xóa variant");
     }
   };
 
-  const handleInventoryModalOpen = (variant) => {
+  const handleInventoryModalOpen = (variant: VariantItem) => {
     setInventoryVariant(variant);
     inventoryForm.setFieldsValue({
       quantity: variant.inventory?.quantity ?? 0,
@@ -245,20 +293,15 @@ const VariantManagerAdvanced = ({
     inventoryForm.resetFields();
   };
 
-  const handleInventoryUpdate = async (values) => {
-    if (!inventoryVariant) return;
+  const handleInventoryUpdate = async (values: InventoryFormValues) => {
+    if (!inventoryVariant?.id || !product?.id) return;
 
     try {
       setLoading(true);
-      await productsApi.updateVariantInventory(
-        product.id,
-        inventoryVariant.id,
-        {
-          quantity: values.quantity,
-          safetyStock: values.safetyStock,
-        },
-      );
-      message.success("Cập nhật tồn kho thành công!");
+      await updateVariantInventory(product.id, inventoryVariant.id, {
+        quantity: values.quantity,
+        safetyStock: values.safetyStock,
+      });
       handleInventoryModalCancel();
       await loadVariants(); // Refresh data
     } catch (error) {
@@ -270,12 +313,17 @@ const VariantManagerAdvanced = ({
   };
 
   // Handle price change for a variant (simple mode)
-  const handlePriceChange = async (variantId, newPrice) => {
+  const handlePriceChange = async (
+    variantId: number | null,
+    newPrice?: number | null,
+  ) => {
     if (!product?.id || !variantId) return;
 
     // Update local state immediately for responsive UI
     setLocalVariants((prev) =>
-      prev.map((v) => (v.id === variantId ? { ...v, price: newPrice } : v)),
+      prev.map((v) =>
+        v.id === variantId ? { ...v, price: newPrice ?? 0 } : v,
+      ),
     );
 
     // Debounce API call - only save when user stops typing
@@ -283,7 +331,7 @@ const VariantManagerAdvanced = ({
     // or we can add a save button
   };
 
-  const handlePriceModalOpen = (variant) => {
+  const handlePriceModalOpen = (variant: VariantItem) => {
     setPriceVariant(variant);
   };
 
@@ -291,24 +339,16 @@ const VariantManagerAdvanced = ({
     setPriceVariant(null);
   };
 
-  const columns = [
+  const columns: TableProps<VariantItem>["columns"] = [
     {
       title: "Tên Variant",
       dataIndex: "name",
       key: "name",
-      render: (text, record) => (
+      render: (text: string, record: VariantItem) => (
         <Space>
           <Text strong>{text}</Text>
-          {record.isDefault && (
-            <Tag color="blue" size="small">
-              Mặc định
-            </Tag>
-          )}
-          {!record.isActive && (
-            <Tag color="red" size="small">
-              Tạm dừng
-            </Tag>
-          )}
+          {record.isDefault && <Tag color="blue">Mặc định</Tag>}
+          {!record.isActive && <Tag color="red">Tạm dừng</Tag>}
         </Space>
       ),
     },
@@ -316,7 +356,7 @@ const VariantManagerAdvanced = ({
       title: "SKU",
       dataIndex: "sku",
       key: "sku",
-      render: (text) => (
+      render: (text: string) => (
         <Text code style={{ fontSize: "12px" }}>
           {text || "Chưa có SKU"}
         </Text>
@@ -326,12 +366,12 @@ const VariantManagerAdvanced = ({
       title: "Giá hiện tại",
       dataIndex: "price",
       key: "price",
-      render: (price) => <Text strong>{formatCurrency(price)}</Text>,
+      render: (price: number) => <Text strong>{formatCurrency(price)}</Text>,
     },
     {
       title: "Số lượng",
       key: "quantity",
-      render: (_, record) => {
+      render: (_, record: VariantItem) => {
         const qty =
           record.inventory?.quantity ??
           record.stock ??
@@ -349,7 +389,7 @@ const VariantManagerAdvanced = ({
     {
       title: "Tồn kho an toàn",
       key: "safetyStock",
-      render: (_, record) => {
+      render: (_, record: VariantItem) => {
         const safety =
           record.inventory?.safetyStock ??
           record.safetyStock ??
@@ -367,13 +407,15 @@ const VariantManagerAdvanced = ({
       title: "Trạng thái",
       dataIndex: "isActive",
       key: "isActive",
-      render: (isActive, record) => (
+      render: (isActive: boolean, record: VariantItem) => (
         <Switch
           checked={isActive}
           disabled={record.isDefault}
           onChange={async (checked) => {
             try {
-              await productsApi.updateVariant(product.id, record.id, {
+              if (!product?.id || !record.id) return;
+
+              await updateVariant(product.id, record.id, {
                 name: record.name,
                 sku: record.sku,
                 isActive: checked,
@@ -381,10 +423,6 @@ const VariantManagerAdvanced = ({
 
               // Reload variants to ensure data sync
               await loadVariants();
-
-              message.success(
-                `${checked ? "Kích hoạt" : "Tạm dừng"} variant thành công!`,
-              );
             } catch (error) {
               console.error("Error updating variant status:", error);
               message.error("Lỗi khi cập nhật trạng thái");
@@ -396,7 +434,7 @@ const VariantManagerAdvanced = ({
     {
       title: "Thao tác",
       key: "actions",
-      render: (_, record) => (
+      render: (_, record: VariantItem) => (
         <Space className="variant-action-buttons">
           <Tooltip title="Chỉnh sửa">
             <Button
@@ -484,7 +522,10 @@ const VariantManagerAdvanced = ({
             formatter={(value) =>
               `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             }
-            parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+            parser={
+              ((value: string | undefined) =>
+                Number((value ?? "").replace(/\$\s?|(,*)/g, ""))) as any
+            }
             placeholder={
               defaultVariant
                 ? "Nhập giá mới (hoặc để trống)"
@@ -501,7 +542,7 @@ const VariantManagerAdvanced = ({
                   id: null,
                   name: "Default",
                   sku: "",
-                  price: value,
+                  price: Number(value ?? 0),
                   isActive: true,
                   isDefault: true,
                 };
@@ -610,7 +651,10 @@ const VariantManagerAdvanced = ({
                   formatter={(value) =>
                     `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                   }
-                  parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                  parser={
+                    ((value: string | undefined) =>
+                      Number((value ?? "").replace(/\$\s?|(,*)/g, ""))) as any
+                  }
                   addonAfter="VNĐ"
                 />
               </Form.Item>
@@ -664,10 +708,10 @@ const VariantManagerAdvanced = ({
       </Modal>
 
       {/* Price Management Modal */}
-      {priceVariant && (
+      {priceVariant && priceVariant.id && product?.id && (
         <PriceManagementModal
-          product={product}
-          variant={priceVariant}
+          product={{ id: product.id }}
+          variant={{ id: priceVariant.id, name: priceVariant.name }}
           open={!!priceVariant}
           onClose={handlePriceModalClose}
           onUpdate={loadVariants}

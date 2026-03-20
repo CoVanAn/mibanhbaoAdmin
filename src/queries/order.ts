@@ -5,28 +5,8 @@ import { parseOrder, parseOrderListResponse } from "../schema/order.schema";
  * Fetch all orders with optional filters
  */
 export async function fetchOrders(params: OrderListParams = {}) {
-  try {
-    console.log('[fetchOrders] Fetching with params:', params);
-    const response = await ordersApi.getAll(params);
-    console.log('[fetchOrders] Raw response:', response);
-    console.log('[fetchOrders] Response structure:', {
-      success: response.success,
-      ordersCount: response.orders?.length,
-      firstOrder: response.orders?.[0],
-      pagination: response.pagination,
-    });
-    
-    const parsed = parseOrderListResponse(response);
-    console.log('[fetchOrders] Parsed response:', parsed);
-    return parsed;
-  } catch (error) {
-    console.error('[fetchOrders] Error:', error);
-    if (error instanceof Error) {
-      console.error('[fetchOrders] Error message:', error.message);
-      console.error('[fetchOrders] Error stack:', error.stack);
-    }
-    throw error;
-  }
+  const response = await ordersApi.getAll(params);
+  return parseOrderListResponse(response);
 }
 
 /**

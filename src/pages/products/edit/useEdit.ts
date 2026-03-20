@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Form, message } from "antd";
+import type { RcFile, UploadFile } from "antd/es/upload/interface";
 import {
+  type DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -16,6 +18,56 @@ import {
   useUpdateProductMutation,
 } from "../../../hooks/useProductQuery";
 import { useCategoriesQuery } from "../../../hooks/useCategoryQuery";
+
+type ExistingImage = {
+  id: number | string;
+  url: string;
+  alt?: string;
+  position: number;
+};
+
+type ProductVariant = {
+  id?: number | null;
+  name: string;
+  sku?: string;
+  price?: number;
+  currentPrice?: number;
+  isActive?: boolean;
+  inventory?: { quantity?: number; safetyStock?: number };
+  inventories?: Array<{ quantity?: number; safetyStock?: number }>;
+  stock?: number;
+  quantity?: number;
+  safetyStock?: number;
+};
+
+type ProductDetail = {
+  id: number;
+  name: string;
+  description?: string;
+  content?: string;
+  price?: number;
+  isActive?: boolean;
+  isFeatured?: boolean;
+  currentPrice?: { amount?: number };
+  categories?: Array<{ id?: number }>;
+  variants?: ProductVariant[];
+  images?: Array<{
+    id?: number;
+    url: string;
+    alt?: string;
+    position?: number;
+  }>;
+};
+
+type ProductEditFormValues = {
+  name: string;
+  description?: string;
+  content?: string;
+  price?: number;
+  categoryId?: number;
+  isActive?: boolean;
+  isFeatured?: boolean;
+};
 
 export const useProductEditLogic = () => {
   const navigate = useNavigate();
@@ -32,13 +84,13 @@ export const useProductEditLogic = () => {
   const updateProductMutation = useUpdateProductMutation();
 
   // State
-  const [product, setProduct] = useState<any>(null);
-  const [newImages, setNewImages] = useState<any[]>([]);
-  const [existingImages, setExistingImages] = useState<any[]>([]);
-  const [previewImages, setPreviewImages] = useState<any[]>([]);
+  const [product, setProduct] = useState<ProductDetail | null>(null);
+  const [newImages, setNewImages] = useState<UploadFile[]>([]);
+  const [existingImages, setExistingImages] = useState<ExistingImage[]>([]);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
-  const [variants, setVariants] = useState<any[]>([]);
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [useVariants, setUseVariants] = useState(false);
 
   // Drag and drop sensors
@@ -52,23 +104,14 @@ export const useProductEditLogic = () => {
   // Process product data when it loads
   useEffect(() => {
     if (productData) {
-      const data = productData;
-      console.log("Product data loaded:", data);
+      const data = productData as ProductDetail;
 
       setProduct(data);
 
       // Set existing images with proper structure
       const imageItems = data.images || [];
-      console.log("Image items from backend:", imageItems);
 
-      if (imageItems.length === 0) {
-        console.warn(
-          "No images found in product data. Product structure:",
-          Object.keys(productData),
-        );
-      }
-
-      const processedImages = imageItems.map((item: any, index: number) => ({
+      const processedImages = imageItems.map((item, index: number) => ({
         id: item.id || `existing-${index}`,
         url: item.url,
         alt: item.alt || `Product image ${index + 1}`,
@@ -76,20 +119,18 @@ export const useProductEditLogic = () => {
       }));
 
       // Sort by position to ensure correct order
-      processedImages.sort((a: any, b: any) => a.position - b.position);
+      processedImages.sort((a, b) => a.position - b.position);
 
-      console.log("Processed images:", processedImages);
       setExistingImages(processedImages);
 
       // Process variants data
-      const variantsData = productData.variants || [];
-      console.log("Variants from backend:", variantsData);
+      const variantsData = data.variants || [];
 
       setVariants(variantsData);
 
       // Determine if using variants mode
       const hasMultipleVariants = variantsData.length > 1;
-      const hasNamedVariants = variantsData.some((v: any) => v.name !== "Default");
+      const hasNamedVariants = variantsData.some((v) => v.name !== "Default");
       setUseVariants(hasMultipleVariants || hasNamedVariants);
 
       // Set form values with better data mapping
@@ -116,18 +157,16 @@ export const useProductEditLogic = () => {
           productData.isFeatured !== undefined ? productData.isFeatured : false,
       };
 
-      console.log("Setting form values:", formValues);
-      console.log("Product data:", data);
-
       form.setFieldsValue(formValues);
     }
   }, [productData, form]);
 
   // Handle drag end for existing images
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    if (!over) return;
 
-    if (active.id !== over?.id) {
+    if (active.id !== over.id) {
       setExistingImages((items) => {
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over.id);
@@ -144,32 +183,32 @@ export const useProductEditLogic = () => {
   };
 
   // Remove existing image
-  const handleExistingImageRemove = (imageId: any) => {
+  const handleExistingImageRemove = (imageId: ExistingImage["id"]) => {
     setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
   };
 
   // Preview image
-  const handleImagePreview = (image: any) => {
+  const handleImagePreview = (image: ExistingImage) => {
     setPreviewImage(image.url);
     setPreviewVisible(true);
   };
 
   // Handle new image upload
-  const handleImageChange = ({ fileList }: any) => {
+  const handleImageChange = ({ fileList }: { fileList: UploadFile[] }) => {
     setNewImages(fileList);
 
     // Create preview URLs for new images
-    const previews = fileList.map((file: any) => {
+    const previews = fileList.map((file) => {
       if (file.originFileObj) {
         return URL.createObjectURL(file.originFileObj);
       }
-      return file.url;
+      return file.url || "";
     });
     setPreviewImages(previews);
   };
 
   // Remove new image
-  const handleImageRemove = (file: any) => {
+  const handleImageRemove = (file: UploadFile) => {
     const newImageList = newImages.filter((img) => img.uid !== file.uid);
     setNewImages(newImageList);
 
@@ -182,7 +221,7 @@ export const useProductEditLogic = () => {
   };
 
   // Custom upload validation
-  const beforeUpload = (file: any) => {
+  const beforeUpload = (file: RcFile) => {
     const isImage = file.type.startsWith("image/");
     if (!isImage) {
       message.error("Chỉ có thể upload file hình ảnh!");
@@ -198,31 +237,17 @@ export const useProductEditLogic = () => {
     return false; // Prevent auto upload
   };
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: ProductEditFormValues) => {
     try {
-      console.log("Form values:", values);
-      console.log("Existing images:", existingImages);
-      console.log("New images:", newImages);
-      console.log(
-        "New images originFileObj:",
-        newImages.map((img) => ({
-          name: img.name,
-          size: img.size,
-          type: img.type,
-          hasOriginFileObj: !!img.originFileObj,
-        })),
-      );
-      console.log("Variants data:", variants);
-
       // Use the price from variants (simplified approach)
-      const finalPrice = variants[0]?.price || values.price || 0;
+      const finalPrice = Number(variants[0]?.price ?? values.price ?? 0);
 
       // Prepare form data
       const productData = {
         name: values.name,
         description: values.description || "",
         content: values.content || "",
-        ...(!useVariants ? { price: parseFloat(finalPrice) } : {}),
+        ...(!useVariants ? { price: finalPrice } : {}),
         categoryId: values.categoryId || null,
         isActive: values.isActive !== undefined ? values.isActive : true,
         isFeatured: values.isFeatured !== undefined ? values.isFeatured : false,
@@ -233,18 +258,16 @@ export const useProductEditLogic = () => {
           id: img.id,
           position: index,
         })),
-        newImages: newImages.map((img) => img.originFileObj).filter(Boolean),
+        newImages: newImages
+          .map((img) => img.originFileObj)
+          .filter((f): f is NonNullable<typeof f> => !!f),
       };
 
-      console.log("Submitting product data:", productData);
-
       await updateProductMutation.mutateAsync({ id: parseInt(id!), data: productData });
-      console.log("Update success");
 
       // Navigate back (success message handled by mutation)
       navigate(-1);
     } catch (error) {
-      console.error("Update product error:", error);
       // Error is handled by mutation's onError
     }
   };
@@ -257,17 +280,17 @@ export const useProductEditLogic = () => {
     // Navigation
     navigate,
     id,
-    
+
     // Form
     form,
-    
+
     // Query data
     product,
     categories,
     loadingProduct,
     loadingCategories,
     updateProductMutation,
-    
+
     // State
     newImages,
     existingImages,
@@ -277,12 +300,12 @@ export const useProductEditLogic = () => {
     variants,
     useVariants,
     sensors,
-    
+
     // Setters
     setPreviewVisible,
     setVariants,
     setUseVariants,
-    
+
     // Handlers
     handleDragEnd,
     handleExistingImageRemove,

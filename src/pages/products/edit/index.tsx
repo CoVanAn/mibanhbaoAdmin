@@ -39,6 +39,25 @@ const { Option } = Select;
 const { Title } = Typography;
 const { Dragger } = Upload;
 
+type VariantView = {
+  id: number | null;
+  name: string;
+  sku?: string;
+  price?: number;
+  isActive?: boolean;
+  isDefault?: boolean;
+};
+
+type ProductDetailView = {
+  id: number;
+  name: string;
+  description?: string;
+  isActive?: boolean;
+  isFeatured?: boolean;
+  currentPrice?: { amount?: number };
+  categories?: Array<{ id?: number; categoryId?: number }>;
+};
+
 const ProductsEdit = () => {
   const {
     navigate,
@@ -68,6 +87,27 @@ const ProductsEdit = () => {
     handleSubmit,
     handleCancel,
   } = useProductEditLogic();
+
+  const currentProduct = product as ProductDetailView;
+
+  const variantsForAdvanced: VariantView[] = variants.map((v) => ({
+    id: v.id ?? null,
+    name: v.name ?? "Default",
+    sku: v?.sku,
+    price: v.currentPrice ?? v.price,
+    isActive: v?.isActive,
+    isDefault: false,
+  }));
+
+  const normalizeVariants = (items: VariantView[]) =>
+    items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      sku: item.sku,
+      price: item.price,
+      currentPrice: item.price,
+      isActive: item.isActive,
+    }));
 
   if (loadingProduct) {
     return (
@@ -113,20 +153,6 @@ const ProductsEdit = () => {
             <Button icon={<ArrowLeftOutlined />} onClick={handleCancel}>
               Quay lại
             </Button>
-            {process.env.NODE_ENV === "development" && (
-              <Button
-                type="default"
-                onClick={() => {
-                  console.log("=== DEBUG INFO ===");
-                  console.log("Product:", product);
-                  console.log("Existing images:", existingImages);
-                  console.log("Form values:", form.getFieldsValue());
-                  console.log("=================");
-                }}
-              >
-                Debug
-              </Button>
-            )}
             <Button
               type="primary"
               icon={<SaveOutlined />}
@@ -176,8 +202,8 @@ const ProductsEdit = () => {
                 <div className="info-item">
                   <strong>Giá hiện tại:</strong>
                   <div>
-                    {product.currentPrice?.amount
-                      ? formatCurrency(product.currentPrice.amount)
+                    {currentProduct.currentPrice?.amount
+                      ? formatCurrency(currentProduct.currentPrice.amount)
                       : "Chưa có giá"}
                   </div>
                 </div>
@@ -186,10 +212,10 @@ const ProductsEdit = () => {
                 <div className="info-item">
                   <strong>Danh mục:</strong>
                   <div>
-                    {(product.categories || [])
-                      .map((cat: any) => {
+                    {(currentProduct.categories || [])
+                      .map((cat) => {
                         const category = categories.find(
-                          (c) => c.id === cat.categoryId,
+                          (c) => c.id === (cat.categoryId ?? cat.id),
                         );
                         return category?.name || null;
                       })
@@ -271,7 +297,7 @@ const ProductsEdit = () => {
                 />
               </Form.Item>
               <Form.Item label="Nội dung chi tiết" name="content">
-                <RichTextEditor />
+                <RichTextEditor maxLength={5000} />
               </Form.Item>
               <Divider orientation="left">💰 Giá & Variants</Divider>
               <Space
@@ -285,7 +311,7 @@ const ProductsEdit = () => {
                     <Title level={5}>Tồn kho hiện tại</Title>
                     <Table
                       dataSource={variants}
-                      rowKey={(r) => r.id || r.sku}
+                      rowKey={(r) => r.id ?? r.sku ?? r.name}
                       size="small"
                       pagination={false}
                       columns={[
@@ -358,10 +384,12 @@ const ProductsEdit = () => {
 
                 {!useVariants ? (
                   <VariantManager
-                    variants={variants as never[]}
+                    variants={variants}
                     product={product}
-                    onVariantsChange={(newVariants: any) => {
-                      setVariants(newVariants);
+                    onVariantsChange={(newVariants) => {
+                      setVariants(
+                        normalizeVariants(newVariants as VariantView[]),
+                      );
                       // Sync price with form
                       if (newVariants[0]?.price !== undefined) {
                         form.setFieldsValue({ price: newVariants[0].price });
@@ -371,8 +399,12 @@ const ProductsEdit = () => {
                   />
                 ) : (
                   <VariantManagerAdvanced
-                    variants={variants as never[]}
-                    onVariantsChange={setVariants}
+                    variants={variantsForAdvanced}
+                    onVariantsChange={(newVariants) =>
+                      setVariants(
+                        normalizeVariants(newVariants as VariantView[]),
+                      )
+                    }
                     product={product}
                     mode="advanced"
                   />

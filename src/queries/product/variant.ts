@@ -85,9 +85,9 @@ export async function updateVariantPrice(
 /**
  * Get variant prices
  */
-export async function fetchVariantPrices(productId: number, variantId: number, options = { includeInactive: false }) {
+export async function fetchVariantPrices(productId: number, variantId: number, options?: { includeInactive?: boolean }) {
   const query = new URLSearchParams();
-  if (options.includeInactive) {
+  if (options?.includeInactive) {
     query.set("includeInactive", "true");
   }
 
