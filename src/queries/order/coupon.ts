@@ -1,12 +1,12 @@
-import { couponsApi } from "../api";
-import type { CouponListParams, CouponPayload } from "../api/coupons";
+import { couponsApi } from "../../api";
+import type { CouponListParams, CouponPayload } from "../../api/coupons";
 import {
     parseCouponList,
     parseCoupon,
     parseCouponRedemptions,
     type Coupon,
     type CouponRedemption,
-} from "../schema/coupon.schema";
+} from "../../schema/coupon.schema";
 
 // ─── Coupon Queries ───────────────────────────────────────
 

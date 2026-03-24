@@ -1,7 +1,7 @@
 import axios from "axios";
-import apiClient, { setAccessToken, clearAccessToken } from "../lib/api";
-import { parseUser } from "../schema/auth.schema";
-import { API_URL } from "../constants/api";
+import apiClient, { setAccessToken, clearAccessToken } from "../../lib/api";
+import { parseUser } from "../../schema/auth.schema";
+import { API_URL } from "../../utils/constants";
 /**
  * Login with email and password
  */

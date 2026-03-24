@@ -1,63 +1,53 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useMemo, useCallback } from "react";
 import { Card, Table, Button, Alert } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
 import { ReloadOutlined } from "@ant-design/icons";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useOrdersQuery } from "../../../hooks/useOrderQuery";
-import { PageHeader, Loading } from "../../../components/common";
+import { useListUrlFilters } from "../../../hooks/useListUrlFilters";
+import { Loading } from "../../../components/common";
 import FilterBar from "./components/FilterBar";
 import Stats from "./components/Stats";
 import { getOrderColumns, calculateOrderStats } from "./utils";
 
 const OrdersList = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const {
+    searchParams,
+    page,
+    limit,
+    updateFilters,
+    readString,
+    readOptionalString,
+  } = useListUrlFilters();
 
   // Read filter state from URL params
-  const searchTerm = searchParams.get("search") || "";
-  const statusFilter = searchParams.get("status") || undefined;
-  const methodFilter = searchParams.get("method") || undefined;
+  const searchTerm = readString("search");
+  const statusFilter = readOptionalString("status");
+  const methodFilter = readOptionalString("method");
   const dateRange = useMemo(() => {
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
     return startDate && endDate ? [dayjs(startDate), dayjs(endDate)] : null;
   }, [searchParams]);
 
-  // Update URL params when filters change
-  const updateFilters = useCallback(
-    (updates: Record<string, string | undefined>) => {
-      setSearchParams((prev) => {
-        const newParams = new URLSearchParams(prev);
-        Object.entries(updates).forEach(([key, value]) => {
-          if (value === undefined || value === "") {
-            newParams.delete(key);
-          } else {
-            newParams.set(key, value);
-          }
-        });
-        return newParams;
-      });
-    },
-    [setSearchParams],
-  );
-
   const handleSearchChange = useCallback(
     (value: string) => {
-      updateFilters({ search: value });
+      updateFilters({ search: value, page: undefined });
     },
     [updateFilters],
   );
 
   const handleStatusFilter = useCallback(
     (value: string | undefined) => {
-      updateFilters({ status: value });
+      updateFilters({ status: value, page: undefined });
     },
     [updateFilters],
   );
 
   const handleMethodFilter = useCallback(
     (value: string | undefined) => {
-      updateFilters({ method: value });
+      updateFilters({ method: value, page: undefined });
     },
     [updateFilters],
   );
@@ -68,9 +58,14 @@ const OrdersList = () => {
         updateFilters({
           startDate: dates[0].format("YYYY-MM-DD"),
           endDate: dates[1].format("YYYY-MM-DD"),
+          page: undefined,
         });
       } else {
-        updateFilters({ startDate: undefined, endDate: undefined });
+        updateFilters({
+          startDate: undefined,
+          endDate: undefined,
+          page: undefined,
+        });
       }
     },
     [updateFilters],
@@ -83,13 +78,22 @@ const OrdersList = () => {
       method: undefined,
       startDate: undefined,
       endDate: undefined,
+      page: undefined,
     });
   };
 
   const queryParams = useMemo(() => {
-    const params: any = {
-      page: parseInt(searchParams.get("page") || "1", 10),
-      limit: parseInt(searchParams.get("limit") || "20", 10),
+    const params: {
+      page: number;
+      limit: number;
+      search?: string;
+      status?: string;
+      method?: string;
+      startDate?: string;
+      endDate?: string;
+    } = {
+      page,
+      limit,
     };
     if (searchTerm) params.search = searchTerm.trim().replace(/\s+/g, " ");
     if (statusFilter) params.status = statusFilter;
@@ -99,7 +103,7 @@ const OrdersList = () => {
       params.endDate = dateRange[1].format("YYYY-MM-DD");
     }
     return params;
-  }, [searchParams, searchTerm, statusFilter, methodFilter, dateRange]);
+  }, [page, limit, searchTerm, statusFilter, methodFilter, dateRange]);
 
   // Data fetching
   const { data, isLoading, isFetching, isError, error, refetch } =

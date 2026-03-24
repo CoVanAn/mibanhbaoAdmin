@@ -1,5 +1,5 @@
-import { ordersApi, OrderListParams, UpdateStatusPayload, UpdateNotePayload, CancelOrderPayload } from "../api/orders";
-import { parseOrder, parseOrderListResponse } from "../schema/order.schema";
+import { ordersApi, OrderListParams, UpdateStatusPayload, UpdateNotePayload, CancelOrderPayload } from "../../api/orders";
+import { parseOrder, parseOrderListResponse } from "../../schema/order.schema";
 
 /**
  * Fetch all orders with optional filters

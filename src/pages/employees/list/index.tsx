@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Button,
@@ -13,8 +13,8 @@ import {
   Typography,
 } from "antd";
 import { ReloadOutlined, EyeOutlined, PlusOutlined } from "@ant-design/icons";
-import { useNavigate, useSearchParams } from "react-router-dom";
 import { PageHeader, Loading } from "../../../components/common";
+import { useListUrlFilters } from "../../../hooks/useListUrlFilters";
 import { EmployeeViewContent } from "../view/index";
 import {
   useCreateEmployeeMutation,
@@ -23,13 +23,14 @@ import {
 import { useAuth } from "../../../hooks/useAuthQuery";
 import type { EmployeeListItem } from "../../../schema/employee.schema";
 import { formatDate } from "../../../utils/helpers";
+import type { EmployeeListParams } from "../../../api/employees";
 
 const { Text } = Typography;
 
 const EmployeesList = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { page, limit, updateFilters, readString, readOptionalString } =
+    useListUrlFilters();
   const [createOpen, setCreateOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(
@@ -38,39 +39,24 @@ const EmployeesList = () => {
   const [createForm] = Form.useForm();
   const createMutation = useCreateEmployeeMutation();
 
-  const searchTerm = searchParams.get("search") || "";
-  const roleFilter = searchParams.get("role") || undefined;
-  const isActiveFilter = searchParams.get("isActive") || undefined;
-
-  const updateFilters = useCallback(
-    (updates: Record<string, string | undefined>) => {
-      setSearchParams((prev) => {
-        const newParams = new URLSearchParams(prev);
-        Object.entries(updates).forEach(([key, value]) => {
-          if (value === undefined || value === "") {
-            newParams.delete(key);
-          } else {
-            newParams.set(key, value);
-          }
-        });
-        return newParams;
-      });
-    },
-    [setSearchParams],
-  );
+  const searchTerm = readString("search");
+  const roleFilter = readOptionalString("role");
+  const isActiveFilter = readOptionalString("isActive");
 
   const queryParams = useMemo(() => {
-    const params: any = {
-      page: parseInt(searchParams.get("page") || "1", 10),
-      limit: parseInt(searchParams.get("limit") || "20", 10),
+    const params: EmployeeListParams = {
+      page,
+      limit,
     };
 
     if (searchTerm) params.search = searchTerm.trim().replace(/\s+/g, " ");
-    if (roleFilter) params.role = roleFilter;
-    if (isActiveFilter) params.isActive = isActiveFilter;
+    if (roleFilter === "ADMIN" || roleFilter === "STAFF") {
+      params.role = roleFilter;
+    }
+    if (isActiveFilter) params.isActive = isActiveFilter === "true";
 
     return params;
-  }, [searchParams, searchTerm, roleFilter, isActiveFilter]);
+  }, [page, limit, searchTerm, roleFilter, isActiveFilter]);
 
   const { data, isLoading, isFetching, isError, error, refetch } =
     useEmployeesQuery(queryParams);
@@ -174,7 +160,7 @@ const EmployeesList = () => {
         ),
       },
     ],
-    [navigate],
+    [handleOpenView],
   );
 
   if (isLoading) return <Loading />;
@@ -252,21 +238,6 @@ const EmployeesList = () => {
             <Select.Option value="true">Đang hoạt động</Select.Option>
             <Select.Option value="false">Đang vô hiệu</Select.Option>
           </Select>
-          {/* <Button onClick={() => updateFilters({ role: undefined })}>
-            Tất cả vai trò
-          </Button>
-          <Button onClick={() => updateFilters({ role: "ADMIN" })}>
-            ADMIN
-          </Button>
-          <Button onClick={() => updateFilters({ role: "STAFF" })}>
-            STAFF
-          </Button>
-          <Button onClick={() => updateFilters({ isActive: "true" })}>
-            Đang hoạt động
-          </Button>
-          <Button onClick={() => updateFilters({ isActive: "false" })}>
-            Đang vô hiệu
-          </Button> */}
           <Button
             onClick={() =>
               updateFilters({
@@ -317,7 +288,6 @@ const EmployeesList = () => {
         onCancel={handleCloseView}
         width={980}
         centered
-        destroyOnClose
       >
         {selectedEmployeeId ? (
           <EmployeeViewContent

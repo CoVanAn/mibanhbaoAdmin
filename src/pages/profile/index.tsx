@@ -7,7 +7,6 @@ import {
   Form,
   Input,
   Button,
-  message,
   Divider,
   Row,
   Col,
@@ -55,9 +54,8 @@ const AdminProfile = () => {
     setUploading(true);
     try {
       await uploadAvatar(file);
-      message.success("Cập nhật avatar thành công!");
-    } catch (error) {
-      message.error("Lỗi khi upload avatar");
+    } catch {
+      // Error toast is handled in useUploadAvatarMutation
     } finally {
       setUploading(false);
     }
@@ -69,9 +67,8 @@ const AdminProfile = () => {
     setUpdating(true);
     try {
       await updateProfile(values as any);
-      message.success("Cập nhật thông tin thành công!");
-    } catch (error) {
-      message.error("Lỗi khi cập nhật thông tin");
+    } catch {
+      // Error toast is handled in useUpdateProfileMutation
     } finally {
       setUpdating(false);
     }
@@ -83,10 +80,9 @@ const AdminProfile = () => {
     try {
       // Call API to change password
       await changePassword(values.currentPassword, values.newPassword);
-      message.success("Đổi mật khẩu thành công!");
       passwordForm.resetFields();
-    } catch (error) {
-      message.error("Lỗi khi đổi mật khẩu");
+    } catch {
+      // Error toast is handled in useChangePasswordMutation
     } finally {
       setChangingPassword(false);
     }

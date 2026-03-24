@@ -7,6 +7,8 @@ export const APP_CONFIG = {
   ALLOWED_IMAGE_TYPES: ["image/png", "image/jpeg", "image/jpg", "image/webp"],
 } as const;
 
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
 // API Endpoints
 export const API_ENDPOINTS = {
   AUTH: {

@@ -2,8 +2,8 @@ import {
     customersApi,
     CustomerListParams,
     ToggleStatusPayload,
-} from "../api/customers";
-import { parseCustomerList, parseCustomerDetail } from "../schema/customer.schema";
+} from "../../api/customers";
+import { parseCustomerList, parseCustomerDetail } from "../../schema/customer.schema";
 
 /**
  * Fetch paginated customer list with filters

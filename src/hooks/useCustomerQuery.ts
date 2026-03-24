@@ -9,7 +9,7 @@ import {
     fetchCustomers,
     fetchCustomerById,
     toggleCustomerStatus,
-} from "../queries/customer";
+} from "../queries/user/customer";
 import { toast } from "react-toastify";
 
 // ── Query keys ────────────────────────────────────────────────────────────────

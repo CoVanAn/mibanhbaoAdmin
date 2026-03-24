@@ -8,7 +8,7 @@ import {
   fetchOrderPayments,
   cancelOrder,
   deleteOrder,
-} from "../queries/order";
+} from "../queries/order/order";
 import { OrderListParams, UpdateStatusPayload, UpdateNotePayload, CancelOrderPayload } from "../api/orders";
 import { toast } from "react-toastify";
 
@@ -76,7 +76,7 @@ export function useUpdateOrderStatusMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: UpdateStatusPayload }) => 
+    mutationFn: ({ id, payload }: { id: number; payload: UpdateStatusPayload }) =>
       updateOrderStatus(id, payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
@@ -103,7 +103,7 @@ export function useUpdateOrderNoteMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: UpdateNotePayload }) => 
+    mutationFn: ({ id, payload }: { id: number; payload: UpdateNotePayload }) =>
       updateOrderNote(id, payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -126,7 +126,7 @@ export function useCancelOrderMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: CancelOrderPayload }) => 
+    mutationFn: ({ id, payload }: { id: number; payload: CancelOrderPayload }) =>
       cancelOrder(id, payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: orderKeys.lists() });

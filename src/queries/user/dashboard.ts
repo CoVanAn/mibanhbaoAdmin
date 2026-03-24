@@ -3,7 +3,7 @@ import {
   DashboardDailyParams,
   DashboardOverviewParams,
   DashboardTopProductsParams,
-} from "../api/dashboard";
+} from "../../api/dashboard";
 
 export async function fetchDashboardOverview(params: DashboardOverviewParams) {
   return dashboardApi.getOverview(params);

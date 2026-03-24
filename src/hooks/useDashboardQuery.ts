@@ -4,7 +4,7 @@ import {
   fetchDashboardLowStock,
   fetchDashboardOverview,
   fetchDashboardTopProducts,
-} from "../queries/dashboard";
+} from "../queries/user/dashboard";
 import {
   DashboardDailyParams,
   DashboardOverviewParams,

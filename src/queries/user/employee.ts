@@ -4,8 +4,8 @@ import {
   EmployeeListParams,
   ToggleEmployeeStatusPayload,
   UpdateEmployeePayload,
-} from "../api/employees";
-import { parseEmployeeList, parseEmployeeDetail } from "../schema/employee.schema";
+} from "../../api/employees";
+import { parseEmployeeList, parseEmployeeDetail } from "../../schema/employee.schema";
 
 export async function fetchEmployees(params: EmployeeListParams = {}) {
   const response = await employeesApi.getAll(params);

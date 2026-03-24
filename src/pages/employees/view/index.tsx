@@ -187,7 +187,6 @@ export const EmployeeViewContent = ({
     <>
       <Space direction="vertical" size={16} style={{ width: "100%" }}>
         <Card
-          bordered={false}
           style={{
             background:
               "linear-gradient(135deg, rgba(22,119,255,0.12) 0%, rgba(19,194,194,0.08) 100%)",
@@ -218,15 +217,11 @@ export const EmployeeViewContent = ({
           </Row>
         </Card>
 
-        {isModal && <Card bordered={false}>{actionButtons}</Card>}
+        {isModal && <Card>{actionButtons}</Card>}
 
         <Row gutter={[16, 16]}>
           <Col xs={24} md={8}>
-            <Card
-              size="small"
-              bordered={false}
-              style={{ background: "#fafafa" }}
-            >
+            <Card size="small" style={{ background: "#fafafa" }}>
               <Space direction="vertical" size={4}>
                 <Text type="secondary">
                   <MailOutlined /> Email
@@ -237,11 +232,7 @@ export const EmployeeViewContent = ({
           </Col>
 
           <Col xs={24} md={8}>
-            <Card
-              size="small"
-              bordered={false}
-              style={{ background: "#fafafa" }}
-            >
+            <Card size="small" style={{ background: "#fafafa" }}>
               <Space direction="vertical" size={4}>
                 <Text type="secondary">
                   <PhoneOutlined /> So dien thoai
@@ -252,11 +243,7 @@ export const EmployeeViewContent = ({
           </Col>
 
           <Col xs={24} md={8}>
-            <Card
-              size="small"
-              bordered={false}
-              style={{ background: "#fafafa" }}
-            >
+            <Card size="small" style={{ background: "#fafafa" }}>
               <Space direction="vertical" size={4}>
                 <Text type="secondary">
                   <CalendarOutlined /> Ngày tạo

@@ -1,5 +1,5 @@
-import apiClient from "../lib/api";
-import { parseCategoryList, parseCategory } from "../schema/category.schema";
+import apiClient from "../../lib/api";
+import { parseCategoryList, parseCategory } from "../../schema/category.schema";
 
 /**
  * Fetch all categories

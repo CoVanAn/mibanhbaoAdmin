@@ -22,7 +22,11 @@ const ProductsView = () => {
   const navigate = useNavigate();
 
   // TanStack Query hook
-  const { data: productData, isLoading, isError } = useProductQuery(id ? parseInt(id) : 0);
+  const {
+    data: productData,
+    isLoading,
+    isError,
+  } = useProductQuery(id ? parseInt(id) : 0);
   const product = productData;
 
   if (isLoading)
@@ -40,7 +44,6 @@ const ProductsView = () => {
     <Card
       className="product-view-card"
       style={{ maxWidth: 900, margin: "0 auto", boxShadow: "0 2px 12px #eee" }}
-      bodyStyle={{ padding: 32 }}
       title={
         <Space align="center">
           <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
@@ -115,7 +118,9 @@ const ProductsView = () => {
                 ? product.categories[0].name
                 : Array.isArray(product.categories) &&
                     product.categories.length > 0
-                  ? product.categories.map((c: any) => c.name || c.id).join(", ")
+                  ? product.categories
+                      .map((c: any) => c.name || c.id)
+                      .join(", ")
                   : "Không có"}
             </Tag>
             {/* <Text strong>Giá:</Text>{" "}

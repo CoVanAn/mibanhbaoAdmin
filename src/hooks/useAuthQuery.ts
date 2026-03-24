@@ -11,7 +11,7 @@ import {
   updateProfile as updateProfileApi,
   uploadAvatar as uploadAvatarApi,
   changePassword as changePasswordApi,
-} from "../queries/auth";
+} from "../queries/user/auth";
 import { setAccessToken, clearAccessToken } from "../lib/api";
 
 // Query Keys

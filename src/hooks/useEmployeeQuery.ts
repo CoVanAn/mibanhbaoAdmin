@@ -17,7 +17,7 @@ import {
   resetEmployeePassword,
   toggleEmployeeStatus,
   updateEmployee,
-} from "../queries/employee";
+} from "../queries/user/employee";
 
 export const employeeKeys = {
   all: ["employees"] as const,

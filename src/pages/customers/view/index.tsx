@@ -107,7 +107,7 @@ const CustomerView = () => {
         title={customer.name}
         subtitle={customer.email}
         showBack
-        onBack={() => navigate("/customers")}
+        onBack={() => navigate(-1)}
         extra={statusAction}
       />
 

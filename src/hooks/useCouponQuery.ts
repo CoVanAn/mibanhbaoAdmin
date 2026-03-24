@@ -7,7 +7,7 @@ import {
     updateCoupon,
     deleteCoupon,
     fetchCouponRedemptions,
-} from "../queries/coupon";
+} from "../queries/order/coupon";
 import type { CouponListParams, CouponPayload } from "../api/coupons";
 
 // ─── Query Keys ───────────────────────────────────────────

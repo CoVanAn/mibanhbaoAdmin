@@ -5,7 +5,7 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
-} from "../queries/category";
+} from "../queries/product/category";
 import { toast } from "react-toastify";
 
 // Query Keys
