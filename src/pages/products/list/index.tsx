@@ -21,7 +21,7 @@ import {
   useDeleteProductMutation,
 } from "../../../hooks/useProductQuery";
 import { useCategoriesQuery } from "../../../hooks/useCategoryQuery";
-import { PageHeader, Loading } from "../../../components/common";
+import { Loading } from "../../../components/common";
 import { formatCurrency } from "../../../utils";
 
 const { Search } = Input;

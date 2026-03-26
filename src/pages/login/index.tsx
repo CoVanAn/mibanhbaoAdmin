@@ -55,9 +55,8 @@ const AdminLogin = () => {
       // Redirect to intended page or dashboard using React Router
       const from = location.state?.from?.pathname || "/";
       navigate(from, { replace: true });
-    } catch (error) {
+    } catch (_error) {
       // Error toast already handled in mutation
-      console.error("Login failed:", error);
     }
   };
 

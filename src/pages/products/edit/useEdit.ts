@@ -267,7 +267,7 @@ export const useProductEditLogic = () => {
 
       // Navigate back (success message handled by mutation)
       navigate(-1);
-    } catch (error) {
+    } catch (_error) {
       // Error is handled by mutation's onError
     }
   };

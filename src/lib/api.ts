@@ -50,7 +50,7 @@ const isTokenExpiringSoon = (token: string): boolean => {
     const timeLeft = exp - now;
     // Refresh if less than 5 minutes remaining
     return timeLeft < 5 * 60 * 1000;
-  } catch (error) {
+  } catch {
     // If can't decode, assume it's expiring
     return true;
   }
@@ -124,7 +124,7 @@ apiClient.interceptors.request.use(
           if (newToken) {
             config.headers.Authorization = `Bearer ${newToken}`;
           }
-        } catch (error) {
+        } catch {
           // If refresh fails, try with current token anyway
           config.headers.Authorization = `Bearer ${token}`;
         }

@@ -7,9 +7,16 @@ import {
   fetchOrderStatusHistory,
   fetchOrderPayments,
   cancelOrder,
+  processRefund,
   deleteOrder,
 } from "../queries/order/order";
-import { OrderListParams, UpdateStatusPayload, UpdateNotePayload, CancelOrderPayload } from "../api/orders";
+import {
+  OrderListParams,
+  UpdateStatusPayload,
+  UpdateNotePayload,
+  CancelOrderPayload,
+  RefundOrderPayload,
+} from "../api/orders";
 import { toast } from "react-toastify";
 
 // Query Keys
@@ -140,6 +147,34 @@ export function useCancelOrderMutation() {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Hủy đơn hàng thất bại");
+    },
+  });
+}
+
+/**
+ * Hook to process refund
+ */
+export function useProcessRefundMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: RefundOrderPayload }) =>
+      processRefund(id, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
+      queryClient.invalidateQueries({
+        queryKey: orderKeys.detail(variables.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: orderKeys.history(variables.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: orderKeys.payments(variables.id),
+      });
+      toast.success("Hoàn tiền thành công!");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Hoàn tiền thất bại");
     },
   });
 }

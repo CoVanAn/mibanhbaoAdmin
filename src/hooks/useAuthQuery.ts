@@ -191,17 +191,12 @@ export function useAuth() {
           // Check if user has admin/staff role
           if (userData.role === "ADMIN" || userData.role === "STAFF") {
             setUser(userData as any); // Cast to bypass role type mismatch from API
-            console.log("Admin session restored");
           } else {
-            // User doesn't have admin access
-            console.log("User doesn't have admin access");
             clearAuth();
             clearAccessToken();
           }
         }
-      } catch (error) {
-        // No valid refresh token cookie, user needs to login
-        console.log("No valid admin session, user needs to login");
+      } catch (_error) {
         clearAuth();
         clearAccessToken();
       } finally {

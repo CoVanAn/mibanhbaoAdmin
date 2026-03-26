@@ -1,8 +1,6 @@
 import { VALIDATION_MESSAGES } from "./constants";
 import { Rule } from "antd/es/form";
 
-type ValidatorFunction = (_: any, value: any) => Promise<void>;
-
 // Common validation rules for Ant Design forms
 export const validationRules: Record<string, Rule | Rule[]> = {
   required: {
@@ -102,7 +100,7 @@ export const customValidators = {
           return Promise.resolve();
         }
         return Promise.reject(new Error("Slug này đã được sử dụng"));
-      } catch (error) {
+      } catch (_error) {
         return Promise.reject(
           new Error("Không thể kiểm tra tính duy nhất của slug")
         );

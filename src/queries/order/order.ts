@@ -1,4 +1,11 @@
-import { ordersApi, OrderListParams, UpdateStatusPayload, UpdateNotePayload, CancelOrderPayload } from "../../api/orders";
+import {
+  ordersApi,
+  OrderListParams,
+  UpdateStatusPayload,
+  UpdateNotePayload,
+  CancelOrderPayload,
+  RefundOrderPayload,
+} from "../../api/orders";
 import { parseOrder, parseOrderListResponse } from "../../schema/order.schema";
 
 /**
@@ -57,6 +64,14 @@ export async function fetchOrderPayments(id: number) {
  */
 export async function cancelOrder(id: number, payload: CancelOrderPayload) {
   const response = await ordersApi.cancelOrder(id, payload);
+  return response;
+}
+
+/**
+ * Process refund
+ */
+export async function processRefund(id: number, payload: RefundOrderPayload = {}) {
+  const response = await ordersApi.processRefund(id, payload);
   return response;
 }
 

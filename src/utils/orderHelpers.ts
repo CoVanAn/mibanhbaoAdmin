@@ -123,7 +123,7 @@ export function canCancelOrder(status: OrderStatus): boolean {
  * Check if order can be refunded
  */
 export function canRefundOrder(status: OrderStatus): boolean {
-  return status === "COMPLETED";
+  return status === "COMPLETED" || status === "CANCELED";
 }
 
 /**
@@ -160,7 +160,7 @@ export function formatOrderDate(dateString: string): string {
  */
 export function getCustomerName(order: any): string {
   if (order.user?.name) return order.user.name;
-  if (order.address?.recipientName) return order.address.recipientName;
+  if (order.address?.name) return order.address.name;
   return "Khách hàng";
 }
 

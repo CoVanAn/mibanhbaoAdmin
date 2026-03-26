@@ -86,7 +86,7 @@ const Categories = () => {
       setModalVisible(false);
       setEditingCategory(null);
       form.resetFields();
-    } catch (error) {
+    } catch (_error) {
       // Error handling is done in the mutation
     }
   };
@@ -100,7 +100,7 @@ const Categories = () => {
       }
 
       await deleteCategoryMutation.mutateAsync(categoryId);
-    } catch (error) {
+    } catch (_error) {
       // Error handling is done in the mutation
     }
   };

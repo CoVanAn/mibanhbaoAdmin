@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  FileOutlined,
   PieChartOutlined,
   TeamOutlined,
   AppstoreAddOutlined,
@@ -11,6 +10,7 @@ import {
   ContainerOutlined,
   UserOutlined,
 } from "@ant-design/icons";
+import type { ReactNode } from "react";
 import {
   // Breadcrumb,
   Layout,
@@ -21,6 +21,7 @@ import {
   Space,
   Typography,
 } from "antd";
+import type { MenuProps } from "antd";
 import { Outlet, Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuthQuery";
 import "./AdminLayout.css";
@@ -28,13 +29,20 @@ import "./AdminLayout.css";
 
 const { Header, Content, Sider } = Layout;
 
-function getItem(label: any, key: string, icon: any, children: any = null) {
+type MenuItem = Required<MenuProps>["items"][number];
+
+function getItem(
+  label: ReactNode,
+  key: string,
+  icon: ReactNode,
+  children?: MenuItem[],
+): MenuItem {
   return {
     key,
     icon,
     children,
     label,
-  };
+  } as MenuItem;
 }
 
 const items = [
@@ -65,7 +73,7 @@ const items = [
 const AdminLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const {
-    token: { colorBgContainer, borderRadiusLG },
+    token: { colorBgContainer },
   } = theme.useToken();
   const { user, logout } = useAuth();
 

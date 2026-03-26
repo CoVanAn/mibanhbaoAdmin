@@ -25,6 +25,11 @@ export interface CancelOrderPayload {
   reason: string;
 }
 
+export interface RefundOrderPayload {
+  reason?: string;
+  amount?: number;
+}
+
 export const ordersApi = {
   /**
    * Get all orders with filters and pagination
@@ -79,6 +84,14 @@ export const ordersApi = {
    */
   cancelOrder: async (id: number, payload: CancelOrderPayload) => {
     const response = await apiClient.post(`/api/order/${id}/cancel`, payload);
+    return response.data;
+  },
+
+  /**
+   * Process refund (Admin/Staff)
+   */
+  processRefund: async (id: number, payload: RefundOrderPayload = {}) => {
+    const response = await apiClient.post(`/api/order/${id}/refund`, payload);
     return response.data;
   },
 

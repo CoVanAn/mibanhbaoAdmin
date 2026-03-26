@@ -10,7 +10,6 @@ import {
   Statistic,
   Tag,
   Table,
-  Typography,
 } from "antd";
 import { Line } from "@ant-design/charts";
 import {
@@ -49,18 +48,11 @@ const yearOptions = [2024, 2025, 2026, 2027].map((value) => ({
 
 const formatCurrency = (value: number) =>
   `${Math.round(value).toLocaleString("vi-VN")} đ`;
-const LOW_STOCK_THRESHOLD = 15;
 
 const getCancelRateColor = (cancelRate: number) => {
   if (cancelRate >= 20) return "#cf1322";
   if (cancelRate >= 10) return "#d46b08";
   return "#389e0d";
-};
-
-const getLowStockTagColor = (quantity: number) => {
-  if (quantity <= 5) return "red";
-  if (quantity <= 10) return "orange";
-  return "gold";
 };
 
 const DashboardPage = () => {

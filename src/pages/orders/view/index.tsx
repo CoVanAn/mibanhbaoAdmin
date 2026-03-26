@@ -114,6 +114,9 @@ const OrderView = () => {
     );
   }
 
+  const hasPaidPayment =
+    order.payments?.some((payment) => payment.status === "PAID") ?? false;
+
   const itemColumns = getItemColumns();
 
   return (
@@ -351,7 +354,11 @@ const OrderView = () => {
           )}
 
           {/* Actions */}
-          <OrderActions orderId={orderId} status={order.status} />
+          <OrderActions
+            orderId={orderId}
+            status={order.status}
+            hasPaidPayment={hasPaidPayment}
+          />
           <Card title="Lịch sử trạng thái" style={{ marginBottom: 24 }}>
             <Timeline>
               {statusHistory?.map((history: any) => (

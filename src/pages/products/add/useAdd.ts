@@ -142,7 +142,7 @@ export const useProductAddLogic = () => {
       await createProductMutation.mutateAsync(productData);
 
       navigate("/products");
-    } catch (error) {
+    } catch (_error) {
       // Error is handled by mutation's onError
     }
   };
