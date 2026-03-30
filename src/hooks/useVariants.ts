@@ -9,13 +9,11 @@ import {
   useUpdateVariantPriceMutation,
   useDeleteVariantPriceMutation,
   useUpdateVariantInventoryMutation,
-  useCleanupVariantsMutation,
 } from "./useProductQuery";
 import {
   fetchProductVariants,
   fetchProductVariant,
   fetchVariantPrices,
-  debugProduct as fetchProductDebug,
 } from "../queries/product/product";
 
 export const useVariants = () => {
@@ -30,7 +28,6 @@ export const useVariants = () => {
   const updateVariantPriceMutation = useUpdateVariantPriceMutation();
   const deleteVariantPriceMutation = useDeleteVariantPriceMutation();
   const updateVariantInventoryMutation = useUpdateVariantInventoryMutation();
-  const cleanupVariantsMutation = useCleanupVariantsMutation();
 
   const loading =
     loadingAction ||
@@ -40,8 +37,7 @@ export const useVariants = () => {
     setVariantPriceMutation.isPending ||
     updateVariantPriceMutation.isPending ||
     deleteVariantPriceMutation.isPending ||
-    updateVariantInventoryMutation.isPending ||
-    cleanupVariantsMutation.isPending;
+    updateVariantInventoryMutation.isPending;
 
   const getVariants = async (productId: number) => {
     setLoadingAction(true);
@@ -169,22 +165,6 @@ export const useVariants = () => {
     });
   };
 
-  const cleanupVariants = async (productId: number) => {
-    return cleanupVariantsMutation.mutateAsync({ productId });
-  };
-
-  const debugProduct = async (productId: number) => {
-    setLoadingAction(true);
-    try {
-      return await queryClient.fetchQuery({
-        queryKey: [...productKeys.all, productId, "debug"],
-        queryFn: () => fetchProductDebug(productId),
-      });
-    } finally {
-      setLoadingAction(false);
-    }
-  };
-
   return {
     loading,
     variants,
@@ -199,8 +179,6 @@ export const useVariants = () => {
     getVariantPrices,
     deleteVariantPrice,
     updateVariantInventory,
-    cleanupVariants,
-    debugProduct,
   };
 };
 

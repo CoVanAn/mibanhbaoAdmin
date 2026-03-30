@@ -111,7 +111,7 @@ export async function uploadAvatar(file: File) {
  * Change password
  */
 export async function changePassword(currentPassword: string, newPassword: string) {
-  const response = await apiClient.patch("/api/user/change-password", {
+  const response = await apiClient.post("/api/user/change-password", {
     currentPassword,
     newPassword,
   });

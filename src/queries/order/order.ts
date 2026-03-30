@@ -75,10 +75,3 @@ export async function processRefund(id: number, payload: RefundOrderPayload = {}
   return response;
 }
 
-/**
- * Delete order
- */
-export async function deleteOrder(id: number) {
-  const response = await ordersApi.delete(id);
-  return response;
-}

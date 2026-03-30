@@ -204,23 +204,3 @@ export async function removeProductCategory(productId: number, categoryId: numbe
   );
   return response.data;
 }
-
-// ============ Debug and Cleanup ============
-
-/**
- * Debug product
- */
-export async function debugProduct(productId: number) {
-  const response = await apiClient.get(`/api/product/${productId}/debug`);
-  return response.data;
-}
-
-/**
- * Cleanup variants
- */
-export async function cleanupVariants(productId: number) {
-  const response = await apiClient.post(
-    `/api/product/${productId}/cleanup-variants`,
-  );
-  return response.data;
-}

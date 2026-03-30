@@ -15,7 +15,6 @@ import {
   fetchVariantPrices,
   deleteVariantPrice,
   updateVariantInventory,
-  cleanupVariants,
   addProductMedia,
   deleteProductMedia,
   reorderProductMedia,
@@ -351,28 +350,6 @@ export function useUpdateVariantInventoryMutation() {
     onError: (error: any) => {
       toast.error(
         error.response?.data?.message || "Cập nhật tồn kho biến thể thất bại",
-      );
-    },
-  });
-}
-
-export function useCleanupVariantsMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ productId }: { productId: number }) => cleanupVariants(productId),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: productKeys.variants(variables.productId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: productKeys.detail(variables.productId),
-      });
-      toast.success("Dọn dẹp biến thể trùng thành công!");
-    },
-    onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message || "Dọn dẹp biến thể trùng thất bại",
       );
     },
   });

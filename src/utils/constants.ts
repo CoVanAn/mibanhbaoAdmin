@@ -9,35 +9,6 @@ export const APP_CONFIG = {
 
 export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-// API Endpoints
-export const API_ENDPOINTS = {
-  AUTH: {
-    LOGIN: "/api/user/login",
-    PROFILE: "/api/user/profile",
-    CHANGE_PASSWORD: "/api/user/change-password",
-  },
-  CATEGORIES: {
-    LIST: "/api/category/list",
-    CREATE: "/api/category/add",
-    UPDATE: (id: string | number) => `/api/category/${id}`,
-    DELETE: (id: string | number) => `/api/category/${id}`,
-    GET: (id: string | number) => `/api/category/${id}`,
-  },
-  PRODUCTS: {
-    LIST: "/api/product/list",
-    CREATE: "/api/product/add",
-    UPDATE: (id: string | number) => `/api/product/${id}`,
-    DELETE: (id: string | number) => `/api/product/${id}`,
-    GET: (id: string | number) => `/api/product/${id}`,
-  },
-  ORDERS: {
-    LIST: "/api/order/list",
-    GET: (id: string | number) => `/api/order/${id}`,
-    UPDATE_STATUS: (id: string | number) => `/api/order/${id}/status`,
-    DELETE: (id: string | number) => `/api/order/${id}`,
-  },
-} as const;
-
 // Form validation messages
 export const VALIDATION_MESSAGES = {
   REQUIRED: "Trường này là bắt buộc",

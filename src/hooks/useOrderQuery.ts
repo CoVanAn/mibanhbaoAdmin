@@ -8,7 +8,6 @@ import {
   fetchOrderPayments,
   cancelOrder,
   processRefund,
-  deleteOrder,
 } from "../queries/order/order";
 import {
   OrderListParams,
@@ -179,20 +178,3 @@ export function useProcessRefundMutation() {
   });
 }
 
-/**
- * Hook to delete order
- */
-export function useDeleteOrderMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: deleteOrder,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
-      toast.success("Xóa đơn hàng thành công!");
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Xóa đơn hàng thất bại");
-    },
-  });
-}

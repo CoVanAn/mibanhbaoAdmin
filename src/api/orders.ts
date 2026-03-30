@@ -95,11 +95,4 @@ export const ordersApi = {
     return response.data;
   },
 
-  /**
-   * Delete order (Admin only)
-   */
-  delete: async (id: number) => {
-    const response = await apiClient.delete(`/api/order/${id}`);
-    return response.data;
-  },
 };
