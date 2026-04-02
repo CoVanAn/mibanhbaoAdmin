@@ -20,11 +20,27 @@ import {
   CameraOutlined,
   EditOutlined,
 } from "@ant-design/icons";
+import type { Rule } from "antd/es/form";
 import { useAuth } from "../../hooks/useAuthQuery";
 import { validationRules } from "../../utils";
 
 const { TabPane } = Tabs;
 const { Title, Text } = Typography;
+
+type ProfileFormValues = {
+  name: string;
+  email: string;
+  phone?: string;
+};
+
+type PasswordFormValues = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
+const asRules = (rule: Rule | Rule[]): Rule[] =>
+  Array.isArray(rule) ? rule : [rule];
 
 const AdminProfile = () => {
   const { user, updateProfile, changePassword, uploadAvatar } = useAuth();
@@ -63,10 +79,10 @@ const AdminProfile = () => {
   };
 
   // Handle profile update
-  const handleProfileUpdate = async (values: Record<string, any>) => {
+  const handleProfileUpdate = async (values: ProfileFormValues) => {
     setUpdating(true);
     try {
-      await updateProfile(values as any);
+      await updateProfile(values);
     } catch {
       // Error toast is handled in useUpdateProfileMutation
     } finally {
@@ -75,7 +91,7 @@ const AdminProfile = () => {
   };
 
   // Handle password change
-  const handlePasswordChange = async (values: Record<string, any>) => {
+  const handlePasswordChange = async (values: PasswordFormValues) => {
     setChangingPassword(true);
     try {
       // Call API to change password
@@ -207,7 +223,7 @@ const AdminProfile = () => {
                       <Form.Item
                         label="Họ và tên"
                         name="name"
-                        rules={validationRules.name as any}
+                        rules={asRules(validationRules.name)}
                       >
                         <Input
                           placeholder="Nhập họ và tên"
@@ -226,7 +242,7 @@ const AdminProfile = () => {
                   <Form.Item
                     label="Email"
                     name="email"
-                    rules={validationRules.email as any}
+                    rules={asRules(validationRules.email)}
                   >
                     <Input placeholder="Nhập email" disabled size="large" />
                   </Form.Item>
@@ -282,7 +298,7 @@ const AdminProfile = () => {
                     <Form.Item
                       label="Mật khẩu hiện tại"
                       name="currentPassword"
-                      rules={validationRules.password as any}
+                      rules={asRules(validationRules.password)}
                     >
                       <Input.Password
                         placeholder="Nhập mật khẩu hiện tại"
@@ -293,7 +309,7 @@ const AdminProfile = () => {
                     <Form.Item
                       label="Mật khẩu mới"
                       name="newPassword"
-                      rules={validationRules.password as any}
+                      rules={asRules(validationRules.password)}
                     >
                       <Input.Password
                         placeholder="Nhập mật khẩu mới"
@@ -306,9 +322,9 @@ const AdminProfile = () => {
                       name="confirmPassword"
                       dependencies={["newPassword"]}
                       rules={[
-                        validationRules.required as any,
+                        ...asRules(validationRules.required),
                         ({ getFieldValue }) => ({
-                          validator: (_, value) => {
+                          validator: (_: Rule, value: string) => {
                             if (
                               !value ||
                               getFieldValue("newPassword") === value

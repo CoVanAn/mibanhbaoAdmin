@@ -9,7 +9,7 @@ export const getItemColumns = () => [
     title: "Sản phẩm",
     key: "product",
     width: "40%",
-    render: (_: any, item: OrderItem) => (
+    render: (_: unknown, item: OrderItem) => (
       <Space>
         {item.image && <Avatar src={item.image} size={50} shape="square" />}
         <div>

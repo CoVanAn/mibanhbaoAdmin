@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 import { API_URL } from "../utils/constants";
+import useStore from "../store/useStore";
 
 
 // Extend Window interface for TypeScript
@@ -11,7 +12,7 @@ declare global {
 
 interface QueueItem {
   resolve: (token: string | null) => void;
-  reject: (error: any) => void;
+  reject: (error: unknown) => void;
 }
 
 // Create axios instance with credentials enabled for HttpOnly cookies
@@ -28,7 +29,7 @@ const apiClient: AxiosInstance = axios.create({
 let isRefreshing = false;
 let failedQueue: QueueItem[] = [];
 
-const processQueue = (error: any, token: string | null = null): void => {
+const processQueue = (error: unknown, token: string | null = null): void => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
@@ -181,9 +182,9 @@ apiClient.interceptors.response.use(
           // Clear token and redirect to login
           if (typeof window !== "undefined") {
             delete window.__adminAccessToken;
-            // Dispatch custom event for auth failure
-            window.dispatchEvent(new CustomEvent("auth:failed"));
           }
+
+          useStore.getState().clearAuth();
           return Promise.reject(refreshError);
         }
       }

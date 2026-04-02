@@ -20,7 +20,7 @@ import {
 import { useCategoriesQuery } from "../../../hooks/useCategoryQuery";
 
 type ExistingImage = {
-  id: number | string;
+  id: number;
   url: string;
   alt?: string;
   position: number;
@@ -49,7 +49,7 @@ type ProductDetail = {
   isActive?: boolean;
   isFeatured?: boolean;
   currentPrice?: { amount?: number };
-  categories?: Array<{ id?: number }>;
+  categories?: Array<{ id?: number; categoryId?: number }>;
   variants?: ProductVariant[];
   images?: Array<{
     id?: number;
@@ -72,13 +72,14 @@ type ProductEditFormValues = {
 export const useProductEditLogic = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const productId = id ? Number(id) : 0;
   const [form] = Form.useForm();
 
   // TanStack Query hooks
   const {
     data: productData,
     isLoading: loadingProduct,
-  } = useProductQuery(id ? parseInt(id) : 0);
+  } = useProductQuery(productId);
   const { data: categories = [], isLoading: loadingCategories } =
     useCategoriesQuery(true);
   const updateProductMutation = useUpdateProductMutation();
@@ -92,6 +93,20 @@ export const useProductEditLogic = () => {
   const [previewImage, setPreviewImage] = useState("");
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [useVariants, setUseVariants] = useState(false);
+
+  const revokeBlobUrls = (urls: string[]) => {
+    urls.forEach((url) => {
+      if (url.startsWith("blob:")) {
+        URL.revokeObjectURL(url);
+      }
+    });
+  };
+
+  useEffect(() => {
+    return () => {
+      revokeBlobUrls(previewImages);
+    };
+  }, [previewImages]);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -112,7 +127,7 @@ export const useProductEditLogic = () => {
       const imageItems = data.images || [];
 
       const processedImages = imageItems.map((item, index: number) => ({
-        id: item.id || `existing-${index}`,
+        id: typeof item.id === "number" ? item.id : -(index + 1),
         url: item.url,
         alt: item.alt || `Product image ${index + 1}`,
         position: item.position !== undefined ? item.position : index,
@@ -142,15 +157,18 @@ export const useProductEditLogic = () => {
         return defaultVariant?.price || defaultVariant?.currentPrice || "";
       };
 
+      const firstCategory = productData.categories?.[0] as
+        | { id?: number; categoryId?: number }
+        | undefined;
+      const resolvedCategoryId = firstCategory?.categoryId ?? firstCategory?.id ?? "";
+
       const formValues = {
         name: productData.name || "",
         description: productData.description || "",
         content: productData.content || "",
         price: getDisplayPrice(),
         // Handle both new and old data structure for categories
-        categoryId:
-          productData.categories?.[0]?.id ||
-          "",
+        categoryId: resolvedCategoryId,
         isActive:
           productData.isActive !== undefined ? productData.isActive : true,
         isFeatured:
@@ -195,6 +213,7 @@ export const useProductEditLogic = () => {
 
   // Handle new image upload
   const handleImageChange = ({ fileList }: { fileList: UploadFile[] }) => {
+    revokeBlobUrls(previewImages);
     setNewImages(fileList);
 
     // Create preview URLs for new images
@@ -209,6 +228,13 @@ export const useProductEditLogic = () => {
 
   // Remove new image
   const handleImageRemove = (file: UploadFile) => {
+    const removedPreview = previewImages.find(
+      (_, index) => newImages[index]?.uid === file.uid,
+    );
+    if (removedPreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(removedPreview);
+    }
+
     const newImageList = newImages.filter((img) => img.uid !== file.uid);
     setNewImages(newImageList);
 
@@ -238,6 +264,11 @@ export const useProductEditLogic = () => {
   };
 
   const handleSubmit = async (values: ProductEditFormValues) => {
+    if (!productId) {
+      message.error("Không tìm thấy mã sản phẩm hợp lệ");
+      return;
+    }
+
     try {
       // Use the price from variants (simplified approach)
       const finalPrice = Number(variants[0]?.price ?? values.price ?? 0);
@@ -252,18 +283,22 @@ export const useProductEditLogic = () => {
         isActive: values.isActive !== undefined ? values.isActive : true,
         isFeatured: values.isFeatured !== undefined ? values.isFeatured : false,
         // Include information about images to keep and new images to add
-        existingImageIds: existingImages.map((img) => img.id),
+        existingImageIds: existingImages
+          .map((img) => img.id)
+          .filter((imageId) => imageId > 0),
         // Include image positions for reordering
-        imagePositions: existingImages.map((img, index) => ({
-          id: img.id,
-          position: index,
-        })),
+        imagePositions: existingImages
+          .filter((img) => img.id > 0)
+          .map((img, index) => ({
+            id: img.id,
+            position: index,
+          })),
         newImages: newImages
           .map((img) => img.originFileObj)
           .filter((f): f is NonNullable<typeof f> => !!f),
       };
 
-      await updateProductMutation.mutateAsync({ id: parseInt(id!), data: productData });
+      await updateProductMutation.mutateAsync({ id: productId, data: productData });
 
       // Navigate back (success message handled by mutation)
       navigate(-1);

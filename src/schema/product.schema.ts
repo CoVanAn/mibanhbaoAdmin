@@ -62,6 +62,12 @@ export const ProductSummarySchema = z.object({
 
 export const ProductListSchema = z.array(ProductSummarySchema);
 
+export type ProductVariant = z.infer<typeof ProductVariantSchema>;
+export type ProductImage = z.infer<typeof ProductImageSchema>;
+export type ProductCategory = z.infer<typeof ProductCategorySchema>;
+export type ProductDetail = z.infer<typeof ProductDetailSchema>;
+export type ProductSummary = z.infer<typeof ProductSummarySchema>;
+
 // Form validation schemas for Admin
 const trimmedString = (message : string) => z.string().trim().min(1, { message });
 
@@ -99,7 +105,10 @@ export const parseProductDetail = (payload: unknown) => {
 
 export const parseProductList = (payload: unknown) => {
   // Handle both formats: direct array or { data: [...], pagination: {...} }
-  const data = (payload as any)?.data ?? payload;
+  const data =
+    payload && typeof payload === "object" && "data" in payload
+      ? (payload as { data: unknown }).data
+      : payload;
   const parsed = ProductListSchema.safeParse(data);
   if (!parsed.success) {
     console.error("Unexpected product list shape", parsed.error);

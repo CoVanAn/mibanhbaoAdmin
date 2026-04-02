@@ -2,17 +2,14 @@ import { Button, Image, Tooltip } from "antd";
 import { DeleteOutlined, DragOutlined, EyeOutlined } from "@ant-design/icons";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import type { ProductImage } from "../../../schema/product.schema";
 
 interface SortableImageItemProps {
-  id: any;
-  image: {
-    id: any;
-    url: string;
-    alt?: string;
-  };
+  id: number;
+  image: ProductImage;
   index: number;
-  onRemove: (id: any) => void;
-  onPreview: (image: any) => void;
+  onRemove: (id: number) => void;
+  onPreview: (image: ProductImage) => void;
 }
 
 export const SortableImageItem = ({

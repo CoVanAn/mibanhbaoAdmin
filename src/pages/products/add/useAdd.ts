@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, message } from "antd";
 import type { UploadFile } from "antd/es/upload/interface";
@@ -21,7 +21,7 @@ type ProductAddFormValues = {
   categoryId?: number;
   isActive?: boolean;
   isFeatured?: boolean;
-  price?: number;
+  price?: number | string;
   quantity?: number | string;
   safetyStock?: number | string;
 };
@@ -55,8 +55,23 @@ export const useProductAddLogic = () => {
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [useVariants, setUseVariants] = useState(false);
 
+  const revokeBlobUrls = (urls: string[]) => {
+    urls.forEach((url) => {
+      if (url.startsWith("blob:")) {
+        URL.revokeObjectURL(url);
+      }
+    });
+  };
+
+  useEffect(() => {
+    return () => {
+      revokeBlobUrls(previewImages);
+    };
+  }, [previewImages]);
+
   // Handle image upload
   const handleImageChange = ({ fileList }: { fileList: UploadFile[] }) => {
+    revokeBlobUrls(previewImages);
     setImages(fileList);
 
     // Create preview URLs
@@ -71,6 +86,13 @@ export const useProductAddLogic = () => {
 
   // Remove image
   const handleImageRemove = (file: UploadFile) => {
+    const removedPreview = previewImages.find(
+      (_, index) => images[index]?.uid === file.uid,
+    );
+    if (removedPreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(removedPreview);
+    }
+
     const newImages = images.filter((img) => img.uid !== file.uid);
     setImages(newImages);
 
@@ -121,7 +143,13 @@ export const useProductAddLogic = () => {
         productData.variants = variants;
       } else {
         // Simple pricing mode
-        productData.price = values.price;
+        if (
+          values.price !== undefined &&
+          values.price !== null &&
+          values.price !== ""
+        ) {
+          productData.price = Number(values.price);
+        }
         // Include initial quantity and safety stock
         if (
           values.quantity !== undefined &&

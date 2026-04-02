@@ -17,6 +17,7 @@ import {
   RefundOrderPayload,
 } from "../api/orders";
 import { toast } from "react-toastify";
+import { getErrorMessage } from "../utils/httpError";
 
 // Query Keys
 export const orderKeys = {
@@ -94,10 +95,8 @@ export function useUpdateOrderStatusMutation() {
       });
       toast.success("Cập nhật trạng thái đơn hàng thành công!");
     },
-    onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message || "Cập nhật đơn hàng thất bại",
-      );
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Cập nhật đơn hàng thất bại"));
     },
   });
 }
@@ -117,10 +116,8 @@ export function useUpdateOrderNoteMutation() {
       });
       toast.success("Cập nhật ghi chú thành công!");
     },
-    onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message || "Cập nhật ghi chú thất bại",
-      );
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Cập nhật ghi chú thất bại"));
     },
   });
 }
@@ -144,8 +141,8 @@ export function useCancelOrderMutation() {
       });
       toast.success("Đã hủy đơn hàng!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Hủy đơn hàng thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Hủy đơn hàng thất bại"));
     },
   });
 }
@@ -172,8 +169,8 @@ export function useProcessRefundMutation() {
       });
       toast.success("Hoàn tiền thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Hoàn tiền thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Hoàn tiền thất bại"));
     },
   });
 }

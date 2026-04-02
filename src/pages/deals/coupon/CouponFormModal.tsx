@@ -8,16 +8,33 @@ import {
   DatePicker,
   Space,
 } from "antd";
+import type { CouponPayload } from "../../../api/coupons";
 import type { Coupon } from "../../../schema/coupon.schema";
 import dayjs from "dayjs";
+import type { Dayjs } from "dayjs";
 
 const { RangePicker } = DatePicker;
+
+export type CouponModalSubmitPayload =
+  | CouponPayload
+  | Partial<Omit<CouponPayload, "code">>;
+
+type CouponFormFields = {
+  code?: string;
+  type: CouponPayload["type"];
+  value: number;
+  dateRange?: [Dayjs, Dayjs] | null;
+  minSubtotal?: number | null;
+  maxRedemptions?: number | null;
+  perUserLimit?: number | null;
+  isActive: boolean;
+};
 
 interface Props {
   open: boolean;
   coupon: Coupon | null;
   onClose: () => void;
-  onSubmit: (values: any) => Promise<void>;
+  onSubmit: (values: CouponModalSubmitPayload) => Promise<void>;
   loading?: boolean;
 }
 
@@ -56,16 +73,15 @@ export default function CouponFormModal({
 
   const handleOk = async () => {
     try {
-      const values = await form.validateFields();
+      const values = await form.validateFields<CouponFormFields>();
       const startsAt = values.dateRange?.[0]
-        ? (values.dateRange[0] as dayjs.Dayjs).toISOString()
+        ? values.dateRange[0].toISOString()
         : null;
       const endsAt = values.dateRange?.[1]
-        ? (values.dateRange[1] as dayjs.Dayjs).toISOString()
+        ? values.dateRange[1].toISOString()
         : null;
 
-      await onSubmit({
-        ...(isEditing ? {} : { code: values.code.toUpperCase() }),
+      const payload = {
         type: values.type,
         value: values.value,
         startsAt,
@@ -74,7 +90,16 @@ export default function CouponFormModal({
         maxRedemptions: values.maxRedemptions ?? null,
         perUserLimit: values.perUserLimit ?? null,
         isActive: values.isActive,
-      });
+      };
+
+      if (isEditing) {
+        await onSubmit(payload);
+      } else {
+        await onSubmit({
+          ...payload,
+          code: values.code?.toUpperCase() ?? "",
+        });
+      }
     } catch {
       // validation handled
     }
@@ -140,7 +165,7 @@ export default function CouponFormModal({
               min={1}
               style={{ width: "100%" }}
               formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-              parser={(v) => v!.replace(/,/g, "") as any}
+              parser={(v) => Number((v ?? "").replace(/,/g, ""))}
             />
           </Form.Item>
         </Space>
@@ -167,7 +192,7 @@ export default function CouponFormModal({
               formatter={(v) =>
                 `${v ?? ""}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
-              parser={(v) => v!.replace(/,/g, "") as any}
+              parser={(v) => Number((v ?? "").replace(/,/g, ""))}
             />
           </Form.Item>
           <Form.Item

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Button,
@@ -15,7 +15,6 @@ import {
 import { ReloadOutlined, EyeOutlined, PlusOutlined } from "@ant-design/icons";
 import { PageHeader, Loading } from "../../../components/common";
 import { useListUrlFilters } from "../../../hooks/useListUrlFilters";
-import { EmployeeViewContent } from "../view/index";
 import {
   useCreateEmployeeMutation,
   useEmployeesQuery,
@@ -24,24 +23,28 @@ import { useAuth } from "../../../hooks/useAuthQuery";
 import type { EmployeeListItem } from "../../../schema/employee.schema";
 import { formatDate } from "../../../utils/helpers";
 import type { EmployeeListParams } from "../../../api/employees";
+import { useNavigate } from "react-router-dom";
+import { getErrorMessage } from "../../../utils/httpError";
 
 const { Text } = Typography;
 
 const EmployeesList = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { page, limit, updateFilters, readString, readOptionalString } =
     useListUrlFilters();
   const [createOpen, setCreateOpen] = useState(false);
-  const [viewOpen, setViewOpen] = useState(false);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(
-    null,
-  );
   const [createForm] = Form.useForm();
   const createMutation = useCreateEmployeeMutation();
 
   const searchTerm = readString("search");
   const roleFilter = readOptionalString("role");
   const isActiveFilter = readOptionalString("isActive");
+  const [searchInput, setSearchInput] = useState(searchTerm);
+
+  useEffect(() => {
+    setSearchInput(searchTerm);
+  }, [searchTerm]);
 
   const queryParams = useMemo(() => {
     const params: EmployeeListParams = {
@@ -63,15 +66,12 @@ const EmployeesList = () => {
 
   const canManage = user?.role === "ADMIN";
 
-  const handleOpenView = (employeeId: number) => {
-    setSelectedEmployeeId(employeeId);
-    setViewOpen(true);
-  };
-
-  const handleCloseView = () => {
-    setViewOpen(false);
-    setSelectedEmployeeId(null);
-  };
+  const handleOpenView = useCallback(
+    (employeeId: number) => {
+      navigate(`/employees/${employeeId}`);
+    },
+    [navigate],
+  );
 
   const handleCreateEmployee = async () => {
     const values = await createForm.validateFields();
@@ -200,7 +200,7 @@ const EmployeesList = () => {
         <Alert
           type="error"
           message="Lỗi tải dữ liệu"
-          description={(error as any)?.message}
+          description={getErrorMessage(error, "Không thể tải dữ liệu nhân sự")}
           style={{ marginBottom: 16 }}
         />
       )}
@@ -210,7 +210,8 @@ const EmployeesList = () => {
           <Input.Search
             allowClear
             placeholder="Tìm theo tên, email, SĐT"
-            defaultValue={searchTerm}
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
             style={{ width: 280 }}
             onSearch={(value) =>
               updateFilters({ search: value || undefined, page: undefined })
@@ -280,23 +281,6 @@ const EmployeesList = () => {
           })}
         />
       </Card>
-
-      <Modal
-        title={null}
-        open={viewOpen}
-        footer={null}
-        onCancel={handleCloseView}
-        width={980}
-        centered
-      >
-        {selectedEmployeeId ? (
-          <EmployeeViewContent
-            employeeId={selectedEmployeeId}
-            isModal
-            onClose={handleCloseView}
-          />
-        ) : null}
-      </Modal>
 
       <Modal
         title="Thêm nhân sự"

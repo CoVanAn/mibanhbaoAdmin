@@ -5,3 +5,5 @@ export * from "./user/auth";
 export * from "./order/order";
 export * from "./order/coupon";
 export * from "./user/employee";
+export * from "./user/customer";
+export * from "./user/dashboard";

@@ -12,7 +12,7 @@ const AddressesTab = ({ addresses }: AddressesTabProps) => {
     {
       title: "Người nhận",
       key: "recipient",
-      render: (_: any, a: CustomerAddress) => (
+      render: (_: unknown, a: CustomerAddress) => (
         <div>
           <Text strong>{a.name}</Text>
           <br />
@@ -25,7 +25,7 @@ const AddressesTab = ({ addresses }: AddressesTabProps) => {
     {
       title: "Địa chỉ",
       key: "address",
-      render: (_: any, a: CustomerAddress) => (
+      render: (_: unknown, a: CustomerAddress) => (
         <Text>
           {a.addressLine}, {a.ward}, {a.district}, {a.province}
         </Text>

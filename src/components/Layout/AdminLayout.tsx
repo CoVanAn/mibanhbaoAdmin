@@ -22,7 +22,7 @@ import {
   Typography,
 } from "antd";
 import type { MenuProps } from "antd";
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuthQuery";
 import "./AdminLayout.css";
 // import { assets } from "../../assets/assets";
@@ -72,10 +72,23 @@ const items = [
 
 const AdminLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const { pathname } = useLocation();
   const {
     token: { colorBgContainer },
   } = theme.useToken();
   const { user, logout } = useAuth();
+
+  const selectedMenuKey = (() => {
+    if (pathname.startsWith("/products/add")) return "products-add";
+    if (pathname.startsWith("/products")) return "products-list";
+    if (pathname.startsWith("/categories")) return "5";
+    if (pathname.startsWith("/orders")) return "6";
+    if (pathname.startsWith("/deals")) return "7";
+    if (pathname.startsWith("/customers")) return "customers";
+    if (pathname.startsWith("/employees")) return "8";
+    if (pathname.startsWith("/dashboard") || pathname === "/") return "1";
+    return "";
+  })();
 
   const userMenuItems = [
     {
@@ -113,7 +126,8 @@ const AdminLayout = () => {
         <div className="demo-logo-vertical">MI</div>
         <Menu
           theme="dark"
-          defaultSelectedKeys={["1"]}
+          selectedKeys={selectedMenuKey ? [selectedMenuKey] : []}
+          defaultOpenKeys={["sub1"]}
           mode="inline"
           items={items}
         />

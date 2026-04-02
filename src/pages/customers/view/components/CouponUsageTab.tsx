@@ -15,7 +15,7 @@ const CouponUsageTab = ({ redemptions }: CouponUsageTabProps) => {
       title: "Mã coupon",
       key: "code",
       width: 130,
-      render: (_: any, r: CustomerCouponRedemption) => (
+      render: (_: unknown, r: CustomerCouponRedemption) => (
         <Text strong code>
           {r.coupon.code}
         </Text>
@@ -25,7 +25,7 @@ const CouponUsageTab = ({ redemptions }: CouponUsageTabProps) => {
       title: "Loại / Giá trị",
       key: "value",
       width: 140,
-      render: (_: any, r: CustomerCouponRedemption) => (
+      render: (_: unknown, r: CustomerCouponRedemption) => (
         <Text>
           {r.coupon.type === "PERCENT"
             ? `Giảm ${r.coupon.value}%`
@@ -48,7 +48,7 @@ const CouponUsageTab = ({ redemptions }: CouponUsageTabProps) => {
       title: "Đơn hàng",
       key: "order",
       width: 120,
-      render: (_: any, r: CustomerCouponRedemption) => (
+      render: (_: unknown, r: CustomerCouponRedemption) => (
         <Text>{r.order.code}</Text>
       ),
     },

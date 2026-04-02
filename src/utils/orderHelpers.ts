@@ -66,6 +66,19 @@ export const FULFILLMENT_METHOD_CONFIG = {
   PICKUP: { label: "Tự đến lấy", color: "green", icon: "🏪" },
 } as const;
 
+type OrderCustomerLike = {
+  user?: { name?: string | null; phone?: string | null } | null;
+  address?: { name?: string | null; phone?: string | null } | null;
+};
+
+type AddressLike = {
+  company?: string | null;
+  addressLine?: string | null;
+  ward?: string | null;
+  district?: string | null;
+  province?: string | null;
+} | null;
+
 /**
  * Get status label
  */
@@ -158,7 +171,7 @@ export function formatOrderDate(dateString: string): string {
 /**
  * Get customer display name from order
  */
-export function getCustomerName(order: any): string {
+export function getCustomerName(order: OrderCustomerLike): string {
   if (order.user?.name) return order.user.name;
   if (order.address?.name) return order.address.name;
   return "Khách hàng";
@@ -167,7 +180,7 @@ export function getCustomerName(order: any): string {
 /**
  * Get customer phone from order
  */
-export function getCustomerPhone(order: any): string {
+export function getCustomerPhone(order: OrderCustomerLike): string {
   if (order.user?.phone) return order.user.phone;
   if (order.address?.phone) return order.address.phone;
   return "N/A";
@@ -176,7 +189,7 @@ export function getCustomerPhone(order: any): string {
 /**
  * Get full address string
  */
-export function getFullAddress(address: any): string {
+export function getFullAddress(address: AddressLike): string {
   if (!address) return "N/A";
 
   const main = [address.company, address.addressLine].filter(Boolean).join(" - ");

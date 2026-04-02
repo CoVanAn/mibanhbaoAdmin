@@ -36,6 +36,7 @@ import {
 } from "../../../hooks/useEmployeeQuery";
 import { useAuth } from "../../../hooks/useAuthQuery";
 import { formatDate } from "../../../utils/helpers";
+import { getErrorMessage } from "../../../utils/httpError";
 
 const { Text, Title } = Typography;
 
@@ -111,7 +112,7 @@ export const EmployeeViewContent = ({
       <Alert
         type="error"
         message="Khong tim thay nhan vien"
-        description={(error as any)?.message}
+        description={getErrorMessage(error, "Không thể tải thông tin nhân sự")}
         action={onClose ? <Button onClick={onClose}>Dong</Button> : undefined}
       />
     );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Table,
   Button,
@@ -24,8 +24,9 @@ import {
   useUpdateCouponMutation,
   useDeleteCouponMutation,
 } from "../../../hooks/useCouponQuery";
+import type { CouponPayload } from "../../../api/coupons";
 import type { Coupon } from "../../../schema/coupon.schema";
-import CouponFormModal from "./CouponFormModal";
+import CouponFormModal, { type CouponModalSubmitPayload } from "./CouponFormModal";
 import CouponRedemptionDrawer from "./CouponRedemptionDrawer";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
@@ -39,6 +40,7 @@ export default function CouponList() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<Coupon | null>(null);
   const [redemptionCoupon, setRedemptionCoupon] = useState<Coupon | null>(null);
+  const [searchValue, setSearchValue] = useState("");
   const userRole = useStore((state) => state.user?.role);
   const isStaff = userRole?.toUpperCase() === "STAFF";
 
@@ -46,6 +48,13 @@ export default function CouponList() {
   const createMutation = useCreateCouponMutation();
   const updateMutation = useUpdateCouponMutation();
   const deleteMutation = useDeleteCouponMutation();
+
+  const filteredCoupons = useMemo(() => {
+    const keyword = searchValue.trim().toLowerCase();
+    if (!keyword) return coupons;
+
+    return coupons.filter((coupon) => coupon.code.toLowerCase().includes(keyword));
+  }, [coupons, searchValue]);
 
   const openCreate = () => {
     setEditing(null);
@@ -62,10 +71,39 @@ export default function CouponList() {
     setDrawerOpen(true);
   };
 
-  const handleSubmit = async (values: any) => {
+  const isCreatePayload = (
+    payload: CouponModalSubmitPayload,
+  ): payload is CouponPayload => {
+    const candidate = payload as Partial<CouponPayload>;
+    return (
+      typeof candidate.code === "string" &&
+      !!candidate.code &&
+      (candidate.type === "PERCENT" || candidate.type === "FIXED") &&
+      typeof candidate.value === "number"
+    );
+  };
+
+  const handleSubmit = async (values: CouponModalSubmitPayload) => {
     if (editing) {
-      await updateMutation.mutateAsync({ id: editing.id, data: values });
+      const updateData: Partial<Omit<CouponPayload, "code">> = {
+        type: values.type,
+        value: values.value,
+        startsAt: values.startsAt,
+        endsAt: values.endsAt,
+        minSubtotal: values.minSubtotal,
+        maxRedemptions: values.maxRedemptions,
+        perUserLimit: values.perUserLimit,
+        isActive: values.isActive,
+      };
+
+      await updateMutation.mutateAsync({
+        id: editing.id,
+        data: updateData,
+      });
     } else {
+      if (!isCreatePayload(values)) {
+        return;
+      }
       await createMutation.mutateAsync(values);
     }
     setFormOpen(false);
@@ -139,7 +177,7 @@ export default function CouponList() {
       width: 80,
       align: "center",
 
-      render: (_: any, record) => (
+      render: (_: unknown, record) => (
         <strong style={{ color: "#f5222d" }}>
           {record.type === "PERCENT"
             ? `${record.value}%`
@@ -151,13 +189,13 @@ export default function CouponList() {
       title: "Hết hạn",
       width: 100,
       align: "center",
-      render: (_: any, record) => formatExpiry(record),
+      render: (_: unknown, record) => formatExpiry(record),
     },
     {
       title: "Lượt dùng",
       width: 80,
       align: "center",
-      render: (_: any, record) => (
+      render: (_: unknown, record) => (
         <span>
           {record.usedCount}
           {record.maxRedemptions != null ? ` / ${record.maxRedemptions}` : ""}
@@ -191,7 +229,7 @@ export default function CouponList() {
       title: "Thao tác",
       width: 200,
 
-      render: (_: any, record) =>
+      render: (_: unknown, record) =>
         isStaff ? (
           <Tag>Chỉ xem</Tag>
         ) : (
@@ -246,6 +284,8 @@ export default function CouponList() {
           placeholder="Tìm mã coupon..."
           style={{ width: 240 }}
           allowClear
+          value={searchValue}
+          onChange={(event) => setSearchValue(event.target.value)}
         />
         <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
           Tạo coupon
@@ -255,7 +295,7 @@ export default function CouponList() {
       <Table
         rowKey="id"
         columns={columns}
-        dataSource={coupons}
+        dataSource={filteredCoupons}
         loading={isLoading}
         size="middle"
         pagination={{ pageSize: 15, showTotal: (t) => `Tổng ${t}` }}

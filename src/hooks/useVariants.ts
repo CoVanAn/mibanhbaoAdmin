@@ -15,11 +15,44 @@ import {
   fetchProductVariant,
   fetchVariantPrices,
 } from "../queries/product/product";
+import type {
+  InventoryData,
+  PriceData,
+  VariantData,
+} from "../queries/product/types";
+
+type VariantRecord = {
+  id?: number | null;
+  name?: string;
+  sku?: string;
+  isActive?: boolean;
+  [key: string]: unknown;
+};
+
+type VariantListResponse = {
+  variants?: VariantRecord[];
+};
+
+type VariantPricePayload = {
+  amount?: number;
+  startsAt?: string;
+  endsAt?: string;
+  isActive?: boolean;
+};
+
+type UpdateVariantPricePayload = VariantPricePayload & {
+  priceId: number;
+};
+
+type VariantPricesResponse = {
+  prices?: Array<Record<string, unknown>>;
+  currentPrice?: { id?: number | null } | null;
+};
 
 export const useVariants = () => {
   const queryClient = useQueryClient();
   const [loadingAction, setLoadingAction] = useState(false);
-  const [variants, setVariants] = useState<any[]>([]);
+  const [variants, setVariants] = useState<VariantRecord[]>([]);
 
   const createVariantMutation = useCreateVariantMutation();
   const updateVariantMutation = useUpdateVariantMutation();
@@ -42,12 +75,15 @@ export const useVariants = () => {
   const getVariants = async (productId: number) => {
     setLoadingAction(true);
     try {
-      const response = await queryClient.fetchQuery({
+      const response = await queryClient.fetchQuery<VariantListResponse | VariantRecord[]>({
         queryKey: productKeys.variants(productId),
         queryFn: () => fetchProductVariants(productId),
       });
 
-      const normalized = response?.variants || response || [];
+      const normalized =
+        !Array.isArray(response) && response?.variants
+          ? response.variants
+          : response;
       setVariants(Array.isArray(normalized) ? normalized : []);
       return response;
     } finally {
@@ -58,7 +94,7 @@ export const useVariants = () => {
   const getVariant = async (productId: number, variantId: number) => {
     setLoadingAction(true);
     try {
-      return await queryClient.fetchQuery({
+      return await queryClient.fetchQuery<Record<string, unknown>>({
         queryKey: productKeys.variant(productId, variantId),
         queryFn: () => fetchProductVariant(productId, variantId),
       });
@@ -67,14 +103,14 @@ export const useVariants = () => {
     }
   };
 
-  const createVariant = async (productId: number, variantData: any) => {
+  const createVariant = async (productId: number, variantData: VariantData) => {
     return createVariantMutation.mutateAsync({ productId, data: variantData });
   };
 
   const updateVariant = async (
     productId: number,
     variantId: number,
-    variantData: any,
+    variantData: Partial<VariantData>,
   ) => {
     return updateVariantMutation.mutateAsync({
       productId,
@@ -90,7 +126,7 @@ export const useVariants = () => {
   const setVariantPrice = async (
     productId: number,
     variantId: number,
-    priceData: any,
+    priceData: PriceData,
   ) => {
     return setVariantPriceMutation.mutateAsync({
       productId,
@@ -102,11 +138,11 @@ export const useVariants = () => {
   const updateVariantPrice = async (
     productId: number,
     variantId: number,
-    priceIdOrPayload: number | any,
-    maybePriceData?: any,
+    priceIdOrPayload: number | UpdateVariantPricePayload,
+    maybePriceData?: Partial<PriceData>,
   ) => {
     let priceId: number;
-    let data: any;
+    let data: Partial<PriceData>;
 
     if (typeof priceIdOrPayload === "object" && priceIdOrPayload !== null) {
       priceId = Number(priceIdOrPayload.priceId);
@@ -132,7 +168,7 @@ export const useVariants = () => {
   ) => {
     setLoadingAction(true);
     try {
-      return await queryClient.fetchQuery({
+      return await queryClient.fetchQuery<VariantPricesResponse>({
         queryKey: productKeys.prices(productId, variantId, options),
         queryFn: () => fetchVariantPrices(productId, variantId, options),
       });
@@ -156,7 +192,7 @@ export const useVariants = () => {
   const updateVariantInventory = async (
     productId: number,
     variantId: number,
-    inventoryData: any,
+    inventoryData: InventoryData,
   ) => {
     return updateVariantInventoryMutation.mutateAsync({
       productId,

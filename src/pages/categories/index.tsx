@@ -11,6 +11,7 @@ import {
   Popconfirm,
   Tag,
 } from "antd";
+import type { Rule } from "antd/es/form";
 import type { ColumnsType } from "antd/es/table";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import {
@@ -37,6 +38,20 @@ type Category = {
   updatedAt?: string | null;
 };
 
+type CategoryFormValues = {
+  name: string;
+  parentId?: number | null;
+  position?: number | string;
+  isActive?: boolean;
+};
+
+type CategoryMutationPayload = {
+  name: string;
+  position: number;
+  isActive: boolean;
+  parentId: number | null;
+};
+
 const Categories = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -53,7 +68,7 @@ const Categories = () => {
   const { getCategoryDisplayName, getParentOptions } = useCategoryHelpers();
 
   // Handle create/update category
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: CategoryFormValues) => {
     try {
       if (isStaff && editingCategory) {
         toast.warning(
@@ -63,7 +78,7 @@ const Categories = () => {
       }
 
       // Clean and prepare data
-      const categoryData: any = {
+      const categoryData: CategoryMutationPayload = {
         name: values.name?.trim(),
         position:
           typeof values.position === "number"
@@ -203,7 +218,7 @@ const Categories = () => {
       title: "Thao tác",
       key: "actions",
       width: 150,
-      render: (_: any, record: Category) =>
+      render: (_: unknown, record: Category) =>
         isStaff ? (
           <Tag>Chỉ xem</Tag>
         ) : (
@@ -301,7 +316,11 @@ const Categories = () => {
           <Form.Item
             label="Tên Category"
             name="name"
-            rules={validationRules.name as any}
+            rules={
+              (Array.isArray(validationRules.name)
+                ? validationRules.name
+                : [validationRules.name]) as Rule[]
+            }
           >
             <Input placeholder="Nhập tên category" />
           </Form.Item>
@@ -315,9 +334,7 @@ const Categories = () => {
               placeholder="Chọn category cha"
               allowClear
               showSearch
-              filterOption={(input, option: any) =>
-                option?.children?.toLowerCase?.().includes(input.toLowerCase())
-              }
+              optionFilterProp="children"
             >
               <Option key="none" value={null}>
                 <em>Không có category cha (Category gốc)</em>

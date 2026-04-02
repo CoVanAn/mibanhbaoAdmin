@@ -15,7 +15,8 @@ export const CategorySchema = z.object({
 export const CategoryListSchema = z.array(CategorySchema);
 
 // Form validation schema for Admin
-const trimmedString = (message : any) => z.string().trim().min(1, { message });
+const trimmedString = (message: string) =>
+  z.string().trim().min(1, { message });
 
 const optionalTrimmedString = () =>
   z

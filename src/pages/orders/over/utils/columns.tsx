@@ -33,7 +33,7 @@ export const getOrderColumns = (onViewOrder: (id: number) => void) => [
     title: "Khách hàng",
     key: "customer",
     width: 120,
-    render: (_: any, order: Order) => (
+    render: (_: unknown, order: Order) => (
       <Space direction="vertical" size={0}>
         <Text strong>{getCustomerName(order)}</Text>
         <Text type="secondary" style={{ fontSize: "12px" }}>
@@ -62,7 +62,7 @@ export const getOrderColumns = (onViewOrder: (id: number) => void) => [
     key: "itemCount",
     width: 60,
     align: "center" as const,
-    render: (items: any[]) => <Text strong>{items?.length || 0}</Text>,
+    render: (items: Order["items"]) => <Text strong>{items?.length || 0}</Text>,
   },
   {
     title: "Tổng tiền",
@@ -101,7 +101,7 @@ export const getOrderColumns = (onViewOrder: (id: number) => void) => [
     key: "actions",
     width: 100,
     fixed: "right" as const,
-    render: (_: any, order: Order) => (
+    render: (_: unknown, order: Order) => (
       <Space>
         <Tooltip title="Xem chi tiết">
           <Button

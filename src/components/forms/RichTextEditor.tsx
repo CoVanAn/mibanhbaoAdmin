@@ -52,7 +52,12 @@ const RichTextEditor = ({ value, onChange, placeholder, maxLength } : { value?: 
   const lastHtmlRef = useRef(value || "");
   const quillRef = useRef<InstanceType<typeof ReactQuill> | null>(null);
 
-  const handleChange = (content: string, _delta: any, _source: any, editor: any) => {
+  const handleChange = (
+    content: string,
+    _delta: unknown,
+    _source: unknown,
+    editor: { root?: { innerHTML?: string } } | undefined,
+  ) => {
     const html = editor?.root?.innerHTML ?? content ?? "";
     lastHtmlRef.current = html;
     onChange?.(html);
@@ -61,7 +66,7 @@ const RichTextEditor = ({ value, onChange, placeholder, maxLength } : { value?: 
   useEffect(() => {
     const quill = quillRef.current?.getEditor?.();
     if (!quill) return;
-    const onTextChange = (_delta: any, _old: any, source: any) => {
+    const onTextChange = (_delta: unknown, _old: unknown, source: unknown) => {
       if (source !== "user") return;
       const text = quill.getText() || "";
       let len = Math.max(0, text.length - 1);

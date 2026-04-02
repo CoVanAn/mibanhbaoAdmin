@@ -23,7 +23,10 @@ export interface UserState {
   isAdmin: () => boolean;
 }
 
-const createUserSlice = (set: any, get: any): UserState => ({
+type SetUserState = (partial: Partial<UserState>) => void;
+type GetUserState = () => UserState;
+
+const createUserSlice = (set: SetUserState, get: GetUserState): UserState => ({
   token: "", // Access token in memory only
   user: null, // User data
   isInitialized: false, // Track if we've tried to refresh on mount

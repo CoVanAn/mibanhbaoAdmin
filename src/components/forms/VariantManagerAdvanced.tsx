@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   Form,
@@ -28,6 +28,7 @@ import {
 import { formatCurrency } from "../../utils";
 import { useVariants } from "../../hooks/useVariants";
 import PriceManagementModal from "./PriceManagementModal";
+import { getErrorMessage } from "../../utils/httpError";
 
 const { Text } = Typography;
 
@@ -66,6 +67,32 @@ type InventoryFormValues = {
   safetyStock: number;
 };
 
+type VariantCreatePayload = {
+  name: string;
+  sku?: string;
+  isActive: boolean;
+  initialStock: number;
+  safetyStock: number;
+};
+
+type CreateVariantResponse = {
+  id?: number;
+  data?: { id?: number };
+};
+
+const extractApiErrorMessage = (error: unknown): string | undefined => {
+  if (typeof error !== "object" || error === null) return undefined;
+
+  const withResponse = error as {
+    response?: { data?: { errors?: Array<{ message?: string }> } };
+  };
+
+  return withResponse.response?.data?.errors?.[0]?.message;
+};
+
+const parseCurrencyInput = (value?: string): number =>
+  Number((value ?? "").replace(/\$\s?|(,*)/g, ""));
+
 type VariantManagerAdvancedProps = {
   variants?: VariantItem[];
   onVariantsChange?: (variants: VariantItem[]) => void;
@@ -76,7 +103,7 @@ type VariantManagerAdvancedProps = {
 const VariantManagerAdvanced = ({
   variants = [],
   onVariantsChange,
-  product = {} as ProductLike,
+  product = {},
   mode = "advanced",
 }: VariantManagerAdvancedProps) => {
   const [localVariants, setLocalVariants] = useState<VariantItem[]>(variants);
@@ -101,13 +128,16 @@ const VariantManagerAdvanced = ({
   } = useVariants();
 
   // Load variants from API
-  const loadVariants = async () => {
+  const loadVariants = useCallback(async () => {
     if (!product?.id) return;
 
     setLoading(true);
     try {
       const response = await getVariants(product.id);
-      const variantsData = response?.variants || response || [];
+      const variantsData =
+        Array.isArray(response)
+          ? response
+          : response?.variants || [];
 
       // The getVariants endpoint now returns everything we need (including currentPrice and inventory)
       // No need for extra API calls per variant.
@@ -149,7 +179,7 @@ const VariantManagerAdvanced = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [getVariants, onVariantsChange, product?.id]);
 
   // Load variants when product changes
   useEffect(() => {
@@ -168,7 +198,7 @@ const VariantManagerAdvanced = ({
         },
       ]);
     }
-  }, [product?.id]);
+  }, [loadVariants, product?.id, product?.price]);
 
   const handleAddVariant = async (values: VariantFormValues) => {
     if (!product?.id) {
@@ -178,7 +208,7 @@ const VariantManagerAdvanced = ({
 
     try {
       // Build variant data - let server handle SKU generation if not provided
-      const newVariantData: any = {
+      const newVariantData: VariantCreatePayload = {
         name: values.name,
         isActive: values.isActive !== false,
         initialStock: values.initialStock || 0,
@@ -195,14 +225,14 @@ const VariantManagerAdvanced = ({
           .replace(/^-|-$/g, "");
       }
 
-      console.log("Creating variant with data:", newVariantData);
-
-      const response = await createVariant(product.id, newVariantData);
-
-      console.log("Create variant response:", response);
+      const response = await createVariant(
+        product.id,
+        newVariantData,
+      );
+      const created = response as CreateVariantResponse;
 
       // Check if variant was created (response.id or response.success)
-      const variantId = response.id || response.data?.id;
+      const variantId = created.id || created.data?.id;
       if (variantId) {
         // Add price for the new variant
         if (values.price && Number(values.price) > 0) {
@@ -227,13 +257,11 @@ const VariantManagerAdvanced = ({
       } else {
         message.error("Không thể tạo variant");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error adding variant:", error);
       // Show more detailed error if available
-      const errorMsg =
-        error.response?.data?.errors?.[0]?.message ||
-        error.response?.data?.message ||
-        "Lỗi khi thêm variant";
+      const apiError = extractApiErrorMessage(error);
+      const errorMsg = apiError || getErrorMessage(error, "Lỗi khi thêm variant");
       message.error(errorMsg);
     }
   };
@@ -523,8 +551,7 @@ const VariantManagerAdvanced = ({
               `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             }
             parser={
-              ((value: string | undefined) =>
-                Number((value ?? "").replace(/\$\s?|(,*)/g, ""))) as any
+              (value) => parseCurrencyInput(value)
             }
             placeholder={
               defaultVariant
@@ -652,8 +679,7 @@ const VariantManagerAdvanced = ({
                     `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                   }
                   parser={
-                    ((value: string | undefined) =>
-                      Number((value ?? "").replace(/\$\s?|(,*)/g, ""))) as any
+                    (value) => parseCurrencyInput(value)
                   }
                   addonAfter="VNĐ"
                 />

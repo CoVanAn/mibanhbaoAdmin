@@ -33,14 +33,17 @@ export interface UpdateProductData {
   currentPrice?: number | null;
   newImages?: File[];
   existingImageIds?: number[];
-  imagePositions?: number[];
+  imagePositions?: Array<{
+    id: number;
+    position: number;
+  }>;
   categories?: number[];
 }
 
 export interface VariantData {
   name: string;
   sku?: string;
-  attributes?: Record<string, any>;
+  attributes?: Record<string, unknown>;
   price?: number;
   compareAtPrice?: number;
   stock?: number;
@@ -48,15 +51,20 @@ export interface VariantData {
 }
 
 export interface PriceData {
-  price: number;
+  price?: number;
+  amount?: number;
   compareAtPrice?: number;
+  startsAt?: string;
+  endsAt?: string;
   effectiveFrom?: string;
   effectiveTo?: string;
   isActive?: boolean;
 }
 
 export interface InventoryData {
-  stock: number;
+  stock?: number;
+  quantity?: number;
+  safetyStock?: number;
   lowStockThreshold?: number;
   isInStock?: boolean;
 }

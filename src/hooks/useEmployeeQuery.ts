@@ -18,6 +18,7 @@ import {
   toggleEmployeeStatus,
   updateEmployee,
 } from "../queries/user/employee";
+import { getErrorMessage } from "../utils/httpError";
 
 export const employeeKeys = {
   all: ["employees"] as const,
@@ -68,10 +69,8 @@ export function useToggleEmployeeStatusMutation() {
           : "Vô hiệu hoá tài khoản thành công!",
       );
     },
-    onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message || "Cập nhật trạng thái thất bại",
-      );
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Cập nhật trạng thái thất bại"));
     },
   });
 }
@@ -85,8 +84,8 @@ export function useCreateEmployeeMutation() {
       queryClient.invalidateQueries({ queryKey: employeeKeys.lists() });
       toast.success("Tạo nhân viên thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Tạo nhân viên thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Tạo nhân viên thất bại"));
     },
   });
 }
@@ -102,8 +101,8 @@ export function useUpdateEmployeeMutation() {
       queryClient.invalidateQueries({ queryKey: employeeKeys.detail(variables.id) });
       toast.success("Cập nhật nhân viên thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Cập nhật nhân viên thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Cập nhật nhân viên thất bại"));
     },
   });
 }
@@ -115,8 +114,8 @@ export function useResetEmployeePasswordMutation() {
     onSuccess: () => {
       toast.success("Đặt lại mật khẩu thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Đặt lại mật khẩu thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Đặt lại mật khẩu thất bại"));
     },
   });
 }

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Card,
   Table,
@@ -20,8 +20,10 @@ import { Space, Tag, Typography } from "antd";
 import { EyeOutlined } from "@ant-design/icons";
 import type { CustomerListItem } from "../../../schema/customer.schema";
 import { formatDate } from "../../../utils/helpers";
+import { getErrorMessage } from "../../../utils/httpError";
 
 const { Option } = Select;
+const { Text } = Typography;
 
 const CustomersList = () => {
   const navigate = useNavigate();
@@ -30,6 +32,11 @@ const CustomersList = () => {
 
   const searchTerm = readString("search");
   const isActiveFilter = readOptionalString("isActive");
+  const [searchInput, setSearchInput] = useState(searchTerm);
+
+  useEffect(() => {
+    setSearchInput(searchTerm);
+  }, [searchTerm]);
 
   const handleReset = () => {
     updateFilters({ search: undefined, isActive: undefined, page: undefined });
@@ -57,15 +64,13 @@ const CustomersList = () => {
   //   () => getCustomerColumns((id) => navigate(`/customers/${id}`)),
   //   [navigate],
   // );
-  const { Text } = Typography;
-
   const columns = useMemo(
     () => [
       {
         title: "Tên khách hàng",
         key: "name",
         width: 200,
-        render: (_: any, c: CustomerListItem) => (
+        render: (_: unknown, c: CustomerListItem) => (
           <Space direction="vertical" size={0}>
             <Text strong>{c.name}</Text>
             <Text type="secondary" style={{ fontSize: "12px" }}>
@@ -118,7 +123,7 @@ const CustomersList = () => {
         width: 90,
         align: "center" as const,
         fixed: "right" as const,
-        render: (_: any, c: CustomerListItem) => (
+        render: (_: unknown, c: CustomerListItem) => (
           <Button
             type="link"
             icon={<EyeOutlined />}
@@ -168,7 +173,8 @@ const CustomersList = () => {
               <Input.Search
                 allowClear
                 placeholder="Tìm theo tên, email, SĐT"
-                defaultValue={searchTerm}
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
                 onSearch={(value) =>
                   updateFilters({ search: value || undefined, page: undefined })
                 }
@@ -206,7 +212,7 @@ const CustomersList = () => {
         <Alert
           type="error"
           message="Lỗi tải dữ liệu"
-          description={(error as any)?.message}
+          description={getErrorMessage(error, "Không thể tải dữ liệu khách hàng")}
           style={{ marginBottom: 16 }}
         />
       )}

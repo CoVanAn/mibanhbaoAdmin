@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Modal,
   Table,
@@ -21,9 +21,10 @@ import {
   ClockCircleOutlined,
   CheckCircleOutlined,
 } from "@ant-design/icons";
-import dayjs from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import { useVariants } from "../../hooks/useVariants";
 import { formatCurrency, formatDate } from "../../utils";
+import { getErrorMessage } from "../../utils/httpError";
 
 type PriceRecord = {
   id: number;
@@ -32,6 +33,27 @@ type PriceRecord = {
   endsAt?: string | null;
   isActive: boolean;
 };
+
+type VariantPricesResponse = {
+  currentPrice?: { id?: number | null } | null;
+  prices?: PriceRecord[];
+};
+
+type PriceFormValues = {
+  amount: number;
+  dates?: [Dayjs, Dayjs] | null;
+  isActive?: boolean;
+};
+
+type PricePayload = {
+  amount: number;
+  isActive: boolean;
+  startsAt?: string;
+  endsAt?: string;
+};
+
+const parseCurrencyInput = (value?: string): number =>
+  Number((value ?? "").replace(/\$\s?|(,*)/g, ""));
 
 type PriceManagementModalProps = {
   product: { id: number };
@@ -53,7 +75,7 @@ const PriceManagementModal = ({
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingPrice, setEditingPrice] = useState<PriceRecord | null>(null);
   const [form] = Form.useForm();
-  const [activePriceId, setActivePriceId] = useState(null);
+  const [activePriceId, setActivePriceId] = useState<number | null>(null);
   const {
     getVariantPrices,
     setVariantPrice,
@@ -61,13 +83,13 @@ const PriceManagementModal = ({
     deleteVariantPrice,
   } = useVariants();
 
-  const fetchPrices = async () => {
+  const fetchPrices = useCallback(async () => {
     if (!variant?.id) return;
     setLoading(true);
     try {
-      const response = await getVariantPrices(product.id, variant.id, {
+      const response = (await getVariantPrices(product.id, variant.id, {
         includeInactive: true,
-      });
+      })) as VariantPricesResponse;
       const currentPriceId = response.currentPrice?.id;
       const normalized = ((response?.prices || []) as PriceRecord[]).slice();
       normalized.sort((a: PriceRecord, b: PriceRecord) => {
@@ -91,19 +113,19 @@ const PriceManagementModal = ({
       });
       setPrices(normalized);
       setActivePriceId(currentPriceId || null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to fetch prices:", error);
-      message.error("Không thể tải danh sách giá.");
+      message.error(getErrorMessage(error, "Không thể tải danh sách giá."));
     } finally {
       setLoading(false);
     }
-  };
+  }, [getVariantPrices, product.id, variant?.id]);
 
   useEffect(() => {
     if (open) {
       fetchPrices();
     }
-  }, [open, variant]);
+  }, [open, fetchPrices]);
 
   const handleOpenEditModal = (price: PriceRecord | null = null) => {
     setEditingPrice(price);
@@ -129,10 +151,10 @@ const PriceManagementModal = ({
     form.resetFields();
   };
 
-  const handleFormSubmit = async (values: any) => {
+  const handleFormSubmit = async (values: PriceFormValues) => {
     if (!variant?.id) return;
 
-    const priceData: any = {
+    const priceData: PricePayload = {
       amount: Number(values.amount),
       isActive: values.isActive !== false,
     };
@@ -159,11 +181,9 @@ const PriceManagementModal = ({
       handleCloseEditModal();
       fetchPrices(); // Refresh price list
       onUpdate(); // Refresh variants list in parent
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to save price:", error);
-      const errorMessage =
-        error.response?.data?.message || "Thao tác thất bại.";
-      message.error(errorMessage);
+      message.error(getErrorMessage(error, "Thao tác thất bại."));
     }
   };
 
@@ -174,11 +194,9 @@ const PriceManagementModal = ({
       await deleteVariantPrice(product.id, variant.id, priceId);
       fetchPrices();
       onUpdate();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to delete price:", error);
-      const errorMessage =
-        error.response?.data?.message || "Không thể xóa giá.";
-      message.error(errorMessage);
+      message.error(getErrorMessage(error, "Không thể xóa giá."));
     }
   };
 
@@ -305,15 +323,12 @@ const PriceManagementModal = ({
             label="Mức giá (VNĐ)"
             rules={[{ required: true, message: "Vui lòng nhập giá!" }]}
           >
-            <InputNumber
+            <InputNumber<number>
               style={{ width: "100%" }}
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
-              parser={
-                ((value: string | undefined) =>
-                  Number((value ?? "").replace(/\$\s?|(,*)/g, ""))) as any
-              }
+              parser={(value) => parseCurrencyInput(value)}
               min={0}
             />
           </Form.Item>

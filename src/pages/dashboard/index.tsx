@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Suspense, lazy, useMemo, useState } from "react";
 import {
   Alert,
   Card,
@@ -11,7 +11,6 @@ import {
   Tag,
   Table,
 } from "antd";
-import { Line } from "@ant-design/charts";
 import {
   BarChartOutlined,
   DollarCircleOutlined,
@@ -33,6 +32,7 @@ import {
 } from "../../api/dashboard";
 
 const { RangePicker } = DatePicker;
+const RevenueLineChart = lazy(() => import("./components/RevenueLineChart"));
 
 const quarterOptions = [
   { value: 1, label: "Quý 1" },
@@ -101,12 +101,6 @@ const DashboardPage = () => {
     []) as DashboardTopProduct[];
   const lowStock = (lowStockQuery.data?.lowStock ||
     []) as DashboardLowStockItem[];
-  const config = {
-    data: daily,
-    xField: "date",
-    yField: "revenue",
-    smooth: true,
-  };
   return (
     <div style={{ padding: 16 }}>
       <Space
@@ -242,7 +236,9 @@ const DashboardPage = () => {
           </Col>
         </Row>
         <Card title="Doanh thu theo ngày">
-          <Line {...config} />
+          <Suspense fallback={<div>Đang tải biểu đồ...</div>}>
+            <RevenueLineChart data={daily} />
+          </Suspense>
         </Card>
         <Card>
           <Table

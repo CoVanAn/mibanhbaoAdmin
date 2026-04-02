@@ -104,7 +104,7 @@ const OrderHistoryTab = ({ orders }: OrderHistoryTabProps) => {
       key: "action",
       width: 70,
       align: "center" as const,
-      render: (_: any, o: CustomerOrderSummary) => (
+      render: (_: unknown, o: CustomerOrderSummary) => (
         <Button
           type="link"
           icon={<EyeOutlined />}

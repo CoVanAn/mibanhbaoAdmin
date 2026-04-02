@@ -14,6 +14,11 @@ import {
 import { Image } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { useProductQuery } from "../../../hooks/useProductQuery";
+import type {
+  ProductCategory,
+  ProductImage,
+  ProductVariant,
+} from "../../../schema/product.schema";
 
 const { Title, Text } = Typography;
 
@@ -73,7 +78,7 @@ const ProductsView = () => {
                   }}
                 />
                 <Space wrap style={{ marginTop: 16 }}>
-                  {product.images.slice(1).map((img: any) => (
+                  {product.images.slice(1).map((img: ProductImage) => (
                     <Image
                       key={img.id}
                       src={img.url}
@@ -119,7 +124,7 @@ const ProductsView = () => {
                 : Array.isArray(product.categories) &&
                     product.categories.length > 0
                   ? product.categories
-                      .map((c: any) => c.name || c.id)
+                      .map((c: ProductCategory) => c.name || c.id)
                       .join(", ")
                   : "Không có"}
             </Tag>
@@ -148,7 +153,7 @@ const ProductsView = () => {
           {
             title: "Giá",
             key: "price",
-            render: (_: any, r: any) => {
+            render: (_: unknown, r: ProductVariant) => {
               const price = r.price ?? r.currentPrice;
               return price !== null && price !== undefined ? (
                 <Text>{Number(price).toLocaleString()} VNĐ</Text>
@@ -160,14 +165,8 @@ const ProductsView = () => {
           {
             title: "Số lượng",
             key: "quantity",
-            render: (_: any, r: any) => {
-              const qty =
-                r.inventory?.quantity ??
-                r.stock ??
-                r.quantity ??
-                (Array.isArray(r.inventories)
-                  ? r.inventories[0]?.quantity
-                  : undefined);
+            render: (_: unknown, r: ProductVariant) => {
+              const qty = r.quantity;
               return qty !== undefined && qty !== null ? (
                 <Tag>{Number(qty).toLocaleString()}</Tag>
               ) : (
@@ -178,13 +177,10 @@ const ProductsView = () => {
           {
             title: "Tồn kho an toàn",
             key: "safetyStock",
-            render: (_: any, r: any) => {
+            render: (_: unknown, r: ProductVariant) => {
               const safety =
-                r.inventory?.safetyStock ??
                 r.safetyStock ??
-                (Array.isArray(r.inventories)
-                  ? r.inventories[0]?.safetyStock
-                  : undefined);
+                undefined;
               return safety !== undefined && safety !== null ? (
                 <Tag color="blue">{Number(safety).toLocaleString()}</Tag>
               ) : (

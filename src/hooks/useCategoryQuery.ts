@@ -7,6 +7,10 @@ import {
   deleteCategory,
 } from "../queries/product/category";
 import { toast } from "react-toastify";
+import { getErrorMessage } from "../utils/httpError";
+
+type CategoryItem = Awaited<ReturnType<typeof fetchCategories>>[number];
+type CategoryUpdatePayload = Parameters<typeof updateCategory>[1];
 
 // Query Keys
 
@@ -51,8 +55,8 @@ export function useCreateCategoryMutation() {
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
       toast.success("Thêm danh mục thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Thêm danh mục thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Thêm danh mục thất bại"));
     },
   });
 }
@@ -64,7 +68,8 @@ export function useUpdateCategoryMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => updateCategory(id, data),
+    mutationFn: ({ id, data }: { id: number; data: CategoryUpdatePayload }) =>
+      updateCategory(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
       queryClient.invalidateQueries({
@@ -72,10 +77,8 @@ export function useUpdateCategoryMutation() {
       });
       toast.success("Đã cập nhật danh mục thành công!");
     },
-    onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message || "Cập nhật danh mục thất bại",
-      );
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Cập nhật danh mục thất bại"));
     },
   });
 }
@@ -92,8 +95,8 @@ export function useDeleteCategoryMutation() {
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
       toast.success("Xóa danh mục thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Xóa danh mục thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Xóa danh mục thất bại"));
     },
   });
 }
@@ -106,10 +109,13 @@ export function useDeleteCategoryMutation() {
 export function useCategoryHelpers() {
   const { data: categories = [] } = useCategoriesQuery(true);
 
-  const getCategoryDisplayName = (category: any, allCategories: any[] = categories): string => {
+  const getCategoryDisplayName = (
+    category: CategoryItem,
+    allCategories: CategoryItem[] = categories,
+  ): string => {
     if (!category?.parentId) return category?.name || "";
 
-    const parent = allCategories.find((cat: any) => cat.id === category.parentId);
+    const parent = allCategories.find((cat) => cat.id === category.parentId);
     if (!parent) return category?.name || "";
 
     return `${getCategoryDisplayName(parent, allCategories)} > ${category.name}`;
@@ -117,14 +123,14 @@ export function useCategoryHelpers() {
 
   // Returns filtered categories (excluding the one being edited)
   const getParentOptions = (excludeId: number | string | null = null) => {
-    return categories.filter((cat: any) => cat.id !== excludeId);
+    return categories.filter((cat) => cat.id !== excludeId);
   };
 
   // Returns categories as {value, label} for Select components
   const getCategorySelectOptions = (excludeId: number | string | null = null) => {
     return categories
-      .filter((cat: any) => cat.id !== excludeId)
-      .map((cat: any) => ({
+      .filter((cat) => cat.id !== excludeId)
+      .map((cat) => ({
         value: cat.id,
         label: getCategoryDisplayName(cat),
       }));

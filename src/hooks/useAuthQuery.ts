@@ -13,12 +13,52 @@ import {
   changePassword as changePasswordApi,
 } from "../queries/user/auth";
 import { setAccessToken, clearAccessToken } from "../lib/api";
+import type { User } from "../store/user";
+import { getErrorMessage, getErrorStatus } from "../utils/httpError";
 
 // Query Keys
 export const authKeys = {
   all: ["auth"],
   profile: () => [...authKeys.all, "profile"],
 };
+
+const normalizeRole = (role?: string): User["role"] | undefined => {
+  const normalized = role?.toUpperCase();
+
+  if (normalized === "ADMIN") return "ADMIN";
+  if (normalized === "STAFF") return "STAFF";
+  if (normalized === "CUSTOMER") return "CUSTOMER";
+
+  return undefined;
+};
+
+const isAdminRole = (
+  role?: User["role"],
+): role is Extract<User["role"], "ADMIN" | "STAFF"> => {
+  return role === "ADMIN" || role === "STAFF";
+};
+
+const toStoreUser = (
+  payload: {
+    id: string | number;
+    email: string;
+    name: string;
+    role: User["role"];
+    avatar?: string | null;
+    phone?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
+  },
+): User => ({
+  id: payload.id,
+  email: payload.email,
+  name: payload.name,
+  role: payload.role,
+  avatar: payload.avatar ?? undefined,
+  phone: payload.phone ?? undefined,
+  createdAt: payload.createdAt,
+  updatedAt: payload.updatedAt,
+});
 
 /**
  * Hook to fetch user profile
@@ -47,24 +87,28 @@ export function useLoginMutation() {
     onSuccess: (data) => {
       if (data.success) {
         const { accessToken, user } = data;
+        const normalizedRole = normalizeRole(user.role);
 
         // Check if user has admin/staff role
-        if (user.role !== "ADMIN" && user.role !== "STAFF") {
+        if (!isAdminRole(normalizedRole)) {
           toast.error("Bạn không có quyền truy cập Admin Panel");
           throw new Error("Unauthorized");
         }
 
         setToken(accessToken);
         setAccessToken(accessToken);
-        setUser(user);
+        setUser(
+          toStoreUser({
+            ...user,
+            role: normalizedRole,
+          }),
+        );
         queryClient.invalidateQueries({ queryKey: authKeys.profile() });
         toast.success("Đăng nhập thành công!");
       }
     },
-    onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message || error.message || "Đăng nhập thất bại",
-      );
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Đăng nhập thất bại"));
     },
   });
 }
@@ -105,13 +149,21 @@ export function useUpdateProfileMutation() {
 
   return useMutation({
     mutationFn: updateProfileApi,
-    onSuccess: (user: any) => {
-      setUser(user);
+    onSuccess: (user) => {
+      const normalizedRole = normalizeRole(user.role);
+      if (!normalizedRole) return;
+
+      setUser(
+        toStoreUser({
+          ...user,
+          role: normalizedRole,
+        }),
+      );
       queryClient.invalidateQueries({ queryKey: authKeys.profile() });
       toast.success("Cập nhật hồ sơ thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Cập nhật hồ sơ thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Cập nhật hồ sơ thất bại"));
     },
   });
 }
@@ -126,8 +178,8 @@ export function useChangePasswordMutation() {
     onSuccess: () => {
       toast.success("Đổi mật khẩu thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Đổi mật khẩu thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Đổi mật khẩu thất bại"));
     },
   });
 }
@@ -141,13 +193,21 @@ export function useUploadAvatarMutation() {
 
   return useMutation({
     mutationFn: uploadAvatarApi,
-    onSuccess: (user: any) => {
-      setUser(user);
+    onSuccess: (user) => {
+      const normalizedRole = normalizeRole(user.role);
+      if (!normalizedRole) return;
+
+      setUser(
+        toStoreUser({
+          ...user,
+          role: normalizedRole,
+        }),
+      );
       queryClient.invalidateQueries({ queryKey: authKeys.profile() });
       toast.success("Cập nhật avatar thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Cập nhật avatar thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Cập nhật avatar thất bại"));
     },
   });
 }
@@ -169,7 +229,8 @@ export function useAuth() {
   // Computed
   const isAuthenticated = !!token && !!user;
   const isAdmin = user?.role === "ADMIN" || user?.role === "STAFF";
-  const loading = !isInitialized;
+  const profileQuery = useProfileQuery();
+  const loading = !isInitialized || (!!token && profileQuery.isLoading && !user);
 
   // Initialize auth on mount - try to refresh token from HttpOnly cookie
   useEffect(() => {
@@ -184,17 +245,6 @@ export function useAuth() {
           // Set token in store and axios interceptor
           setToken(response.accessToken);
           setAccessToken(response.accessToken);
-
-          // Get user profile
-          const userData = await fetchProfile();
-
-          // Check if user has admin/staff role
-          if (userData.role === "ADMIN" || userData.role === "STAFF") {
-            setUser(userData as any); // Cast to bypass role type mismatch from API
-          } else {
-            clearAuth();
-            clearAccessToken();
-          }
         }
       } catch (_error) {
         clearAuth();
@@ -205,7 +255,40 @@ export function useAuth() {
     };
 
     initAuth();
-  }, [isInitialized, setInitialized, setToken, setUser, clearAuth]);
+  }, [isInitialized, setInitialized, setToken, clearAuth]);
+
+  useEffect(() => {
+    if (!token) return;
+
+    if (profileQuery.data) {
+      const normalizedRole = normalizeRole(profileQuery.data.role);
+
+      if (isAdminRole(normalizedRole)) {
+        setUser(
+          toStoreUser({
+            ...profileQuery.data,
+            role: normalizedRole,
+          }),
+        );
+      } else {
+        clearAuth();
+        clearAccessToken();
+      }
+    }
+
+    const status = getErrorStatus(profileQuery.error);
+    if (profileQuery.isError && status === 401) {
+      clearAuth();
+      clearAccessToken();
+    }
+  }, [
+    token,
+    profileQuery.data,
+    profileQuery.isError,
+    profileQuery.error,
+    setUser,
+    clearAuth,
+  ]);
 
   // Mutations
   const loginMutation = useLoginMutation();

@@ -11,6 +11,7 @@ import {
     toggleCustomerStatus,
 } from "../queries/user/customer";
 import { toast } from "react-toastify";
+import { getErrorMessage } from "../utils/httpError";
 
 // ── Query keys ────────────────────────────────────────────────────────────────
 export const customerKeys = {
@@ -65,10 +66,8 @@ export function useToggleCustomerStatusMutation() {
                     : "Vô hiệu hoá tài khoản thành công!",
             );
         },
-        onError: (error: any) => {
-            toast.error(
-                error.response?.data?.message || "Cập nhật trạng thái thất bại",
-            );
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, "Cập nhật trạng thái thất bại"));
         },
     });
 }

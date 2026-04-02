@@ -39,6 +39,7 @@ import {
 } from "../../../utils/orderHelpers";
 import { OrderActions } from "./components";
 import { getItemColumns } from "./utils";
+import type { OrderStatusHistory } from "../../../schema/order.schema";
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -344,7 +345,7 @@ const OrderView = () => {
                 <Row justify="space-between">
                   <Text>Giá trị:</Text>
                   <Text strong>
-                    {order.coupon.type === "PERCENTAGE"
+                    {order.coupon.type === "PERCENT"
                       ? `${order.coupon.value}%`
                       : formatCurrencyVND(order.coupon.value)}
                   </Text>
@@ -361,7 +362,7 @@ const OrderView = () => {
           />
           <Card title="Lịch sử trạng thái" style={{ marginBottom: 24 }}>
             <Timeline>
-              {statusHistory?.map((history: any) => (
+              {statusHistory?.map((history: OrderStatusHistory) => (
                 <Timeline.Item
                   key={history.id}
                   color={getOrderStatusColor(history.toStatus)}

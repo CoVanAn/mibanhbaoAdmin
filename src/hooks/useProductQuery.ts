@@ -19,7 +19,15 @@ import {
   deleteProductMedia,
   reorderProductMedia,
 } from "../queries/product/product";
+import type {
+  ProductFilters,
+  UpdateProductData,
+  VariantData,
+  PriceData,
+  InventoryData,
+} from "../queries/product/types";
 import { toast } from "react-toastify";
+import { getErrorMessage } from "../utils/httpError";
 
 // Query Keys
 export const productKeys = {
@@ -42,7 +50,7 @@ export const productKeys = {
  * Hook to fetch all products
  */
 
-export function useProductsQuery(params = {}) {
+export function useProductsQuery(params: ProductFilters = {}) {
   return useQuery({
     queryKey: productKeys.list(params),
     queryFn: () => fetchProducts(params),
@@ -72,8 +80,8 @@ export function useCreateProductMutation() {
       queryClient.invalidateQueries({ queryKey: productKeys.lists() });
       toast.success("Thêm sản phẩm thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Thêm sản phẩm thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Thêm sản phẩm thất bại"));
     },
   });
 }
@@ -85,7 +93,8 @@ export function useUpdateProductMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => updateProduct(id, data),
+    mutationFn: ({ id, data }: { id: number; data: UpdateProductData }) =>
+      updateProduct(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: productKeys.lists() });
       queryClient.invalidateQueries({
@@ -93,10 +102,8 @@ export function useUpdateProductMutation() {
       });
       toast.success("Cập nhật sản phẩm thành công!");
     },
-    onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message || "Cập nhật sản phẩm thất bại",
-      );
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Cập nhật sản phẩm thất bại"));
     },
   });
 }
@@ -113,8 +120,8 @@ export function useDeleteProductMutation() {
       queryClient.invalidateQueries({ queryKey: productKeys.lists() });
       toast.success("Xóa sản phẩm thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Xóa sản phẩm thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Xóa sản phẩm thất bại"));
     },
   });
 }
@@ -147,7 +154,8 @@ export function useCreateVariantMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ productId, data }: { productId: number; data: any }) => createProductVariant(productId, data),
+    mutationFn: ({ productId, data }: { productId: number; data: VariantData }) =>
+      createProductVariant(productId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: productKeys.variants(variables.productId),
@@ -157,8 +165,8 @@ export function useCreateVariantMutation() {
       });
       toast.success("Thêm biến thể thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Thêm biến thể thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Thêm biến thể thất bại"));
     },
   });
 }
@@ -170,8 +178,15 @@ export function useUpdateVariantMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ productId, variantId, data }: { productId: number; variantId: number; data: any }) =>
-      updateProductVariant(productId, variantId, data),
+    mutationFn: ({
+      productId,
+      variantId,
+      data,
+    }: {
+      productId: number;
+      variantId: number;
+      data: Partial<VariantData>;
+    }) => updateProductVariant(productId, variantId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: productKeys.variants(variables.productId),
@@ -181,10 +196,8 @@ export function useUpdateVariantMutation() {
       });
       toast.success("Cập nhật biến thể thành công!");
     },
-    onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message || "Cập nhật biến thể thất bại",
-      );
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Cập nhật biến thể thất bại"));
     },
   });
 }
@@ -207,8 +220,8 @@ export function useDeleteVariantMutation() {
       });
       toast.success("Xóa biến thể thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Xóa biến thể thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Xóa biến thể thất bại"));
     },
   });
 }
@@ -224,7 +237,7 @@ export function useSetVariantPriceMutation() {
     }: {
       productId: number;
       variantId: number;
-      data: any;
+      data: PriceData;
     }) => setVariantPrice(productId, variantId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -238,8 +251,8 @@ export function useSetVariantPriceMutation() {
       });
       toast.success("Thêm giá biến thể thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Thêm giá biến thể thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Thêm giá biến thể thất bại"));
     },
   });
 }
@@ -257,7 +270,7 @@ export function useUpdateVariantPriceMutation() {
       productId: number;
       variantId: number;
       priceId: number;
-      data: any;
+      data: Partial<PriceData>;
     }) => updateVariantPrice(productId, variantId, priceId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -271,10 +284,8 @@ export function useUpdateVariantPriceMutation() {
       });
       toast.success("Cập nhật giá biến thể thành công!");
     },
-    onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message || "Cập nhật giá biến thể thất bại",
-      );
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Cập nhật giá biến thể thất bại"));
     },
   });
 }
@@ -319,8 +330,8 @@ export function useDeleteVariantPriceMutation() {
       });
       toast.success("Xóa giá biến thể thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Xóa giá biến thể thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Xóa giá biến thể thất bại"));
     },
   });
 }
@@ -336,7 +347,7 @@ export function useUpdateVariantInventoryMutation() {
     }: {
       productId: number;
       variantId: number;
-      data: any;
+      data: InventoryData;
     }) => updateVariantInventory(productId, variantId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -347,10 +358,8 @@ export function useUpdateVariantInventoryMutation() {
       });
       toast.success("Cập nhật tồn kho biến thể thành công!");
     },
-    onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message || "Cập nhật tồn kho biến thể thất bại",
-      );
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Cập nhật tồn kho biến thể thất bại"));
     },
   });
 }
@@ -371,8 +380,8 @@ export function useAddMediaMutation() {
       });
       toast.success("Thêm hình ảnh thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Thêm hình ảnh thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Thêm hình ảnh thất bại"));
     },
   });
 }
@@ -392,8 +401,8 @@ export function useDeleteMediaMutation() {
       });
       toast.success("Xóa hình ảnh thành công!");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Xóa hình ảnh thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Xóa hình ảnh thất bại"));
     },
   });
 }
@@ -412,8 +421,8 @@ export function useReorderMediaMutation() {
         queryKey: productKeys.detail(variables.productId),
       });
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Sắp xếp hình ảnh thất bại");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Sắp xếp hình ảnh thất bại"));
     },
   });
 }

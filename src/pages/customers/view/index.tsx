@@ -9,6 +9,7 @@ import ProfileCard from "./components/ProfileCard";
 import AddressesTab from "./components/AddressesTab";
 import OrderHistoryTab from "./components/OrderHistoryTab";
 import CouponUsageTab from "./components/CouponUsageTab";
+import { getErrorMessage } from "../../../utils/httpError";
 
 const CustomerView = () => {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ const CustomerView = () => {
       <Alert
         type="error"
         message="Không tìm thấy khách hàng"
-        description={(error as any)?.message}
+        description={getErrorMessage(error, "Không thể tải thông tin khách hàng")}
         action={
           <Button onClick={() => navigate("/customers")}>Quay lại</Button>
         }

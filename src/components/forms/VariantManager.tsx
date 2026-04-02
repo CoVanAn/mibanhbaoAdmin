@@ -108,10 +108,7 @@ const VariantManager = ({
             formatter={(value) =>
               `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             }
-            parser={
-              ((value: string | undefined) =>
-                Number((value ?? "").replace(/\$\s?|(,*)/g, ""))) as any
-            }
+            parser={(value) => Number((value ?? "").replace(/\$\s?|(,*)/g, ""))}
             placeholder={
               priceHistoryCount > 0
                 ? "Nhập giá mới (hoặc để trống)"

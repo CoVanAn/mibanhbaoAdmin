@@ -10,7 +10,7 @@ export const getCustomerColumns = (onView: (id: number) => void) => [
     title: "Tên khách hàng",
     key: "name",
     width: 200,
-    render: (_: any, c: CustomerListItem) => (
+    render: (_: unknown, c: CustomerListItem) => (
       <Space direction="vertical" size={0}>
         <Text strong>{c.name}</Text>
         <Text type="secondary" style={{ fontSize: "12px" }}>
@@ -62,7 +62,7 @@ export const getCustomerColumns = (onView: (id: number) => void) => [
     width: 90,
     align: "center" as const,
     fixed: "right" as const,
-    render: (_: any, c: CustomerListItem) => (
+    render: (_: unknown, c: CustomerListItem) => (
       <Button
         type="link"
         icon={<EyeOutlined />}

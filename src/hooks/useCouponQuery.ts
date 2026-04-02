@@ -9,6 +9,7 @@ import {
     fetchCouponRedemptions,
 } from "../queries/order/coupon";
 import type { CouponListParams, CouponPayload } from "../api/coupons";
+import { getErrorMessage } from "../utils/httpError";
 
 // ─── Query Keys ───────────────────────────────────────────
 
@@ -56,8 +57,8 @@ export function useCreateCouponMutation() {
             queryClient.invalidateQueries({ queryKey: couponKeys.lists() });
             toast.success("Tạo coupon thành công!");
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || "Tạo coupon thất bại");
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, "Tạo coupon thất bại"));
         },
     });
 }
@@ -72,8 +73,8 @@ export function useUpdateCouponMutation() {
             queryClient.invalidateQueries({ queryKey: couponKeys.detail(variables.id) });
             toast.success("Cập nhật coupon thành công!");
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || "Cập nhật coupon thất bại");
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, "Cập nhật coupon thất bại"));
         },
     });
 }
@@ -86,8 +87,8 @@ export function useDeleteCouponMutation() {
             queryClient.invalidateQueries({ queryKey: couponKeys.lists() });
             toast.success("Xóa coupon thành công!");
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || "Xóa coupon thất bại");
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, "Xóa coupon thất bại"));
         },
     });
 }

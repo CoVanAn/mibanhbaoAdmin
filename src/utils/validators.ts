@@ -68,7 +68,7 @@ export const validationRules: Record<string, Rule | Rule[]> = {
 // Custom validators
 export const customValidators = {
   confirmPassword: (password: string): Rule => ({
-    validator: (_: any, value: string) => {
+    validator: (_: unknown, value: string) => {
       if (!value || password === value) {
         return Promise.resolve();
       }
@@ -77,7 +77,7 @@ export const customValidators = {
   }),
 
   phoneNumber: {
-    validator: (_: any, value: string) => {
+    validator: (_: unknown, value: string) => {
       if (!value) return Promise.resolve();
       const phoneRegex = /^(\+84|84|0)[3|5|7|8|9][0-9]{8}$/;
       if (phoneRegex.test(value)) {
@@ -91,7 +91,7 @@ export const customValidators = {
     checkFunction: (slug: string, currentId?: string | number | null) => Promise<boolean>,
     currentId: string | number | null = null
   ): Rule => ({
-    validator: async (_: any, value: string) => {
+    validator: async (_: unknown, value: string) => {
       if (!value) return Promise.resolve();
 
       try {
@@ -109,10 +109,10 @@ export const customValidators = {
   }),
 
   fileSize: (maxSize: number = 5 * 1024 * 1024): Rule => ({
-    validator: (_: any, value: any) => {
+    validator: (_: unknown, value: { file?: { size?: number } } | undefined) => {
       if (!value || !value.file) return Promise.resolve();
 
-      if (value.file.size > maxSize) {
+      if ((value.file.size ?? 0) > maxSize) {
         return Promise.reject(new Error(VALIDATION_MESSAGES.FILE_TOO_LARGE));
       }
       return Promise.resolve();
@@ -122,10 +122,10 @@ export const customValidators = {
   fileType: (
     allowedTypes: string[] = ["image/png", "image/jpeg", "image/jpg", "image/webp"]
   ): Rule => ({
-    validator: (_: any, value: any) => {
+    validator: (_: unknown, value: { file?: { type?: string } } | undefined) => {
       if (!value || !value.file) return Promise.resolve();
 
-      if (!allowedTypes.includes(value.file.type)) {
+      if (!value.file.type || !allowedTypes.includes(value.file.type)) {
         return Promise.reject(new Error(VALIDATION_MESSAGES.FILE_TYPE_INVALID));
       }
       return Promise.resolve();

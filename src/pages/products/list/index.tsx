@@ -23,6 +23,10 @@ import {
 import { useCategoriesQuery } from "../../../hooks/useCategoryQuery";
 import { Loading } from "../../../components/common";
 import { formatCurrency } from "../../../utils";
+import type {
+  ProductSummary,
+  ProductVariant,
+} from "../../../schema/product.schema";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -113,11 +117,11 @@ const ProductsList = () => {
     }
   };
 
-  const handleEdit = (product: any) => {
+  const handleEdit = (product: ProductSummary) => {
     navigate(`/products/edit/${product.id}`);
   };
 
-  const handleView = (product: any) => {
+  const handleView = (product: ProductSummary) => {
     navigate(`/products/view/${product.id}`);
   };
 
@@ -157,7 +161,7 @@ const ProductsList = () => {
       dataIndex: "name",
       key: "name",
       width: 460,
-      render: (text: string, record: any) => (
+      render: (text: string, record: ProductSummary) => (
         <div>
           <Text strong>{text}</Text>
           {record.description && (
@@ -197,7 +201,7 @@ const ProductsList = () => {
       title: "Biến thể",
       key: "variants",
       width: 200,
-      render: (_: any, record: any) => {
+      render: (_: unknown, record: ProductSummary) => {
         const variants = Array.isArray(record.variants) ? record.variants : [];
         // 0 variant
         if (variants.length === 0) {
@@ -243,7 +247,7 @@ const ProductsList = () => {
         return (
           <Space direction="vertical" size="small">
             <div>
-              {variants.slice(0, 2).map((variant: any, index: number) => {
+              {variants.slice(0, 2).map((variant: ProductVariant, index: number) => {
                 const currentPrice = variant.price || 0;
                 return (
                   <div
@@ -304,7 +308,7 @@ const ProductsList = () => {
       title: "Hành động",
       key: "actions",
       width: 150,
-      render: (_: any, record: any) => (
+      render: (_: unknown, record: ProductSummary) => (
         <Space>
           <Tooltip title="Xem chi tiết">
             <Button

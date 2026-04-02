@@ -1,4 +1,5 @@
 import { APP_CONFIG } from "./constants";
+import { getErrorMessage } from "./httpError";
 
 // Format currency (VND)
 export const formatCurrency = (amount: number | null | undefined): string => {
@@ -56,7 +57,7 @@ export const validateFile = (file: File | null | undefined): string[] => {
     return errors;
   }
 
-  if (!APP_CONFIG.ALLOWED_IMAGE_TYPES.includes(file.type as any)) {
+  if (!APP_CONFIG.ALLOWED_IMAGE_TYPES.some((type) => type === file.type)) {
     errors.push("Invalid file type. Only PNG, JPG, JPEG, WEBP allowed");
   }
 
@@ -103,7 +104,7 @@ export const revokeFilePreviewUrl = (url: string | null | undefined): void => {
 };
 
 // Debounce function
-export const debounce = <T extends (...args: any[]) => any>(
+export const debounce = <T extends (...args: unknown[]) => void>(
   func: T,
   wait: number
 ): ((...args: Parameters<T>) => void) => {
@@ -124,10 +125,11 @@ export const deepClone = <T>(obj: T): T => {
   if (obj instanceof Date) return new Date(obj.getTime()) as T;
   if (obj instanceof Array) return obj.map((item) => deepClone(item)) as T;
   if (typeof obj === "object") {
-    const clonedObj: any = {};
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        clonedObj[key] = deepClone(obj[key]);
+    const source = obj as Record<string, unknown>;
+    const clonedObj: Record<string, unknown> = {};
+    for (const key in source) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
+        clonedObj[key] = deepClone(source[key]);
       }
     }
     return clonedObj as T;
@@ -136,7 +138,7 @@ export const deepClone = <T>(obj: T): T => {
 };
 
 // Check if object is empty
-export const isEmpty = (obj: any): boolean => {
+export const isEmpty = (obj: unknown): boolean => {
   if (obj === null || obj === undefined) return true;
   if (typeof obj === "string" || Array.isArray(obj)) return obj.length === 0;
   if (typeof obj === "object") return Object.keys(obj).length === 0;
@@ -151,12 +153,5 @@ export const truncateText = (text: string | null | undefined, maxLength: number 
 };
 
 // Parse API error
-export const parseApiError = (error: any): string => {
-  if (error.response?.data?.message) {
-    return error.response.data.message;
-  }
-  if (error.message) {
-    return error.message;
-  }
-  return "Có lỗi xảy ra. Vui lòng thử lại sau.";
-};
+export const parseApiError = (error: unknown): string =>
+  getErrorMessage(error, "Có lỗi xảy ra. Vui lòng thử lại sau.");

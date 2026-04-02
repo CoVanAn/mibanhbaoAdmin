@@ -119,7 +119,7 @@ export const OrderSchema = z.object({
   items: z.array(OrderItemSchema),
   payments: z.array(OrderPaymentSchema).optional(),
   statusHistory: z.array(OrderStatusHistorySchema).optional(),
-  shipment: z.any().nullable().optional(),
+  shipment: z.unknown().nullable().optional(),
 });
 
 export type Order = z.infer<typeof OrderSchema>;
