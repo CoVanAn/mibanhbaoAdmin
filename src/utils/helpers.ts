@@ -103,22 +103,6 @@ export const revokeFilePreviewUrl = (url: string | null | undefined): void => {
   }
 };
 
-// Debounce function
-export const debounce = <T extends (...args: unknown[]) => void>(
-  func: T,
-  wait: number
-): ((...args: Parameters<T>) => void) => {
-  let timeout: NodeJS.Timeout | null = null;
-  return function executedFunction(...args: Parameters<T>) {
-    const later = () => {
-      timeout = null;
-      func(...args);
-    };
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-};
-
 // Deep clone object
 export const deepClone = <T>(obj: T): T => {
   if (obj === null || typeof obj !== "object") return obj;

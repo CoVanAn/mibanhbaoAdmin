@@ -23,6 +23,7 @@ export const ProductImageSchema = z.object({
 // Product Category Schema
 export const ProductCategorySchema = z.object({
   id: z.number(),
+  categoryId: z.number().optional(),
   name: z.string().nullable(),
 });
 
@@ -69,7 +70,7 @@ export type ProductDetail = z.infer<typeof ProductDetailSchema>;
 export type ProductSummary = z.infer<typeof ProductSummarySchema>;
 
 // Form validation schemas for Admin
-const trimmedString = (message : string) => z.string().trim().min(1, { message });
+const trimmedString = (message: string) => z.string().trim().min(1, { message });
 
 const optionalTrimmedString = () =>
   z

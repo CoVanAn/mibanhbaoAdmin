@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import DOMPurify from "dompurify";
 import {
   Card,
   Typography,
@@ -33,6 +34,9 @@ const ProductsView = () => {
     isError,
   } = useProductQuery(id ? parseInt(id) : 0);
   const product = productData;
+  const safeContent = product?.content
+    ? DOMPurify.sanitize(product.content)
+    : "";
 
   if (isLoading)
     return (
@@ -178,9 +182,7 @@ const ProductsView = () => {
             title: "Tồn kho an toàn",
             key: "safetyStock",
             render: (_: unknown, r: ProductVariant) => {
-              const safety =
-                r.safetyStock ??
-                undefined;
+              const safety = r.safetyStock ?? undefined;
               return safety !== undefined && safety !== null ? (
                 <Tag color="blue">{Number(safety).toLocaleString()}</Tag>
               ) : (
@@ -216,7 +218,7 @@ const ProductsView = () => {
               wordWrap: "break-word",
               lineHeight: "1.8",
             }}
-            dangerouslySetInnerHTML={{ __html: product.content }}
+            dangerouslySetInnerHTML={{ __html: safeContent }}
           />
           <Divider />
         </>

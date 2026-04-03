@@ -25,7 +25,6 @@ import type { MenuProps } from "antd";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuthQuery";
 import "./AdminLayout.css";
-// import { assets } from "../../assets/assets";
 
 const { Header, Content, Sider } = Layout;
 
