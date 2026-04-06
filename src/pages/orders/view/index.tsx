@@ -358,6 +358,7 @@ const OrderView = () => {
           <OrderActions
             orderId={orderId}
             status={order.status}
+            method={order.method}
             hasPaidPayment={hasPaidPayment}
           />
           <Card title="Lịch sử trạng thái" style={{ marginBottom: 24 }}>
@@ -379,8 +380,7 @@ const OrderView = () => {
                     {history.changedBy && (
                       <div>
                         <Text type="secondary" style={{ fontSize: "11px" }}>
-                          Bởi:{" "}
-                          {history.changedBy.name || history.changedBy.email}
+                          Bởi: {history.changedBy.name || "Nhân viên"}
                         </Text>
                       </div>
                     )}

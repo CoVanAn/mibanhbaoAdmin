@@ -1,5 +1,7 @@
 import { OrderStatus } from "../schema/order.schema";
 import { formatCurrency, formatDate as formatDateHelper } from "./helpers";
+import type { z } from "zod";
+import { FulfillmentMethodEnum } from "../schema/order.schema";
 
 /**
  * Status configuration with colors and labels
@@ -66,6 +68,8 @@ export const FULFILLMENT_METHOD_CONFIG = {
   PICKUP: { label: "Tự đến lấy", color: "green", icon: "🏪" },
 } as const;
 
+type FulfillmentMethod = z.infer<typeof FulfillmentMethodEnum>;
+
 type OrderCustomerLike = {
   user?: { name?: string | null; phone?: string | null } | null;
   address?: { name?: string | null; phone?: string | null } | null;
@@ -121,7 +125,31 @@ export function canTransitionStatus(
 /**
  * Get available next statuses for current status
  */
-export function getAvailableStatuses(currentStatus: OrderStatus): OrderStatus[] {
+export function getAvailableStatuses(
+  currentStatus: OrderStatus,
+  method: FulfillmentMethod = "DELIVERY"
+): OrderStatus[] {
+  if (method === "PICKUP") {
+    // Keep in sync with server-side pickup transition rules.
+    if (currentStatus === "PENDING") {
+      return ["CONFIRMED", "COMPLETED", "CANCELED"];
+    }
+
+    if (currentStatus === "CONFIRMED") {
+      return ["COMPLETED", "CANCELED"];
+    }
+
+    if (currentStatus === "PREPARING" || currentStatus === "READY") {
+      return ["COMPLETED", "CANCELED"];
+    }
+
+    if (currentStatus === "OUT_FOR_DELIVERY") {
+      return ["COMPLETED", "CANCELED"];
+    }
+
+    return [];
+  }
+
   return STATUS_TRANSITIONS[currentStatus] || [];
 }
 

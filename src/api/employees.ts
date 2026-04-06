@@ -1,4 +1,5 @@
 import apiClient from "./client";
+import { normalizeOptionalPhone } from "../utils/phone";
 
 export interface EmployeeListParams {
   page?: number;
@@ -75,12 +76,21 @@ export const employeesApi = {
   },
 
   create: async (payload: CreateEmployeePayload) => {
-    const response = await apiClient.post("/api/admin/employees", payload);
+    const response = await apiClient.post("/api/admin/employees", {
+      ...payload,
+      phone: normalizeOptionalPhone(payload.phone),
+    });
     return response.data;
   },
 
   update: async (id: number, payload: UpdateEmployeePayload) => {
-    const response = await apiClient.patch(`/api/admin/employees/${id}`, payload);
+    const response = await apiClient.patch(`/api/admin/employees/${id}`, {
+      ...payload,
+      phone:
+        payload.phone !== undefined
+          ? normalizeOptionalPhone(payload.phone)
+          : undefined,
+    });
     return response.data;
   },
 

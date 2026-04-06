@@ -1,5 +1,6 @@
 import { VALIDATION_MESSAGES } from "./constants";
 import { Rule } from "antd/es/form";
+import { normalizePhone } from "./phone";
 
 // Common validation rules for Ant Design forms
 export const validationRules: Record<string, Rule | Rule[]> = {
@@ -79,8 +80,9 @@ export const customValidators = {
   phoneNumber: {
     validator: (_: unknown, value: string) => {
       if (!value) return Promise.resolve();
-      const phoneRegex = /^(\+84|84|0)[3|5|7|8|9][0-9]{8}$/;
-      if (phoneRegex.test(value)) {
+      const normalized = normalizePhone(value);
+      const phoneRegex = /^[0-9]{10,11}$/;
+      if (phoneRegex.test(normalized)) {
         return Promise.resolve();
       }
       return Promise.reject(new Error("Số điện thoại không hợp lệ"));

@@ -23,7 +23,7 @@ import {
   canCancelOrder,
   canRefundOrder,
 } from "../../../../utils/orderHelpers";
-import type { OrderStatus } from "../../../../schema/order.schema";
+import type { OrderStatus, Order } from "../../../../schema/order.schema";
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -32,12 +32,14 @@ const { Option } = Select;
 interface OrderActionsProps {
   orderId: number;
   status: OrderStatus;
+  method: Order["method"];
   hasPaidPayment: boolean;
 }
 
 const OrderActions = ({
   orderId,
   status,
+  method,
   hasPaidPayment,
 }: OrderActionsProps) => {
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
@@ -50,7 +52,7 @@ const OrderActions = ({
   const cancelOrderMutation = useCancelOrderMutation();
   const processRefundMutation = useProcessRefundMutation();
 
-  const availableStatuses = getAvailableStatuses(status);
+  const availableStatuses = getAvailableStatuses(status, method);
   const canCancel = canCancelOrder(status);
   const canRefund = canRefundOrder(status) && hasPaidPayment;
 

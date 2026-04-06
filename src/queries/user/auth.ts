@@ -2,6 +2,7 @@ import axios from "axios";
 import apiClient, { setAccessToken, clearAccessToken } from "../../lib/api";
 import { parseUser } from "../../schema/auth.schema";
 import { API_URL } from "../../utils/constants";
+import { normalizeOptionalPhone } from "../../utils/phone";
 /**
  * Login with email and password
  */
@@ -73,7 +74,7 @@ export async function updateProfile(profileData: {
   const response = await apiClient.patch("/api/user/profile", {
     name: profileData.name?.trim(),
     email: profileData.email?.trim(),
-    phone: profileData.phone?.trim() || null,
+    phone: normalizeOptionalPhone(profileData.phone),
   });
 
   const payload = response.data;
