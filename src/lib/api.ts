@@ -113,8 +113,14 @@ const refreshAccessToken = async (): Promise<string | null> => {
 // Request interceptor - add access token and proactively refresh if expiring soon
 apiClient.interceptors.request.use(
   async (config) => {
-    const token =
+    const windowToken =
       typeof window !== "undefined" ? window.__adminAccessToken : null;
+    const storeToken = useStore.getState().token;
+    const token = windowToken || storeToken || null;
+
+    if (!windowToken && token && typeof window !== "undefined") {
+      window.__adminAccessToken = token;
+    }
 
     if (token) {
       // Check if token is expiring soon (within 5 minutes)
