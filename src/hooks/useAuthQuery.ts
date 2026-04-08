@@ -237,6 +237,10 @@ export function useAuth() {
     if (isInitialized) return;
 
     const initAuth = async () => {
+      if (token) {
+        setAccessToken(token);
+      }
+
       try {
         // Try to refresh access token using HttpOnly cookie
         const response = await refreshTokenApi();
@@ -247,15 +251,18 @@ export function useAuth() {
           setAccessToken(response.accessToken);
         }
       } catch (_error) {
-        clearAuth();
-        clearAccessToken();
+        // If no persisted token is available, clear auth state.
+        if (!token) {
+          clearAuth();
+          clearAccessToken();
+        }
       } finally {
         setInitialized(true);
       }
     };
 
     initAuth();
-  }, [isInitialized, setInitialized, setToken, clearAuth]);
+  }, [isInitialized, token, setInitialized, setToken, clearAuth]);
 
   useEffect(() => {
     if (!token) return;
