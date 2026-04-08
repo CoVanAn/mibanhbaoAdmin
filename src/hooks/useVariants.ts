@@ -150,7 +150,7 @@ export const useVariants = () => {
       data = rest;
     } else {
       priceId = Number(priceIdOrPayload);
-      data = maybePriceData;
+      data = maybePriceData || {};
     }
 
     return updateVariantPriceMutation.mutateAsync({

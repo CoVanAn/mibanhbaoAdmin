@@ -1,6 +1,8 @@
 import PropTypes from "prop-types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReactQuill from "react-quill";
+import type { UnprivilegedEditor } from "react-quill";
+import type { DeltaStatic, Sources } from "quill";
 import "react-quill/dist/quill.snow.css";
 
 const DEFAULT_MAX_LENGTH = 2000;
@@ -19,7 +21,7 @@ const modules = {
     ["blockquote", "link"],
     ["clean"],
   ],
-};  
+};
 
 const formats = [
   "header",
@@ -35,10 +37,23 @@ const formats = [
   "link",
 ];
 
-const RichTextEditor = ({ value, onChange, placeholder, maxLength } : { value?: string; onChange?: (value: string) => void; placeholder?: string; maxLength: number }) => {
+const RichTextEditor = ({
+  value,
+  onChange,
+  placeholder,
+  maxLength,
+}: {
+  value?: string;
+  onChange?: (value: string) => void;
+  placeholder?: string;
+  maxLength: number;
+}) => {
   const limit = useMemo(
-    () => (Number.isFinite(maxLength) && maxLength > 0 ? maxLength : DEFAULT_MAX_LENGTH),
-    [maxLength]
+    () =>
+      Number.isFinite(maxLength) && maxLength > 0
+        ? maxLength
+        : DEFAULT_MAX_LENGTH,
+    [maxLength],
   );
 
   const initialCount = useMemo(() => {
@@ -54,11 +69,11 @@ const RichTextEditor = ({ value, onChange, placeholder, maxLength } : { value?: 
 
   const handleChange = (
     content: string,
-    _delta: unknown,
-    _source: unknown,
-    editor: { root?: { innerHTML?: string } } | undefined,
+    _delta: DeltaStatic,
+    _source: Sources,
+    editor: UnprivilegedEditor,
   ) => {
-    const html = editor?.root?.innerHTML ?? content ?? "";
+    const html = editor.getHTML ? editor.getHTML() : content;
     lastHtmlRef.current = html;
     onChange?.(html);
   };
@@ -96,7 +111,14 @@ const RichTextEditor = ({ value, onChange, placeholder, maxLength } : { value?: 
         readOnly={false}
         placeholder={placeholder || `Nhập nội dung (tối đa ${limit} ký tự)`}
       />
-      <div style={{ textAlign: "right", marginTop: 6, color: "#888", fontSize: 12 }}>
+      <div
+        style={{
+          textAlign: "right",
+          marginTop: 6,
+          color: "#888",
+          fontSize: 12,
+        }}
+      >
         {count}/{limit} ký tự
       </div>
     </>
